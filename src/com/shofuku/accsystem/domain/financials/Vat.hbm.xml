@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.financials.Vat"
+		table="t703_vat_details">
+		<id type="string" name="vatReferenceNo" column="VAT_REFERENCE_NO"/>
+		<property name="tinNumber" type="string" column="TIN_NUMBER" />
+		<property name="payee" type="string" column="PAYEE" />
+		<property name="address" type="string" column="ADDRESS" />
+		<property name="orNo" type="string" column="OR_NO" />
+		<property name="vatAmount" type="double" column="VAT_AMOUNT" />
+		<property name="vattableAmount" type="double" column="VATTABLE_AMOUNT" />
+		<property type="timestamp" name="orDate" column="OR_DATE" />
+	</class>
+</hibernate-mapping>	

@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.financials.JournalEntryProfile"
+		table="t904_journal_entries">
+
+		<id name="entryNo" type="string" column="ENTRY_NO" />
+		<!--  <property name="accountCode" type="string" column="ACCOUNT_CODE"></property> -->
+		<property name="entryName" type="string" column="ENTRY_NAME" />
+		<property name="comment" type="string" column="COMMENT" />
+		<property name="amount" type="double" column="AMOUNT" />
+		<property name="isAccepted" type="string" column="IS_ACCEPTED" />
+		<property name="postingDate" type="timestamp" column="POSTING_DATE" />
+		<property name="entryDate" type="timestamp" column="ENTRY_DATE" />
+		
+		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		<many-to-one name="aepCredit"
+			class="com.shofuku.accsystem.domain.financials.AccountEntryProfile"
+			column="ACCOUNT_CODE_C" fetch="select" not-null="true" lazy="false" />
+		
+		<many-to-one name="aepDebit"
+			class="com.shofuku.accsystem.domain.financials.AccountEntryProfile"
+			column="ACCOUNT_CODE_D" fetch="select" not-null="true" lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		
+		<property name="module" type="string" column="MODULE" />
+	</class>
+</hibernate-mapping>

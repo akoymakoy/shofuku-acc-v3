@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.receipts.OROthers"
+		table="t502_or_others">
+
+		<id name="orNumber" column="OR_NO" type="string" />
+
+		<property name="orDate" type="timestamp" column="OR_DATE" />
+
+		<property name="receivedFrom" type="string" column="RECEIVED_FROM" />
+		<property name="address" type="string" column="ADDRESS" />
+		<property name="busStyle" type="string" column="BUS_STYLE" />
+		<property name="tin" type="string" column="TIN" />
+
+		<property name="theAmountOf" type="double" column="THE_AMOUNT_OF" />
+		<property name="amountInWords" type="string" column="AMOUNT_IN_WORDS" />
+		<property name="inFullPartialPaymentOf" type="string" column="IN_FULL_PARTIAL_PAYMENT_OF" />
+		<property name="receivedBy" type="string" column="RECEIVED_BY" />
+		<property name="salesInvoiceNumber" type="string" column="SALES_INVOICE_NO" />
+
+		<property type="double" name="amount" column="AMOUNT" />
+		<property type="double" name="total" column="TOTAL" />
+
+		<property type="double" name="cash" column="CASH" />
+		<property type="double" name="check" column="CHECK_AMOUNT" />
+		<property type="string" name="bankCheckNo" column="BANK_CHECK_NO" />
+		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		<many-to-one name="vatDetails"
+			class="com.shofuku.accsystem.domain.financials.Vat"
+			column="VAT_REFERENCE_NO" not-null="true" unique="true"
+			lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: AZ-->
+	</class>
+</hibernate-mapping>

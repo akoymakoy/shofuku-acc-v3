@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.receipts.CashCheckReceipts"
+		table="t503_cash_check_receipts">
+
+		<id name="cashReceiptNo" column="CASH_RECEIPT_NO" type="string" />
+		<property name="cashReceiptDate" type="timestamp" column="CASH_RECEIPT_DATE" />
+		<property name="payee" type="string" column="PAYEE" />
+		<property name="particulars" type="string" column="PARTICULARS" />
+		<property type="double" name="amount" column="AMOUNT" />
+		<property name="receivedBy" type="string" column="RECEIVED_BY" />
+		<property type="string" name="checkNo" column="CHECK_NO" />
+		<property name="bankName" type="string" column="BANK_NAME" />
+		<property name="bankAccountNo" type="string" column="BANK_ACCOUNT_NO" />
+		<property name="checkRemarks" type="string" column="CHECK_REMARKS" />
+		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		<many-to-one name="vatDetails"
+			class="com.shofuku.accsystem.domain.financials.Vat"
+			column="VAT_REFERENCE_NO" not-null="true" unique="true"
+			lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: AZ-->
+	</class>
+</hibernate-mapping>

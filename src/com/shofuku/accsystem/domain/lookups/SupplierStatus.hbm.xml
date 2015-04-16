@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.lookups.SupplierStatus"
+		table="t901_util_lookup_supplier_status">
+		<id name="id" type="int" column="ID" ></id>
+		<property name="value" type="string" column="VALUE" />
+		<property name="module" type="string" column="MODULE" />
+	</class>
+</hibernate-mapping>

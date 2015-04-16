@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails"
+		table="t601_purchase_order_details">
+		<id name="id" type="int" column="id">
+			<generator class="native" />
+		</id>
+		<property name="itemCode" type="string" column="ITEM_CODE" />
+		<property name="description" type="string" column="DESCRIPTION" />
+		<property name="quantity" type="double" column="QUANTITY" />
+		<property name="unitOfMeasurement" type="string" column="UNIT_OF_MEASUREMENT" />
+		<property name="unitCost" type="double" column="UNIT_COST" />
+		<property name="amount" type="double" column="AMOUNT" />
+		<property name="vatAmount" type="double" column="VAT_AMOUNT" />
+		<property name="vattableAmount" type="double" column="VATTABLE_AMOUNT" />
+		<property name="quantityIn" type="double" column="QUANTITY_IN" not-null="true"/>
+		<property name="quantityOut" type="double" column="QUANTITY_OUT" not-null="true"/>
+		<property name="orderCreatedDate" type="timestamp" column="ORDER_DATE" not-null="true"/>
+
+	</class>
+</hibernate-mapping>

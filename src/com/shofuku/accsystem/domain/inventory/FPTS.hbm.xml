@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.FPTS"
+		table="t306_fpts">
+
+		<id name="fptsNo" type="string" column="FPTS_NO"></id>
+		
+		<property name="fptsTo" type="string" column="FPTS_TO" />
+		<property name="fptsFrom" type="string" column="FPTS_FROM" />
+		
+		<property name="transactionDate" type="timestamp" column="TRANSACTION_DATE" />
+		<property name="approvedDate" type="timestamp" column="APPROVED_DATE" />
+		<property name="receivedDate" type="timestamp" column="RECEIVED_DATE" />
+
+		<property name="transferredBy" type="string" column="TRANSFERRED_BY" />
+		<property name="receivedBy" type="string" column="RECEIVED_BY" />
+		
+		<many-to-one name="requisitionForm" class="com.shofuku.accsystem.domain.inventory.RequisitionForm"
+			column="REQUISITION_NO" not-null="true" unique="true"
+			lazy="false" />
+		
+		<set name="purchaseOrderDetailsTransferred" table="t602_orders" lazy="true">
+			<key column="FPTS_NO_T" not-null="false"/>
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+		
+		<set name="purchaseOrderDetailsReceived" table="t602_orders" lazy="true">
+			<key column="FPTS_NO_R" not-null="false"/>
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+	</class>
+</hibernate-mapping>

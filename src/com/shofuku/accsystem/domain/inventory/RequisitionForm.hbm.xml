@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.RequisitionForm"
+		table="t306_requisition_form">
+	
+	<id name="requisitionNo" type="string" column="REQUISITION_NO"></id>
+		
+	<property name="requisitionType" type="string" column="REQUISITION_TYPE" />
+	<property name="requisitionTo" type="string" column="REQUISITION_TO" />
+	<property name="requisitionBy" type="string" column="REQUISITION_BY" />
+	
+	<property name="requisitionApprovedBy" type="string" column="REQUISITION_APPROVED_BY" />
+	<property name="requistionReceivedBy" type="string" column="REQUISITION_RECEIVED_BY" />
+	
+	<property name="requisitionDate" type="timestamp" column="REQUISITION_DATE" />
+	
+	<set name="purchaseOrderDetailsOrdered" table="t602_orders" lazy="true">
+			<key column="REQUISITION_NO_O" not-null="false" />			
+			<many-to-many lazy="false" column="id" unique="true" 
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+	</set>
+	<set name="purchaseOrderDetailsReceived" table="t602_orders" lazy="true">
+			<key column="REQUISITION_NO_R" not-null="false" />			
+			<many-to-many lazy="false" column="id" unique="true" 
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+	</set>
+	</class>
+</hibernate-mapping>

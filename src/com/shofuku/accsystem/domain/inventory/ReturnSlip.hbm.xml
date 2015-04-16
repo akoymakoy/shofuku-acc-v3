@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.ReturnSlip"
+		table="t307_return_slip">
+	
+	<id name="returnSlipNo" type="string" column="RETURN_SLIP_NO"></id>
+		
+	<property name="returnSlipFrom" type="string" column="RETURN_SLIP_FROM" />
+	<property name="returnSlipTo" type="string" column="RETURN_SLIP_TO" />
+	<property name="returnSlipReferenceOrderNo" type="string" column="RETURN_SLIP_REF" />
+	<property name="preparedBy" type="string" column="PREPARED_BY" />
+	<property name="approvedBy" type="string" column="APPROVED_BY" />
+	<property name="returnDate" type="timestamp" column="RETURN_DATE" />
+	
+	<many-to-one name="memo"
+			class="com.shofuku.accsystem.domain.inventory.Memo" column="MEMO"
+			not-null="false" unique="false" lazy="false" />
+	
+	<set name="purchaseOrderDetails" table="t602_orders" lazy="true">
+			<key column="RETURN_SLIP_NO" not-null="false" />			
+			<many-to-many lazy="false" column="id" unique="true" 
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+	</set>
+	</class>
+</hibernate-mapping>

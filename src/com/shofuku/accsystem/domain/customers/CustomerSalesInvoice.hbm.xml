@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.customers.CustomerSalesInvoice"
+		table="t204_sales_invoice">
+
+		<id name="customerInvoiceNo" column="SALES_INVOICE_NO" type="string" />
+
+		<property name="customerInvoiceDate" type="timestamp" column="SALES_INVOICE_DATE" />
+		<property name="soldTo" type="string" column="SOLD_TO" />
+		<property name="address" type="string" column="ADDRESS" />
+		<property name="busStyle" type="string" column="BUS_STYLE" />
+		<property name="tin" type="string" column="TIN" />
+
+		<many-to-one name="deliveryReceipt"
+			class="com.shofuku.accsystem.domain.customers.DeliveryReceipt" column="DELIVERY_RECEIPT"
+			not-null="true" unique="true" lazy="false" />
+
+		<set name="purchaseOrderDetails" table="t602_orders" >
+			<key column="SALES_INVOICE_NO" />
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+
+		<property type="double" name="totalSales" column="TOTAL_SALES" />
+		<property type="double" name="vat" column="VAT" />
+		<property type="double" name="totalAmount" column="TOTAL_AMOUNT" />
+
+		<property type="string" name="preparedBy" column="PREPARED_BY" />
+		<property type="string" name="receivedBy" column="RECEIVED_BY" />
+
+		<!--START: 2013 - PHASE 3 : PROJECT 4: MARK-->
+		<many-to-one name="vatDetails"
+			class="com.shofuku.accsystem.domain.financials.Vat"
+			column="VAT_REFERENCE_NO" not-null="true" unique="true"
+			lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: MARK-->
+	</class>
+</hibernate-mapping>

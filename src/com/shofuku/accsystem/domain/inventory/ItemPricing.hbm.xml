@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.ItemPricing"
+		table="t305_item_pricing">
+
+
+		<id name="pricingId" 							type="int" column="id">
+		<generator class="native" />		
+		</id>
+		<property name="itemCode" 							type="string" column="ITEM_CODE"></property>
+		<property name="itemType" 							type="string" column="ITEM_TYPE"></property>
+		<property name="franchiseStandardPricePerUnit" 		type="double" column="STANDARD_FR"></property>
+		<property name="franchiseActualPricePerUnit" 			type="double" column="ACTUAL_FR"></property>
+		<property name="franchiseTransferPricePerUnit" 		type="double" column="TRANSFER_FR"></property>
+		<property name="companyOwnedStandardPricePerUnit" 	type="double" column="STANDARD_CP"></property>
+		<property name="companyOwnedActualPricePerUnit" 		type="double" column="ACTUAL_CP"></property>
+		<property name="companyOwnedTransferPricePerUnit" 	type="double" column="TRANSFER_CP"></property>
+
+	</class>
+</hibernate-mapping>
