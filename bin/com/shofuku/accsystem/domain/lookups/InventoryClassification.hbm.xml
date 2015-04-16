@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.lookups.InventoryClassification"
+		table="t901_util_lookup_inventory_classification">
+		<id name="id" type="int" column="ID" ></id>
+		<property name="classification" type="string" column="CLASSIFICATION" />
+		<property name="subClassification" type="string" column="SUB_CLASSIFICATION" />
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.StockStatus"
+		table="t309_stock_status">
+	
+	<id name="id" 						type="int" 	column="ID"></id>
+	<property name="itemCode" 						type="string" 	column="ITEM_CODE"></property>
+	<property name="xmlInventoryCount" type="java.sql.Clob" column="INVENTORY_COUNT"/>
+	
+	
+	<properties name="itemCodeMonthAndYear" unique="true">
+		<property name="itemCode" 		insert="false" update="false"	type="string" 	column="ITEM_CODE"/>
+        <property name="month" type="int" column="MONTH" />
+		<property name="year" type="int" column="YEAR" />
+	</properties>
+
+	</class>
+</hibernate-mapping>

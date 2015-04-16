@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.financials.AccountEntryProfile"
+		table="t902_account_entries">
+
+		<id name="accountCode" type="string" column="ACCOUNT_CODE"></id>
+		<property name="parentCode" type="string" column="PARENT_CODE" />
+		<property name="name" type="string" column="NAME" />
+		<property name="reportType" type="string" column="REPORT_TYPE" />
+		<property name="reportAction" type="string" column="ACTION" />
+		<property name="classification" type="string" column="CLASSIFICATION" />
+		<property name="hierarchy" type="string" column="HIERARCHY" />
+		
+		<many-to-one name="accountingRules"
+			class="com.shofuku.accsystem.domain.financials.AccountingRules" column="RULE_ID"
+			not-null="false" unique="true" lazy="false" />
+			
+		<property name="isActive" type="string" column="IS_ACTIVE" />
+		
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder"
+		table="t202_customer_purchase_order">
+
+		<id name="customerPurchaseOrderId" column="PURCHASE_ORDER_NO" type="string" />
+
+		<property type="timestamp" name="dateOfDelivery" column="DATE_OF_DELIVERY" />
+		<property type="timestamp" name="paymentDate" column="PAYMENT_DATE" />
+		<property type="string" name="paymentTerm" column="PAYMENT_TERM" />
+		<property type="double" name="totalAmount" column="TOTAL_AMOUNT" />
+		<property type="string" name="orderedBy" column="ORDERED_BY" />
+		<property type="string" name="approvedBy" column="APPROVED_BY" />
+		<property type="timestamp" name="purchaseOrderDate" column="PURCHASE_ORDER_DATE" />
+
+		<many-to-one name="customer"
+			class="com.shofuku.accsystem.domain.customers.Customer" column="CUSTOMER_ID"
+			not-null="true" unique="true" lazy="false" />
+
+
+		<set name="purchaseOrderDetails" table="t602_orders" lazy="true">
+			<key column="CUSTOMER_PURCHASE_ORDER_NO" />
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+		
+	</class>
+</hibernate-mapping>

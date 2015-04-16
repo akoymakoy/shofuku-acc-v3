@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.customers.Customer"
+		table="t201_customers">
+		<id name="customerNo" type="string" column="CUSTOMER_ID"></id>
+		<property name="customerName" type="string" column="CUSTOMER_NAME" />
+		<property name="contactName" type="string" column="CONTACT_NAME" />
+		<property name="customerType" type="string" column="CUSTOMER_TYPE" />
+		<property name="contactTitle" type="string" column="CONTACT_TITLE" />
+		<property name="billingAddress" type="string" column="BILLING_ADDRESS" />
+		<property name="phoneNumber" type="string" column="PHONE_NUMBER" />
+		<property name="faxNumber" type="string" column="FAX_NUMBER" />
+		<property name="mobileNumber" type="string" column="MOBILE_NUMBER" />
+		<property name="emailAddress" type="string" column="EMAIL_ADDRESS" />
+		<property name="website" type="string" column="WEBSITE" />
+		<property name="tin" type="string" column="TIN" />
+
+
+  		<map name="customerStockLevelMap" cascade="all">
+         <key column="CUSTOMER_ID"/>
+         <index column="ITEM_CODE" type="string"/>
+         <one-to-many class="com.shofuku.accsystem.domain.customers.CustomerStockLevel"/>
+      	</map>
+      	
+		
+	</class>
+</hibernate-mapping>

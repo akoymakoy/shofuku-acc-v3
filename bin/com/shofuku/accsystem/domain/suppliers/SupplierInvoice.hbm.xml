@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.suppliers.SupplierInvoice"
+		table="t104_supplier_invoice">
+		
+		<id type="string" name="supplierInvoiceNo" column="SUPPLIER_INVOICE_NO"/>
+		
+		<property type="timestamp" name="supplierInvoiceDate" column="SUPPLIER_INVOICE_DATE" />
+
+		<many-to-one name="receivingReport"
+			class="com.shofuku.accsystem.domain.suppliers.ReceivingReport"
+			column="RECEIVING_REPORT_NO" not-null="true" unique="true"
+			lazy="false" />
+
+		<property type="string" name="checkBox" column="CHECK_BOX" />
+		<property type="string" name="remarks" column="REMARKS" />
+
+		<property type="string" name="debit1Title" column="DEBIT1_TITLE" />
+		<property type="double" name="debit1Amount" column="DEBIT1_AMOUNT" not-null="true" />
+		<property type="string" name="debit2Title" column="DEBIT2_TITLE" />
+		<property type="double" name="debit2Amount" column="DEBIT2_AMOUNT" not-null="true" />
+		<property type="double" name="remainingBalance" column="REMAINING_BALANCE" not-null="true" />
+
+
+		<set name="purchaseOrderDetails" table="t602_orders" >
+			<key column="SUPPLIER_INVOICE_NO" />
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+		
+		<property type="string" name="credit1Title" column="CREDIT1_TITLE" />
+		<property type="double" name="credit1Amount" column="CREDIT1_AMOUNT" not-null="true" />
+		<property type="string" name="credit2Title" column="CREDIT2_TITLE" />
+		<property type="double" name="credit2Amount" column="CREDIT2_AMOUNT" not-null="true" />
+		<property type="string" name="preparedBy" column="PREPARED_BY" />
+		<property type="double" name="purchaseOrderDetailsTotalAmount" column="TOTAL_PURCHASES" not-null="true" />
+		<!--START: 2013 - PHASE 3 : PROJECT 4: MARK-->
+		<many-to-one name="vatDetails"
+			class="com.shofuku.accsystem.domain.financials.Vat"
+			column="VAT_REFERENCE_NO" not-null="true" unique="true"
+			lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: MARK-->
+	
+	</class>
+</hibernate-mapping>

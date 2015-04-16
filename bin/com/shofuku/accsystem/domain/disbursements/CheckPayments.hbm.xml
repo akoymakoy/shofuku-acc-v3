@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.disbursements.CheckPayments"
+		table="t403_check_payment">
+
+		<id name="checkVoucherNumber" type="string" column="CHECK_VOUCHER_NO"></id>
+		<property name="checkVoucherDate" type="timestamp" column="CHECK_VOUCHER_DATE" />
+		<property name="dueDate" type="timestamp" column="DUE_DATE" />
+		<property name="payee" type="string" column="PAYEE" />
+		<property name="description" type="string" column="DESCRIPTION" />
+		<property name="particulars" type="string" column="PARTICULARS" />
+		<property name="amount" type="double" column="AMOUNT" />
+		<property name="vat" type="string" column="VAT" not-null="false"/>
+		<property name="vatAmount" type="double" column="VAT_AMOUNT" not-null="false" />
+		<property name="finalAmount" type="double" column="FINAL_AMOUNT" not-null="false" />
+		<property name="bankName" type="string" column="BANK_NAME" />
+		<property name="bankAccountNumber" type="string" column="BANK_ACCOUNT_NO" />
+		<property name="checkNo" type="string" column="CHECK_NO" />
+		<property name="chequeDate" type="timestamp" column="CHEQUE_DATE" />
+		<property name="amountInWords" type="string" column="AMOUNT_IN_WORDS" />
+		<property name="releasedBy" type="string" column="RELEASE_BY" />
+		<property name="approvedBy" type="string" column="APPROVED_BY" />
+		<property name="debitTitle" type="string" column="DEBIT1_TITLE" />
+		<property name="debitAmount" type="double" column="DEBIT1_AMOUNT" />
+		<property name="creditTitle" type="string" column="CREDIT1_TITLE" />
+		<property name="creditAmount" type="double" column="CREDIT1_AMOUNT" />
+		<property name="remainingBalance" type="double" column="REMAINING_BALANCE" not-null="true" />
+		<property name="amountToPay" type="double" column="AMOUNT_TO_PAY" not-null="true" />
+		<property name="isEncashed" type="string" column="PRINTED" />
+		<property name="isPrinted" type="string" column="ENCASHED" />
+
+		<many-to-one name="invoice"
+			class="com.shofuku.accsystem.domain.suppliers.SupplierInvoice"
+			column="SUPPLIER_INVOICE_NO" unique="false" not-null="false"
+			lazy="false" />
+		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		<many-to-one name="vatDetails"
+			class="com.shofuku.accsystem.domain.financials.Vat"
+			column="VAT_REFERENCE_NO" not-null="true" unique="true"
+			lazy="false" />
+		<!--END: 2013 - PHASE 3 : PROJECT 4: AZ-->
+	
+	</class>
+	
+	
+</hibernate-mapping>

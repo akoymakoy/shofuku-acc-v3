@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.Ingredient"
+		table="t303_ingredients">
+		
+		<id name="id" type="int" column="id">
+			<generator class="native" />
+		</id>
+		<property name="productCode" type="string" column="PRODUCT_CODE" />
+		<property name="description" type="string" column="DESCRIPTION" />
+		<property name="quantity" type="double"	column="QUANTITY" />	
+		<property name="unitOfMeasurement" type="string" column="UNIT_OF_MEASUREMENT" />
+		<property name="standardPricePerUnit" type="double"	column="STANDARD_PRICE_PER_UNIT" />
+		<property name="actualPricePerUnit" type="double"	column="ACTUAL_PRICE_PER_UNIT" />
+		<property name="transferPricePerUnit" type="double"	column="TRANSFER_PRICE_PER_UNIT" />
+
+	</class>
+</hibernate-mapping>

@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.customers.DeliveryReceipt"
+		table="t203_delivery_receipt">
+		<id name="deliveryReceiptNo" column="DELIVERY_RECEIPT_NO" type="string" />
+
+		<property type="timestamp" name="deliveryReceiptDate" column="DELIVERY_RECEIPT_DATE" />
+		
+		<property type="string" name="shippingMethod" column="SHIPPING_METHOD" />
+		<property type="timestamp" name="shippingDate" column="SHIPPING_DATE" />
+		<property type="timestamp" name="dueDate" column="DUE_DATE" />
+
+		<many-to-one name="customerPurchaseOrder" class="com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder"
+			column="PURCHASE_ORDER_NO" not-null="true" unique="true"
+			lazy="false" />
+
+		<property type="string" name="checkBox" column="CHECK_BOX" />
+
+		<set name="purchaseOrderDetails" table="t602_orders" >
+			<key column="DELIVERY_RECEIPT_NO" />
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails" />
+		</set>
+		<property type="string" name="remarks" column="REMARKS" />
+		<property type="double" name="totalAmount" column="TOTAL_AMOUNT" />
+		<property type="string" name="preparedBy" column="PREPARED_BY" />
+
+	</class>
+</hibernate-mapping>

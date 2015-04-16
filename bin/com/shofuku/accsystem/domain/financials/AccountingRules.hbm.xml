@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.financials.AccountingRules"
+		table="t702_accounting_rules">
+
+		<id name="ruleId" type="int" column="RULE_ID"></id>
+		<property name="accountCode" type="string" column="ACCOUNT_CODE"/>
+		<property name="supplierPurchaseOrder" type="string" column="SUPPLIER_PO" />
+		<property name="supplierReceivingReport" type="string" column="SUPPLIER_RR" />
+		<property name="supplierInvoice" type="string" column="SUPPLIER_INV" />
+		<property name="customerPurchaseOrder" type="string" column="CUSTOMER_PO" />
+		<property name="customerDeliveryReceipt" type="string" column="CUSTOMER_DR" />
+		<property name="customerInvoice" type="string" column="CUSTOMER_INV" />
+		<property name="inventoryFPTS" type="string" column="INVENTORY_FPTS" />
+		<property name="inventoryOR" type="string" column="INVENTORY_OR" />
+		<property name="inventoryRS" type="string" column="INVENTORY_RS" />
+		<property name="disbursementPettyCash" type="string" column="DISBURSEMENT_PC" />
+		<property name="disbursementCashPayment" type="string" column="DISBURSEMENT_CASHP" />
+		<property name="disbursementCheckPayment" type="string" column="DISBURSEMENT_CHKP" />
+		<property name="disbursementCheckVoucher" type="string" column="DISBURSEMENT_CHKV" />
+		<property name="receiptsOrSales" type="string" column="RECEIPTS_ORSALES" />
+		<property name="receiptsOrOther" type="string" column="RECEIPTS_OROTHER" />
+		<property name="receiptsCheck" type="string" column="RECEIPTS_CHECK" />
+		<property name="journal" type="string" column="JOURNAL" />
+	</class>
+</hibernate-mapping>	
+
+	
+	
+
+	
+	

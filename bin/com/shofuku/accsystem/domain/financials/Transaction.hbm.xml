@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.financials.Transaction"
+		table="t701_transactions">
+		<id name="id" type="int" column="ID">
+			<generator class="native" />
+		</id>
+		<property name="transactionReferenceNumber" type="string" column="TRANSACTION_REFERENCE_NO"></property>
+		<property name="transactionType" type="string" column="TRANSACTION_TYPE" />
+		<property name="transactionAction" type="string" column="ACTION" />
+		<many-to-one name="accountEntry"
+			class="com.shofuku.accsystem.domain.financials.AccountEntryProfile"
+			column="ACCOUNT_CODE" not-null="true" unique="true"
+			lazy="false" />
+		<property name="amount" type="double" column="AMOUNT" />
+		<property name="transactionDate" type="timestamp" column="TRANSACTION_DATE" />
+		<property name="createdBy" type="string" column="CREATED_BY" />
+		<property name="isInUse" type="string" column="IS_IN_USE" />
+		
+	</class>
+</hibernate-mapping>	
