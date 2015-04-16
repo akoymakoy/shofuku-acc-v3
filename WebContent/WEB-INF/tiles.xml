@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+
+<tiles-definitions>
+
+<!--  Main Layout -->
+
+	<definition name="baseLayout.tiles" template="/layout/baseLayout.jsp">	
+		<put-attribute name="header" value="/layout/header.jsp"/>
+		<put-attribute name="mainMenu" value="/jsp/util/menu.jsp"/>
+		<put-attribute name="body" value="/layout/body.jsp"/>
+		<put-attribute name="footer" value="/layout/footer.jsp"/>
+	</definition>
+
+	<!--  Search Layout -->
+	
+	<definition name="searchLayout.tiles" template="/layout/searchLayout.jsp">	
+		<put-attribute name="header1" value="/layout/searchParameterLayout.jsp"/>
+		<put-attribute name="body1" value="/jsp/searchResultsForm.jsp"/>
+	</definition>
+	
+	<definition name="searchBaseLayout.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="searchLayout.tiles"/>
+	</definition>
+	
+	<definition name="searchSample" extends="searchBaseLayout.tiles">	
+		<put-attribute name="header1" value="/jsp/searchCustomerParameter.jsp"/>
+	</definition>
+	
+		
+<!--  SEARCH MODULE -->
+	
+	<definition name="showSearchSupplierForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/supplier/searchSupplierForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchCustomerForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/customer/searchCustomerForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchDisbursementForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/disbursement/searchDisbursementForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchReceiptForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/receipt/searchReceiptForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchInventoryForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/inventory/searchInventoryForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchFinancialsForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/financials/searchFinancialsForm.jsp"/>
+	</definition>
+	
+	<definition name="showSearchSecurityForm.tiles" extends="baseLayout.tiles">	
+		<put-attribute name="body" value="/jsp/security/searchSecurityForm.jsp"/>
+	</definition>
+	
+<!-- Supplier Module -->
+	
+	<definition name="showSupplierForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/supplier/supplierProfileForm.jsp"/>
+	</definition>
+	
+	<definition name="showSupplierPurchaseOrderForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/supplier/supplierPurchaseOrderForm.jsp"/>
+	</definition>
+	
+	<definition name="showSupplierReceivingReportForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/supplier/supplierReceivingReportForm.jsp"/>
+	</definition>
+	
+	<definition name="showSupplierInvoiceForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/supplier/supplierInvoiceForm.jsp"/>
+	</definition>
+	
+	<definition name="showSupplierSummaryForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/supplier/summarySupplierSearchForm.jsp"/>
+	</definition>
+	
+	<definition name="showSupplierCheckVoucherForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/disbursement/supplierCheckVoucherForm.jsp"/>
+	</definition>
+
+	
+<!--  Customer Module -->
+
+	<definition name="showCustomerProfileForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/customer/customerProfileForm.jsp"/>
+	</definition>
+	
+	<definition name="showCustomerPurchaseOrderForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/customer/customerPurchaseOrderForm.jsp"/>
+	</definition>
+	
+	<definition name="showCustomerDeliveryReceiptForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/customer/customerDeliveryReceiptForm.jsp"/>
+	</definition>
+	
+	<definition name="showCustomerInvoiceForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/customer/customerInvoiceForm.jsp"/>
+	</definition>
+	
+	<definition name="showCustomerSummaryForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/customer/summaryCustomerSearchForm.jsp"/>
+	</definition>
+	
+	
+	
+<!--  Disbursement Module -->
+	
+	<definition name="showDisbursementPettyCashForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/disbursement/disbursementPettyCashForm.jsp"/>
+	</definition>
+	
+	<definition name="showDisbursementCashPaymentForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/disbursement/disbursementCashPaymentForm.jsp"/>
+	</definition>
+	
+	<definition name="showDisbursementCheckPaymentForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/disbursement/disbursementCheckPaymentForm.jsp"/>
+	</definition>
+	
+	<definition name="showDisbursementSummaryForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/disbursement/summaryDisbursementSearchForm.jsp"/>
+	</definition>
+	
+	<definition name="showCheckForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/util/printedCheckForm.jsp"/>
+	</definition>
+	
+<!-- Receipts Module -->
+	
+	<definition name="showORSalesForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/receipt/receiptORSalesForm.jsp"/>
+	</definition>
+	<definition name="showOROtherIncomeForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/receipt/receiptOROtherIncomeForm.jsp"/>
+	</definition>
+	<definition name="showCashCheckReceiptForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/receipt/receiptCashCheckForm.jsp"/>
+	</definition>
+	<definition name="showReceiptSummaryForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/receipt/summaryReceiptSearchForm.jsp"/>
+	</definition>
+	
+	<!-- Inventory Module -->
+	
+	<definition name="showRawMaterialsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/rawMaterialsForm.jsp"/>
+	</definition>
+	<definition name="showTradedItemsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/tradedItemsForm.jsp"/>
+	</definition>
+	<definition name="showReturnSlipForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/ReturnSlipForm.jsp"/>
+	</definition>
+	<definition name="showFinishedGoodsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/finishedGoodsForm.jsp"/>
+	</definition>
+	<definition name="showFinishedProductTransferSlipForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/finishedProductTransferSlipForm.jsp"/>
+	</definition>
+	
+
+	
+	<definition name="showOrderRequisitionForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/orderRequisitionForm.jsp"/>
+	</definition>
+	
+	
+	<definition name="showInventorySummaryForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/summaryInventorySearchForm.jsp"/>
+	</definition>
+	<definition name="showStockStatusForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/stockStatusForm.jsp"/>
+	</definition>
+	
+	<!--  Tools -->
+	
+	<definition name="showExportOrderingFormTemplate.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/util/exportOrderingFormTemplate.jsp"/>
+	</definition>
+	
+	<!--  Security -->
+	<definition name="showUserAccountForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/security/userAccountForm.jsp"/>
+	</definition>
+	<definition name="showUserRoleForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/security/userRoleForm.jsp"/>
+	</definition>
+	
+	
+	<!--  Financials -->
+	<definition name="showAccountEntryProfile.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/financials/accountEntryProfile.jsp"/>
+	</definition>
+	<definition name="showJournalEntryProfile.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/financials/journalEntryProfile.jsp"/>
+	</definition>
+	
+	<definition name="showGenerateFinancialReportsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/financials/generateFinancialReports.jsp"/>
+	</definition>
+	
+	
+</tiles-definitions>

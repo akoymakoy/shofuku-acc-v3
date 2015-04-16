@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<StockStatusItems>
+	<StockStatusItem id="000001">
+		<!-- Raw item -->
+		<ItemNumber></ItemNumber>
+		<Description></Description>
+		<UOM></UOM>
+		<UnitPerRecord></UnitPerRecord>
+		<ItemPricing>
+			<ItemCode></ItemCode>
+			<ItemType></ItemType>
+			<CompanyStandard></CompanyStandard>
+			<CompanyTransfer></CompanyTransfer>
+			<CompanyActual></CompanyActual>
+			<FranchiseStandard></FranchiseStandard>
+			<FranchiseTransfer></FranchiseTransfer>
+			<FranchiseActual></FranchiseActual>
+		</ItemPricing>
+	</StockStatusItem>-
+	<StockStatusItem id="000002">
+		<!-- Traded item -->
+		<ItemNumber></ItemNumber>
+		<Description></Description>
+		<UOM></UOM>
+		<UnitPerRecord></UnitPerRecord>
+		<ItemPricing>
+			<ItemCode></ItemCode>
+			<ItemType></ItemType>
+			<CompanyStandard></CompanyStandard>
+			<CompanyTransfer></CompanyTransfer>
+			<CompanyActual></CompanyActual>
+			<FranchiseStandard></FranchiseStandard>
+			<FranchiseTransfer></FranchiseTransfer>
+			<FranchiseActual></FranchiseActual>
+		</ItemPricing>
+	</StockStatusItem>
+	<StockStatusItem id="000003">
+		<!-- Finished Good -->
+		<ItemNumber></ItemNumber>
+		<Description></Description>
+		<UOM></UOM>
+		<UnitPerRecord></UnitPerRecord>
+		<ItemPricing>
+			<ItemCode></ItemCode>
+			<ItemType></ItemType>
+			<CompanyStandard></CompanyStandard>
+			<CompanyTransfer></CompanyTransfer>
+			<CompanyActual></CompanyActual>
+			<FranchiseStandard></FranchiseStandard>
+			<FranchiseTransfer></FranchiseTransfer>
+			<FranchiseActual></FranchiseActual>
+		</ItemPricing>
+	</StockStatusItem>
+</StockStatusItems>

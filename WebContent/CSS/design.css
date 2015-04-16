@@ -1,0 +1,273 @@
+table.login   {
+  background-color: #62b9f0;
+  border: 2px solid;
+  color: #FFFFF0;
+  align: center;
+  padding: 5px;
+}
+table.login a {
+  font-family: verdana, sans-serif;
+  font-size: 11px;
+  color: #FFFFF0;
+}
+div.errors ul{
+	font-weight: bold;
+	color: red;
+	font-size: 12px;
+}
+
+h1.login {
+	font-weight: 900;
+	color: black;
+	text-align: center;
+	line-height: 200px;
+}
+.errorsBg{
+	border: 1px solid;
+}
+.errorMessage{
+	padding:0px 8px;
+	color: red;
+    font-weight: bold;
+}
+.errorLabel{
+	color: red;
+    font-style: italic;
+}
+table{
+	border-spacing: 4px;
+}
+
+td.others{
+	font-style: italic;
+	padding:4px;
+}
+tr.others td{
+	font-weight: bold;
+	background-color: #E0E0E0;
+	
+}
+
+div.form {
+	font-size: 12px;
+	top: 50px;
+	width: 730px;
+	overflow-x: auto;
+	height: 440px;
+	align: center;
+	padding-left: 5px;
+	font-style: italic;
+}
+div.mainForm {
+	width: 730px;
+	height: 490px;
+	align:center;
+	line-height: 10px;
+	font-family: verdana, sans-serif;	
+	padding-bottom: 5px;
+	padding-left: 3px;
+	font-style: italic;
+}
+div.forButtons {
+	padding-top: 0px;
+	margin-bottom: 5px;
+	align: center;
+}
+
+div.order {
+	font-size: 12px;
+	top: 100px;
+	height: 80px;
+	align: center;
+	width: 800px;
+	
+}
+
+div.results {
+	font-size: 12px;
+	overflow-x: auto;
+	height: 390px;
+	align: center;
+	width: 700px;
+	border-top-style: dashed;
+	border-bottom-style: dashed;	
+}
+
+
+div.import {
+	font-size: 12px;
+	top: 100px;
+	overflow-x: auto;
+	height: 90px;
+	align: center;
+	border-top-style: solid;
+	border-bottom-style: solid;
+	width: 800px;
+	padding-bottom: 3px;
+}
+div.importpage {
+	font-size: 12px;
+	top: 100px;
+	overflow-x: auto;
+	height: 900px;
+	align: center;
+	border-top-style: solid;
+	width: 700px;
+	padding-bottom: 3px;
+	border-bottom-style: solid;
+}
+table.forButtons{
+	padding:0px;
+	border: 1px;
+}
+.myButtons {  
+	color:#050;
+	font: bold 84% 'trebuchet ms',helvetica,sans-serif;
+	background-color:#62b9f0;
+	border-color: #696 #363 #363 #696;
+	filter:progid:DXImageTransform.Microsoft.Gradient   (GradientType=0,StartColorStr='#ffffffff',EndColorStr='#ffeeddaa'); 
+	border: 0px;
+} 
+
+table.form {
+	border-color: #858184;
+	width: 700px;
+	font-size: 12px;
+	
+}
+table.form tr{
+	border:0px;
+	width: 690px;
+	
+}
+table.form td{
+	border:0px;
+}
+
+table.form th{
+	background-color: #b9d6dd;
+	border-bottom-style: dashed;
+	border-color: #858184;
+	text-align: right;
+	font-style: italic;
+	
+}
+table.lists {
+	border: 1px;
+	width: 700px;
+	border-collapse: collapse;
+	font-style: verdana, sans-serif;
+	text-align: right;
+	}
+	
+table.lists th{
+	background-color: #b9d6dd;
+	border-bottom-style: dashed;
+	border-color: #858184;
+	text-align: center;
+	font-style: italic;
+	margin-left: 2px;
+	font-style: verdana, sans-serif;
+}
+
+h3.form {
+	background-color: #8ad3e4;
+	text-align: left; 
+	border-bottom-style: solid;
+	border-color: #312f30;
+	color: #426c85;
+	font-style: verdana, sans-serif;
+	width: 700px;
+	padding:1px;
+}
+h4.title {
+	text-align: center; 
+	color: #426c85;
+	font-style: verdana, sans-serif;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.sectionDiv {
+	
+	overflow:hidden;
+	display:none;
+}
+
+p.title {
+	background-color: blue;
+	margin: 0px;
+}
+p{
+	margin-left: 5px;
+}
+
+table.results {
+	border: 1px;
+	width: 700px;
+	border-collapse: collapse;
+	margin-left: 2px;
+	font-style: verdana, sans-serif;
+	text-align: right;
+	}
+
+table.results th{
+	font-weight: bold;
+	font-size: 12px;
+	background-color: #E0E0E0;
+	color: black;
+	text-transform: UPPERCASE;
+	border-collapse: collapse;
+	font-style: verdana, sans-serif;
+	text-align: center;
+}
+table.compare {
+	border-style:solid;
+	border: 1px;
+	/*width: 320px;*/
+	border-collapse: collapse;
+	padding:5px;
+	font-style: verdana, sans-serif;
+	}
+table.compare tr{
+	border-style:solid;
+	border: 1px;
+	/* width: 350px; */
+	border-collapse: collapse;
+	padding:5px;
+	font-style: verdana, sans-serif;
+	valign:top;
+	}
+.total {
+	text-transform: UPPERCASE;
+	text-align: right;
+	font-weight: bold;
+}
+.totalAmount {
+	text-align: right;
+	font-weight: bold;
+}
+div.print {
+	font-size: 14px;
+	top: 50px;
+	width: 700px;
+	align: center;
+	padding-left: 5px;
+	font-style: verdana, sans-serif;
+}
+div.print table{
+	border:1px;
+	border-collapse: collapse;
+	font-style: verdana, sans-serif;
+}
+
+.header{
+	text-align: center;
+}
+.desc {
+	text-align: left;
+}
+
+.headerTitle {
+	font-weight: bold;
+}
