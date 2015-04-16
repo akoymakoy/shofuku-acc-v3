@@ -462,6 +462,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 				poDetailsHelper.prepareSetAndList();
 				addOrderDetailToList(poDetailsHelper);
 				poDetailsHelperDraft = poDetailsHelper;
+				
 			}
 		}else {
 			
