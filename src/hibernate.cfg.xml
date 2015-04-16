@@ -1,0 +1,99 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!DOCTYPE hibernate-configuration PUBLIC
+        "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+<hibernate-configuration>
+	<session-factory>
+		<property name="connection.driver_class">
+			com.mysql.jdbc.Driver
+		</property>
+		<property name="connection.url">
+<!-- 			jdbc:mysql://192.168.1.99/shofuku  -->
+				<!-- jdbc:mysql://localhost/shofuku -->
+				<!-- 
+				jdbc:mysql://localhost/shofukuv2_test -->
+				
+			<!-- 	jdbc:mysql://localhost/shofuku_dev -->
+			 jdbc:mysql://localhost:3306/shofukuv3_corp
+		</property>
+		<property name="connection.username">root</property>
+		<property name="connection.password">password</property>
+		<property name="connection.pool_size">1</property>
+		<property name="dialect">
+			org.hibernate.dialect.MySQLDialect
+		</property>
+		<property name="current_session_context_class">thread</property>
+		<property name="show_sql">true</property>
+		<property name="hbm2ddl.auto">update</property>
+		
+			<!-- SUPPLIERS -->
+			<mapping resource="com/shofuku/accsystem/domain/suppliers/Supplier.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/suppliers/SupplierPurchaseOrder.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/suppliers/ReceivingReport.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/PurchaseOrderDetail.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/PurchaseOrder.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/suppliers/SupplierInvoice.hbm.xml" />
+			
+			
+			<!-- CUSTOMERS -->
+			<mapping resource="com/shofuku/accsystem/domain/customers/Customer.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/customers/CustomerPurchaseOrder.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/customers/CustomerSalesInvoice.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/customers/DeliveryReceipt.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/customers/CustomerStockLevel.hbm.xml" />
+			
+			<!-- TEST ONLY -->
+			<mapping resource="com/shofuku/accsystem/domain/customers/Certificate.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/customers/Employee.hbm.xml" />
+			
+			
+			<!-- DISBURSEMENTS -->
+			<mapping resource="com/shofuku/accsystem/domain/disbursements/PettyCash.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/disbursements/CashPayment.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/disbursements/CheckPayments.hbm.xml" />
+			
+			<!-- INVENTORY -->
+			<mapping resource="com/shofuku/accsystem/domain/inventory/RawMaterial.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/Ingredient.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/FinishedProduct.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/ItemPricing.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/TradedItem.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/FPTS.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/RequisitionForm.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/ReturnSlip.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/Memo.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/inventory/StockStatus.hbm.xml" />
+			
+			<!-- RECEIPTS -->
+			<mapping resource="com/shofuku/accsystem/domain/receipts/ORSales.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/receipts/OROthers.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/receipts/cashCheckReceipts.hbm.xml" />
+			
+			<!--  FINANCIAL REPORTS -->
+			<!--2013 - PHASE 3 : PROJECT 1: MARK-->
+			<mapping resource="com/shofuku/accsystem/domain/financials/AccountEntryProfile.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/financials/JournalEntryProfile.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/financials/Transaction.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/financials/AccountingRules.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/financials/Vat.hbm.xml" />
+			
+			<!--END - 2013 - PHASE 3 : PROJECT 1: MARK-->
+				
+			<!-- LOOKUPS -->
+			<mapping resource="com/shofuku/accsystem/domain/lookups/Banks.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/ExpenseClassification.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/PaymentClassification.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/PaymentTerms.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/Remarks.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/SupplierStatus.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/UnitOfMeasurement.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/lookups/InventoryClassification.hbm.xml" />
+			
+				<!-- TOOLS -->
+			<mapping resource="com/shofuku/accsystem/domain/security/UserAccount.hbm.xml" />
+			<mapping resource="com/shofuku/accsystem/domain/security/UserRole.hbm.xml" />
+			
+			
+	</session-factory>
+</hibernate-configuration>

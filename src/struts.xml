@@ -1,0 +1,1050 @@
+<!DOCTYPE struts PUBLIC
+  "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+  "http://struts.apache.org/dtds/struts-2.0.dtd">
+
+<struts>
+
+	<!-- Rose India Struts 2 Tutorials -->
+	<constant name="struts.enable.DynamicMethodInvocation" value="false" />
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.custom.i18n.resources" value="ApplicationResources" />
+
+	<constant name="struts.ui.theme" value="makyong" />
+	<constant name="struts.ui.templateDir" value="template" />
+
+
+	<package name="default" extends="struts-default">
+
+		<!-- Redirect Action -->
+		<result-types>
+			<result-type name="tiles"
+				class="org.apache.struts2.views.tiles.TilesResult" />
+		</result-types>
+
+		<!-- LOGIN -->
+
+		<action name="showLoginForm">
+			<result>/jsp/loginForm.jsp</result>
+		</action>
+		<action name="login" class="com.shofuku.accsystem.action.LoginAction">
+			<result name="input">/jsp/loginForm.jsp</result>
+			<result name="error">/jsp/loginForm.jsp</result>
+			<result name="cancel" type="redirect">/jsp/loginForm.jsp</result>
+			<result name="success" type="tiles">baseLayout.tiles</result>
+		</action>
+
+		<action name="showBaselayout">
+			<result type="tiles">baseLayout.tiles</result>
+		</action>
+
+		<!-- SEARCH MODULE -->
+
+		<action name="showSearchSupplierForm">
+			<result type="tiles">showSearchSupplierForm.tiles</result>
+		</action>
+
+		<action name="showSearchCustomerForm">
+			<result type="tiles">showSearchCustomerForm.tiles</result>
+		</action>
+
+		<action name="showSearchDisbursementForm">
+			<result type="tiles">showSearchDisbursementForm.tiles</result>
+		</action>
+		<action name="showSearchReceiptForm">
+			<result type="tiles">showSearchReceiptForm.tiles</result>
+		</action>
+		<action name="showSearchInventoryForm">
+			<result type="tiles">showSearchInventoryForm.tiles</result>
+		</action>
+		<action name="showSearchFinancialsForm">
+			<result type="tiles">showSearchFinancialsForm.tiles</result>
+		</action>
+		<action name="showSearchSecurityForm">
+			<result type="tiles">showSearchSecurityForm.tiles</result>
+		</action>
+		<action name="showGenerateFinancialReportsForm">
+			<result type="tiles">showGenerateFinancialReportsForm.tiles</result>
+		</action>
+
+		<!-- SUPPLIER MODULE -->
+
+		<action name="showSupplierProfileForm">
+			<result type="tiles">showSupplierForm.tiles</result>
+		</action>
+
+		<action name="showSupplierPurchaseOrderForm">
+			<result type="tiles">showSupplierPurchaseOrderForm.tiles</result>
+		</action>
+
+		<action name="showSupplierReceivingReportForm">
+			<result type="tiles">showSupplierReceivingReportForm.tiles</result>
+		</action>
+
+		<action name="showSupplierInvoiceForm">
+			<result type="tiles">showSupplierInvoiceForm.tiles</result>
+		</action>
+
+		<action name="showSupplierSummaryForm" class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadSuppliers">
+			<result name="summarySupplierForm" type="tiles">showSupplierSummaryForm.tiles</result>
+		</action>
+
+		<action name="showSupplierAddOrderDetailsForm">
+			<result>/jsp/supplier/addSupplierOrderDetailsForm.jsp</result>
+		</action>
+
+
+		<!-- SUPPLIER FUNCTIONS MODULE -->
+		<action name="newSupplierEntryAction"
+			class="com.shofuku.accsystem.action.suppliers.AddSupplierAction"
+			method="newSupplierEntry">
+			<result name="purchaseOrder" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="receivingReport" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+
+		</action>
+
+		<action name="addSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.AddSupplierAction"
+			method="execute">
+			<result name="profileAdded" type="tiles">showSupplierForm.tiles
+			</result>
+			<result name="purchaseOrderAdded" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="receivingReportAdded" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoiceAdded" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+			<result name="input" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="searchSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.SearchSupplierAction"
+			method="execute">
+			<result name="profile" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="purchaseOrder" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="receivingReport" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="populate" type="tiles">showSearchSupplierForm.tiles
+			</result>
+		</action>
+		
+		<action name="exportSupplierSearchAction"
+			class="com.shofuku.accsystem.action.suppliers.SearchSupplierAction"
+			method="exportResults">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+			<result name="profile" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="purchaseOrder" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="receivingReport" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSearchSupplierForm.tiles
+			</result>
+			<result name="populate" type="tiles">showSearchSupplierForm.tiles
+			</result>
+		</action>
+
+		<action name="editSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.EditSupplierAction"
+			method="execute">
+			<result name="profile" type="tiles">showSupplierForm.tiles</result>
+			<result name="purchaseOrder" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="receivingReport" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+
+		</action>
+
+		<action name="printSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.PrintSupplierAction"
+			method="execute">
+			<result name="profile">/jsp/supplier/supplierProfileForm.jsp</result>
+			<result name="purchaseOrder">/jsp/supplier/supplierPurchaseOrderForm.jsp
+			</result>
+			<result name="receivingReport">/jsp/supplier/supplierReceivingReportForm.jsp
+			</result>
+			<result name="invoice">/jsp/supplier/supplierInvoiceForm.jsp</result>
+
+		</action>
+
+		<action name="printSupplierInExcelAction"
+			class="com.shofuku.accsystem.action.suppliers.PrintSupplierAction"
+			method="printSupplierPurchaseOrder">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+
+		<action name="generateSummaryAction"
+			class="com.shofuku.accsystem.action.GenerateSummaryAction" method="execute">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+			<result name="supplier" type="tiles">showSupplierSummaryForm.tiles
+			</result>
+			<result name="customer" type="tiles">showCustomerSummaryForm.tiles
+			</result>
+			<result name="inventory" type="tiles">showInventorySummaryForm.tiles
+			</result>
+			<result name="disbursement" type="tiles">showDisbursementSummaryForm.tiles
+			</result>
+			<result name="receipts" type="tiles">showReceiptSummaryForm.tiles
+			</result>
+		</action>
+
+
+		<action name="updateSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.UpdateSupplierAction"
+			method="execute">
+			<result name="profileUpdated" type="tiles">showSupplierForm.tiles
+			</result>
+			<result name="poUpdated" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="rrUpdated" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoiceUpdated" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="deleteSupplierAction"
+			class="com.shofuku.accsystem.action.suppliers.DeleteSupplierAction"
+			method="execute">
+			<result name="profileDeleted" type="tiles">showSupplierForm.tiles
+			</result>
+			<result name="poDeleted" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="rrDeleted" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoiceDeleted" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+		</action>
+
+		<!-- CUSTOMER MODULE -->
+
+		<action name="showCustomerProfileForm">
+			<result type="tiles">showCustomerProfileForm.tiles</result>
+		</action>
+
+		<action name="showCustomerPurchaseOrderForm">
+			<result type="tiles">showCustomerPurchaseOrderForm.tiles</result>
+		</action>
+
+		<action name="showCustomerDeliveryReceiptForm">
+			<result type="tiles">showCustomerDeliveryReceiptForm.tiles</result>
+		</action>
+
+		<action name="showCustomerInvoiceForm">
+			<result type="tiles">showCustomerInvoiceForm.tiles</result>
+		</action>
+
+		<action name="showCustomerSummaryForm"
+			class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadCustomers">
+			<result name="summaryCustomerForm" type="tiles">showCustomerSummaryForm.tiles
+			</result>
+		</action>
+		
+		<action name="showCustomerSummaryForm" class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadCustomers">
+			<result name="summaryCustomerForm" type="tiles">showCustomerSummaryForm.tiles</result>
+		</action>
+
+		<!-- CUSTOMER FUNCTION MODULE -->
+
+		<action name="newCustomerEntryAction"
+			class="com.shofuku.accsystem.action.customer.AddCustomerAction"
+			method="newCustomerEntry">
+			<result name="purchaseOrder" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="deliveryReceipt" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="addCustomerAction"
+			class="com.shofuku.accsystem.action.customer.AddCustomerAction"
+			method="execute">
+			<result name="profileAdded" type="tiles">showCustomerProfileForm.tiles
+			</result>
+			<result name="purchaseOrderAdded" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="deliveryReceiptAdded" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="invoiceAdded" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="searchCustomerAction"
+			class="com.shofuku.accsystem.action.customer.SearchCustomerAction"
+			method="execute">
+			<result name="profile" type="tiles">showSearchCustomerForm.tiles
+			</result>
+			<result name="purchaseOrder" type="tiles">showSearchCustomerForm.tiles
+			</result>
+			<result name="deliveryReceipt" type="tiles">showSearchCustomerForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSearchCustomerForm.tiles
+			</result>
+			<result name="populate" type="tiles">showSearchCustomerForm.tiles
+			</result>
+		</action>
+
+		<action name="editCustomerAction"
+			class="com.shofuku.accsystem.action.customer.EditCustomerAction"
+			method="execute">
+			<result name="profile" type="tiles">showCustomerProfileForm.tiles
+			</result>
+			<result name="purchaseOrder" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="deliveryReceipt" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="loadCustomerPurchaseOrderAction"
+			class="com.shofuku.accsystem.action.customer.EditCustomerAction"
+			method="loadCustomerPO">
+			<result name="dr" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="loadCustomerDRAction"
+			class="com.shofuku.accsystem.action.customer.EditCustomerAction"
+			method="loadCustomerDR">
+			<result name="invoice" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="updateCustomerAction"
+			class="com.shofuku.accsystem.action.customer.UpdateCustomerAction"
+			method="execute">
+			<result name="profileUpdated" type="tiles">showCustomerProfileForm.tiles
+			</result>
+			<result name="poUpdated" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="deliveryReceiptUpdated" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="invoiceUpdated" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="deleteCustomerAction"
+			class="com.shofuku.accsystem.action.customer.DeleteCustomerAction"
+			method="execute">
+			<result name="profileDeleted" type="tiles">showCustomerProfileForm.tiles
+			</result>
+			<result name="poDeleted" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="drDeleted" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="invoiceDeleted" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+		</action>
+
+		<action name="printCustomerAction"
+			class="com.shofuku.accsystem.action.customer.PrintCustomerAction"
+			method="execute">
+			<result name="profile">/jsp/customer/customerProfileForm.jsp</result>
+			<result name="purchaseOrder">/jsp/customer/customerPurchaseOrderForm.jsp
+			</result>
+			<result name="deliveryReceipt">/jsp/customer/customerDeliveryReceiptForm.jsp
+			</result>
+			<result name="invoice">/jsp/customer/customerInvoiceForm.jsp</result>
+			<result name="printInvoice">/jsp/util/printedSalesInvoiceForm.jsp</result>
+		</action>
+
+		<action name="printCustomerInExcelAction"
+			class="com.shofuku.accsystem.action.customer.PrintCustomerAction"
+			method="printInvoice">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		<!-- DISBURSEMENT MODULE -->
+
+		<action name="showDisbursementPettyCashForm">
+			<result type="tiles">showDisbursementPettyCashForm.tiles</result>
+		</action>
+
+		<action name="showDisbursementCashPaymentForm">
+			<result type="tiles">showDisbursementCashPaymentForm.tiles</result>
+		</action>
+
+		<action name="showDisbursementCheckPaymentForm">
+			<result type="tiles">showDisbursementCheckPaymentForm.tiles</result>
+		</action>
+
+		<action name="showSupplierCheckVoucherForm">
+			<result type="tiles">showSupplierCheckVoucherForm.tiles</result>
+		</action>
+
+		<action name="showDisbursementSummaryForm"
+			class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadReferenceNo">
+			<result name="summaryDisbursementForm" type="tiles">showDisbursementSummaryForm.tiles
+			</result>
+		</action>
+		
+		<action name="generateXMLAction"
+			class="com.shofuku.accsystem.action.inventory.GenerateStockStatusReportAction" method="generateXML">
+			<result type="stream">
+				<param name="contentType">text/xml</param>
+				<param name="inputName">xmlStreamOut</param>
+				<param name="contentDisposition">filename="xmlout.xml"</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<action name="generateStockStatusReportAction"
+			class="com.shofuku.accsystem.action.inventory.GenerateStockStatusReportAction" method="generateStockStatusReport">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+			
+		</action>
+
+
+		<!-- DISBURSEMENT FUNCTIONS MODULE -->
+
+		<action name="newDisbursementEntryAction"
+			class="com.shofuku.accsystem.action.disbursement.AddDisbursementAction"
+			method="newDisbursementEntry">
+			<result name="pettyCash" type="tiles">showDisbursementPettyCashForm.tiles
+			</result>
+			<result name="cashPayment" type="tiles">showDisbursementCashPaymentForm.tiles
+			</result>
+			<result name="checkPayment" type="tiles">showDisbursementCheckPaymentForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+
+		</action>
+
+		<action name="addDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.AddDisbursementAction"
+			method="execute">
+			<result name="pettyCash" type="tiles">showDisbursementPettyCashForm.tiles
+			</result>
+			<result name="cashPayment" type="tiles">showDisbursementCashPaymentForm.tiles
+			</result>
+			<result name="checkPayment" type="tiles">showDisbursementCheckPaymentForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+			<result name="input" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+		</action>
+
+		<action name="updateDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.UpdateDisbursementAction"
+			method="execute">
+			<result name="pettyCashUpdated" type="tiles">showDisbursementPettyCashForm.tiles
+			</result>
+			<result name="cashPaymentUpdated" type="tiles">showDisbursementCashPaymentForm.tiles
+			</result>
+			<result name="checkPaymentUpdated" type="tiles">showDisbursementCheckPaymentForm.tiles
+			</result>
+			<result name="checkVoucherUpdated" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+		</action>
+
+		<action name="deleteDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.DeleteDisbursementAction"
+			method="execute">
+			<result name="pettyCashDeleted" type="tiles">showDisbursementPettyCashForm.tiles
+			</result>
+			<result name="cashPaymentDeleted" type="tiles">showDisbursementCashPaymentForm.tiles
+			</result>
+			<result name="checkPaymentDeleted" type="tiles">showDisbursementCheckPaymentForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+		</action>
+
+		<action name="searchDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.SearchDisbursementAction"
+			method="execute">
+			<result name="populateList" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="pettyCash" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="cashPayment" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="checkPayment" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+		</action>
+
+		<action name="summaryDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.SummaryDisbursementAction"
+			method="execute">
+			<result name="populateList" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="pettyCash" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="cashPayment" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="checkPayment" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+		</action>
+
+		<action name="editDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.EditDisbursementAction"
+			method="execute">
+			<result name="input" type="tiles">showSearchDisbursementForm.tiles
+			</result>
+			<result name="pettyCash" type="tiles">showDisbursementPettyCashForm.tiles
+			</result>
+			<result name="cashPayment" type="tiles">showDisbursementCashPaymentForm.tiles
+			</result>
+			<result name="checkPayment" type="tiles">showDisbursementCheckPaymentForm.tiles
+			</result>
+			<result name="checkVoucher" type="tiles">showSupplierCheckVoucherForm.tiles
+			</result>
+		</action>
+
+		<action name="printDisbursementAction"
+			class="com.shofuku.accsystem.action.disbursement.PrintDisbursementAction"
+			method="execute">
+			<result name="pettyCash">/jsp/disbursement/disbursementPettyCashForm.jsp
+			</result>
+			<result name="cashPayment">/jsp/disbursement/disbursementCashPaymentForm.jsp
+			</result>
+			<result name="checkPayment">/jsp/disbursement/disbursementCheckPaymentForm.jsp
+			</result>
+			<result name="checkVoucher">/jsp/disbursement/supplierCheckVoucherForm.jsp
+			</result>
+			<result name="printedCheque">/jsp/util/printedCheckForm.jsp</result>
+		</action>
+
+		<action name="printDisbursementInExcelAction"
+			class="com.shofuku.accsystem.action.disbursement.PrintDisbursementAction"
+			method="printCheckPayments">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+
+		<!-- RECEIPT MODULE -->
+
+		<action name="showORSalesForm">
+			<result type="tiles">showORSalesForm.tiles</result>
+		</action>
+		<action name="showOROtherIncomeForm">
+			<result type="tiles">showOROtherIncomeForm.tiles</result>
+		</action>
+		<action name="showCashCheckReceiptForm">
+			<result type="tiles">showCashCheckReceiptForm.tiles</result>
+		</action>
+		<action name="showReceiptSummaryForm" class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadReceipts">
+			<result name="summaryReceiptForm" type="tiles">showReceiptSummaryForm.tiles</result>
+		</action>
+		<action name="showCheckForm">
+			<result type="tiles">showCheckForm.tiles</result>
+		</action>
+
+		<!-- RECEIPT FUNCTIONS MODULE -->
+		<action name="addReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.AddReceiptsAction"
+			method="execute">
+			<result name="orSales" type="tiles">showORSalesForm.tiles</result>
+			<result name="orOthers" type="tiles">showOROtherIncomeForm.tiles
+			</result>
+			<result name="cashCheckReceipts" type="tiles">showCashCheckReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="newReceiptEntry"
+			class="com.shofuku.accsystem.action.receipts.AddReceiptsAction"
+			method="newReceiptEntry">
+			<result name="cashCheckReceipts" type="tiles">showCashCheckReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="searchReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.SearchReceiptAction"
+			method="execute">
+			<result name="populateList" type="tiles">showSearchReceiptForm.tiles
+			</result>
+			<result name="orSales" type="tiles">showSearchReceiptForm.tiles
+			</result>
+			<result name="orOthers" type="tiles">showSearchReceiptForm.tiles
+			</result>
+			<result name="cashCheckReceipts" type="tiles">showSearchReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="editReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.EditReceiptAction"
+			method="execute">
+			<result name="orSales" type="tiles">showORSalesForm.tiles</result>
+			<result name="orOthers" type="tiles">showOROtherIncomeForm.tiles
+			</result>
+			<result name="cashCheckReceipts" type="tiles">showCashCheckReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="updateReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.UpdateReceiptAction"
+			method="execute">
+			<result name="orSalesUpdated" type="tiles">showORSalesForm.tiles
+			</result>
+			<result name="orOthersUpdated" type="tiles">showOROtherIncomeForm.tiles
+			</result>
+			<result name="cashCheckReceiptsUpdated" type="tiles">showCashCheckReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="deleteReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.DeleteReceiptAction"
+			method="execute">
+			<result name="orSalesDeleted" type="tiles">showORSalesForm.tiles
+			</result>
+			<result name="orOthersDeleted" type="tiles">showOROtherIncomeForm.tiles
+			</result>
+			<result name="cashCheckReceiptsDeleted" type="tiles">showCashCheckReceiptForm.tiles
+			</result>
+		</action>
+
+		<action name="printReceiptAction"
+			class="com.shofuku.accsystem.action.receipts.PrintReceiptAction"
+			method="execute">
+			<result name="orSales">/jsp/receipt/receiptORSalesForm.jsp</result>
+			<result name="orOthers">/jsp/receipt/receiptOROtherIncomeForm.jsp
+			</result>
+			<result name="cashCheckReceipts">/jsp/receipt/receiptCashCheckForm.jsp</result>
+		</action>
+
+		<action name="printReceiptInExcelAction"
+			class="com.shofuku.accsystem.action.receipts.PrintReceiptAction"
+			method="printReceipt">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		<!-- INVENTORY MODULE -->
+
+		<action name="showRawMaterialsForm">
+			<result type="tiles">showRawMaterialsForm.tiles</result>
+		</action>
+		<action name="showFinishedGoodsForm">
+			<result type="tiles">showFinishedGoodsForm.tiles</result>
+		</action>
+		<action name="showTradedItemsForm">
+			<result type="tiles">showTradedItemsForm.tiles</result>
+		</action>
+		<action name="showFinishedProductTransferSlipForm">
+			<result type="tiles">showFinishedProductTransferSlipForm.tiles
+			</result>
+		</action>
+		<action name="showOrderRequisitionForm">
+			<result type="tiles">showOrderRequisitionForm.tiles</result>
+		</action>
+		<action name="showInventorySummaryForm">
+			<result type="tiles">showInventorySummaryForm.tiles</result>
+		</action>
+		<action name="showStockStatusForm">
+			<result type="tiles">showStockStatusForm.tiles</result>
+		</action>
+
+
+		<!-- INVENTORY FUNCTIONS MODULE -->
+		
+		<action name="newInventoryEntryAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="newInventoryEntry">
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			
+			<result name="receivingReport" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="invoice" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+
+		</action>
+		<action name="addInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="execute">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+		</action>
+		
+		<action name="loadItemSubClassificationAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadItemSubClassificationList">
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
+		</action>
+		
+
+		<action name="searchInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.SearchInventoryAction"
+			method="execute">
+			<result name="rawMat" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="finGood" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="tradedItems" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="returnSlip" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="populateList" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="fpts" type="tiles">showSearchInventoryForm.tiles</result>
+			<result name="rf" type="tiles">showSearchInventoryForm.tiles</result>
+			
+		</action>
+
+		<action name="editInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.EditInventoryAction"
+			method="execute">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles
+			</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+		</action>
+
+		<action name="updateInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.UpdateInventoryAction"
+			method="execute">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+		</action>
+
+		<action name="deleteInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.DeleteInventoryAction"
+			method="execute">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
+			<result name="input" type="tiles">showFinishedGoodsForm.tiles</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+			
+
+		</action>
+		<action name="printInventoryAction"
+			class="com.shofuku.accsystem.action.inventory.PrintInventoryAction"
+			method="execute">
+			<result name="tradedItems">/jsp/inventory/tradedItemsForm.jsp</result>
+			<result name="rawMat">/jsp/inventory/rawMaterialsForm.jsp</result>
+			<result name="finGood">/jsp/inventory/finishedGoodsForm.jsp</result>
+			<result name="fpts">/jsp/inventory/finishedProductTransferSlipForm.jsp</result>
+			<result name="rf">/jsp/inventory/orderRequisitionForm.jsp</result>
+			<result name="returnSlip">/jsp/inventory/ReturnSlipForm.jsp</result>
+			
+		</action>
+
+		<action name="loadLookUpItems"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookLists">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles
+			</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles
+			</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles
+			</result>
+		</action>
+
+		<action name="loadLookUpItemsInRawMat"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookListsInRawMat">
+			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+		</action>
+
+		<action name="loadLookUpItemsInTradedItems"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookListsInTadedItems">
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles
+			</result>
+		</action>
+
+
+		<action name="addIngredientAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="addIngredient">
+			<result name="success" type="tiles">showFinishedGoodsForm.tiles
+			</result>
+			<result name="input" type="tiles">showFinishedGoodsForm.tiles</result>
+		</action>
+
+		<action name="loadIngredientAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadIngredientDetails">
+			<result name="success" type="tiles">showFinishedGoodsForm.tiles
+			</result>
+		</action>
+		
+		<action name="deleteIngredientAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="deleteIngredient">
+			<result name="success" type="tiles">showFinishedGoodsForm.tiles
+			</result>
+			<result name="input" type="tiles">showFinishedGoodsForm.tiles</result>
+
+		</action>
+
+		<action name="addOrderDetailAction"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="execute">
+			<result name="input">/jsp/util/addOrderDetailsForm.jsp</result>
+			<result name="returnSlip"  type="tiles" >showReturnSlipForm.tiles</result>
+		</action>
+		
+		<action name="loadOrderDetailsAction"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="loadOrderDetails">
+			<result name="input">/jsp/util/addOrderDetailsForm.jsp</result>
+			<result name="returnSlip"  type="tiles" >showReturnSlipForm.tiles</result>
+		</action>
+		
+		<action name="loadOrdersByReferenceNoAction"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="loadOrdersByReferenceNo">
+			<result name="returnSlip"  type="tiles" >showReturnSlipForm.tiles</result>
+		</action>
+
+		<action name="checkCustomerOrderingForm"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="customerPOOrderingFormImport">
+			<result name="input" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="customerPO" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+		</action>
+
+		<action name="checkSupplierOrderingForm"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="supplierPOOrderingFormImport">
+			<result name="input" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="PO" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+		</action>
+
+		<action name="deleteOrderDetailAction" method="deleteOrderDetail"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction">
+			<result name="input">/jsp/util/addOrderDetailsForm.jsp</result>
+		</action>
+
+		<action name="submitOrderDetailsAction"
+			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="finalizeOrder">
+			<result name="supplierPO" type="tiles">showSupplierPurchaseOrderForm.tiles
+			</result>
+			<result name="supplierRR" type="tiles">showSupplierReceivingReportForm.tiles
+			</result>
+			<result name="supplierInvoice" type="tiles">showSupplierInvoiceForm.tiles
+			</result>
+
+			<result name="customerPO" type="tiles">showCustomerPurchaseOrderForm.tiles
+			</result>
+			<result name="customerDR" type="tiles">showCustomerDeliveryReceiptForm.tiles
+			</result>
+			<result name="customerInvoice" type="tiles">showCustomerInvoiceForm.tiles
+			</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles
+			</result>
+			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
+			
+		</action>
+
+		<!--  RETURN SLIP -->
+		<action name="loadReturnSlipItemAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadReturnSlipItem">
+			<result name="success" type="tiles">showReturnSlipForm.tiles</result>
+			<result name="error" type="tiles">showReturnSlipForm.tiles</result>
+		</action>
+		<action name="addReturnSlipItemAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="addReturnSlipItem">
+			<result name="success" type="tiles">showReturnSlipForm.tiles
+			</result>
+			<result name="input" type="tiles">showReturnSlipForm.tiles</result>
+		</action>
+		<action name="deleteReturnSlipItemAction"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="deleteReturnSlipItem">
+			<result name="success" type="tiles">showReturnSlipForm.tiles
+			</result>
+			<result name="input" type="tiles">showReturnSlipForm.tiles</result>
+
+		</action>
+		
+		<!-- TOOLS FUNCTIONS MODULE -->
+
+
+		<action name="showExportOrderingFormTemplate">
+			<result type="tiles">showExportOrderingFormTemplate.tiles</result>
+		</action>
+		<action name="showUserAccountForm">
+			<result type="tiles">showUserAccountForm.tiles</result>
+		</action>
+		<action name="showUserRoleForm">
+			<result type="tiles">showUserRoleForm.tiles</result>
+		</action>
+
+		
+		<action name="exportOrderingFormTemplateAction"
+			class="com.shofuku.accsystem.action.ExportOrderingFormTemplateAction"
+			method="execute">
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		
+		<!--  SECURITY FUNCTION MODULE -->
+		
+		<action name="addSecurityAction" class="com.shofuku.accsystem.action.security.AddSecurityAction"
+			method="execute">
+			<result name="userAccountAdded" type="tiles">showUserAccountForm.tiles</result>
+			<result name="userRoleAdded" type="tiles">showUserRoleForm.tiles</result>
+		</action>
+		
+		<action name="searchSecurityAction"
+			class="com.shofuku.accsystem.action.security.SearchSecurityAction"
+			method="execute">
+			<result name="userAccount" type="tiles">showSearchSecurityForm.tiles</result>
+			<result name="userRole" type="tiles">showSearchSecurityForm.tiles</result>
+			<result name="populateList" type="tiles">showSearchSecurityForm.tiles</result>
+		</action>
+		
+		<action name="loadRoleListAction" class="com.shofuku.accsystem.action.security.AddSecurityAction"
+			method="loadRoleList">
+			<result name="userAccount" type="tiles">showUserAccountForm.tiles</result>
+		</action>
+		
+		<action name="editSecurityAction"
+			class="com.shofuku.accsystem.action.security.EditSecurityAction"
+			method="execute">
+			<result name="userAccount" type="tiles">showUserAccountForm.tiles</result>
+			<result name="userRole" type="tiles">showUserRoleForm.tiles</result>
+		</action>
+		
+		<action name="updateSecurityAction"
+			class="com.shofuku.accsystem.action.security.UpdateSecurityAction"
+			method="execute">
+			<result name="userAccountUpdated" type="tiles">showUserAccountForm.tiles</result>
+			<result name="userRoleUpdated" type="tiles">showUserRoleForm.tiles</result>
+		</action>
+		
+		<!-- FINANCIALS FUNCTIONS MODULE -->
+		<action name="showAccountEntryProfile">
+			<result type="tiles">showAccountEntryProfile.tiles</result>
+		</action>
+		
+		<action name="showJournalEntryProfile">
+			<result type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+
+		<action name="addFinancialsAction" class="com.shofuku.accsystem.action.financials.AddFinancialsAction"
+			method="execute">
+			<result name="accountProfileEntryAdded" type="tiles">showAccountEntryProfile.tiles</result>
+			<result name="journalProfileEntryAdded" type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+		
+		
+		<action name="searchFinancialsAction"
+			class="com.shofuku.accsystem.action.financials.SearchFinancialsAction"
+			method="execute">
+			<result name="accountEntryProfile" type="tiles">showSearchFinancialsForm.tiles</result>
+			<result name="journalEntryProfile" type="tiles">showSearchFinancialsForm.tiles</result>
+			<result name="populateList" type="tiles">showSearchFinancialsForm.tiles</result>
+		</action>
+		
+		<action name="editFinancialsAction"
+			class="com.shofuku.accsystem.action.financials.EditFinancialsAction" method="execute">
+			<result name="accountEntryProfile" type="tiles">showAccountEntryProfile.tiles</result>
+			<result name="journalEntryProfile" type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+		
+		<action name="loadParentCodeAction" class="com.shofuku.accsystem.action.financials.AddFinancialsAction"
+			method="loadParentCode">
+			<result name="accountEntryProfile" type="tiles">showAccountEntryProfile.tiles</result>
+			<result name="journalEntryProfile" type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+		
+		<action name="printFinancialsAction"
+			class="com.shofuku.accsystem.action.financials.PrintFinancialsAction" method="execute">
+			<result name="accountEntryProfile">/jsp/financials/accountEntryProfile.jsp</result>
+			<result name="journalEntryProfile">/jsp/financials/journalEntryProfile.jsp</result>
+		</action>
+		
+		<action name="updateFinancialsAction" class="com.shofuku.accsystem.action.financials.UpdateFinancialsAction" method="execute">
+			<result name="accountEntryProfileUpdated" type="tiles">showAccountEntryProfile.tiles</result>
+			<result name="journalEntryProfileUpdated" type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+		
+		<action name="deleteFinancialsAction" class="com.shofuku.accsystem.action.financials.DeleteFinancialsAction" method="execute">
+			<result name="accountEntryProfileDeleted" type="tiles">showAccountEntryProfile.tiles</result>
+			<result name="journalEntryProfileDeleted" type="tiles">showJournalEntryProfile.tiles</result>
+		</action>
+		
+		<action name="generateFinancialReportsAction" class="com.shofuku.accsystem.action.financials.GenerateFinancialReportsAction" method="execute">
+			<result name="success" type="tiles">showGenerateFinancialReportsForm.tiles</result>
+			<result name="input" type="tiles">showGenerateFinancialReportsForm.tiles</result>
+			<result type="stream">
+				<param name="contentType">${excelContentType}</param>
+				<param name="inputName">excelStream</param>
+				<param name="contentDisposition">contentDisposition</param>
+				<param name="bufferSize">1024</param>
+			</result>
+		</action>
+		<!-- Add actions here -->
+	</package>
+
+
+	<!-- Add packages here -->
+
+	<!-- <action name="welcome" class="com.shofuku.accsystem.action.WelcomeAction" 
+		method="execute"> <result name="success">jsp/welcome.jsp</result> </action> -->
+</struts>
