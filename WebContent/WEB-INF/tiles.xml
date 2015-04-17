@@ -106,6 +106,10 @@
 		<put-attribute name="body" value="/jsp/customer/customerInvoiceForm.jsp"/>
 	</definition>
 	
+	<definition name="showManageStockLevelPage.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/util/manageStockLevel.jsp"/>
+	</definition>
+	
 	<definition name="showCustomerSummaryForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/customer/summaryCustomerSearchForm.jsp"/>
 	</definition>

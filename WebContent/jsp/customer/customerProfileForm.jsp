@@ -12,12 +12,12 @@
 <script type="text/javascript" src="js/deleteConfirmation.js"></script> 
   <link rel="stylesheet" href="menu.css" type="text/css"/>
 	<script type="text/javascript" src="js/expandingMenu.js"></script>
-	<script type="text/javascript" src="js/expandingMenu.js"></script> 	
+	
 	 <script type='text/javascript'>
 	var startWith=1;
 	var subMenu=0;
 	</script> 	
-<title>Supplier Profile Form</title>
+<title>Customer Profile Form</title>
 </head>
 <body>
 <s:if test="%{forWhat != 'print'}">
@@ -115,6 +115,7 @@
 						<td><s:submit cssClass="myButtons" type="button" value="Delete" onclick="javascript:customerConfirmation('cusForm')"></s:submit></td>
 						<td><s:submit cssClass="myButtons" type="button" value="Print"  action="printCustomerAction"></s:submit></td>
 						<td><input class="myButtons" name="clear" type="button" onclick="javascript:clearAll('wholeForm','cusForm');" value="New Entry"></input></td>
+						<td><s:submit cssClass="myButtons" type="button" value="Manage Stock Level"  action="showManageStockLevelPageAction"></s:submit></td>
 					
 					</s:if>
 					<s:elseif test="%{forWhat == 'print'}">

@@ -11,11 +11,14 @@
 		<property name="connection.url">
 <!-- 			jdbc:mysql://192.168.1.99/shofuku  -->
 				<!-- jdbc:mysql://localhost/shofuku -->
-				<!-- 
-				jdbc:mysql://localhost/shofukuv2_test -->
-				
-			<!-- 	jdbc:mysql://localhost/shofuku_dev -->
-			 jdbc:mysql://localhost:3306/shofukuv3_corp
+				<!--jdbc:mysql://localhost/shofukuv2_test -->
+		 <!-- 	 jdbc:mysql://localhost/shofuku_dev -->
+		 jdbc:mysql://192.168.254.104:3306/shofukuv3_corp 
+			
+				<!-- jdbc:mysql://192.168.1.32:3306/shofuku_dev  
+			 jdbc:mysql://192.168.0.225:3306/shofukuv3_corp_test -->
+		<!-- 		jdbc:mysql://localhost/shofukuv3_corp -->
+			 
 		</property>
 		<property name="connection.username">root</property>
 		<property name="connection.password">password</property>
@@ -43,11 +46,7 @@
 			<mapping resource="com/shofuku/accsystem/domain/customers/DeliveryReceipt.hbm.xml" />
 			<mapping resource="com/shofuku/accsystem/domain/customers/CustomerStockLevel.hbm.xml" />
 			
-			<!-- TEST ONLY -->
-			<mapping resource="com/shofuku/accsystem/domain/customers/Certificate.hbm.xml" />
-			<mapping resource="com/shofuku/accsystem/domain/customers/Employee.hbm.xml" />
-			
-			
+
 			<!-- DISBURSEMENTS -->
 			<mapping resource="com/shofuku/accsystem/domain/disbursements/PettyCash.hbm.xml" />
 			<mapping resource="com/shofuku/accsystem/domain/disbursements/CashPayment.hbm.xml" />
