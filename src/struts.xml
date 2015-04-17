@@ -257,6 +257,10 @@
 		<action name="showCustomerInvoiceForm">
 			<result type="tiles">showCustomerInvoiceForm.tiles</result>
 		</action>
+		
+		<action name="showManageStockLevelPage">
+			<result type="tiles">showManageStockLevelPage.tiles</result>
+		</action>
 
 		<action name="showCustomerSummaryForm"
 			class="com.shofuku.accsystem.action.GenerateSummaryAction" method="loadCustomers">
@@ -858,6 +862,22 @@
 			</result>
 			<result name="customerPO" type="tiles">showCustomerPurchaseOrderForm.tiles
 			</result>
+		</action>
+		<!--  manage stock level -->
+		<action name="showManageStockLevelPageAction" method="execute"
+			class="com.shofuku.accsystem.action.ManageStockLevelAction">
+			<result name="input" type="tiles">showManageStockLevelPage.tiles</result>
+					
+		</action>
+		<action name="manageStockLevelPageAction" method="readStockLevelExcel"
+			class="com.shofuku.accsystem.action.ManageStockLevelAction">
+			<result name="updated" type="tiles">showManageStockLevelPage.tiles</result>
+			
+		</action>
+		<action name="showCustomerProfileAction" method="showCustomerProfile"
+			class="com.shofuku.accsystem.action.ManageStockLevelAction">
+			<result name="showCustomer" type="tiles">showCustomerProfileForm.tiles</result>
+			
 		</action>
 
 		<action name="checkSupplierOrderingForm"
