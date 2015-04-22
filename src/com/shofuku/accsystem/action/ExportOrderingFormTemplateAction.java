@@ -118,7 +118,11 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				
 				//START: 2015 - PHASE 3a - stock level per customer
 				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(rawMaterial.getItemCode()); 
-				double tempStockLevelValue=csl.getStockLevel();
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
 				//END: 2015 - PHASE 3a - stock level per customer
 				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
@@ -158,7 +162,11 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				
 				//START: 2015 - PHASE 3a - stock level per customer
 				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(tradedItem.getItemCode()); 
-				double tempStockLevelValue=csl.getStockLevel();
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
 				//END: 2015 - PHASE 3a - stock level per customer
 				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
@@ -195,7 +203,11 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				
 				//START: 2015 - PHASE 3a - stock level per customer
 				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(finGood.getProductCode()); 
-				double tempStockLevelValue=csl.getStockLevel();
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
 				//END: 2015 - PHASE 3a - stock level per customer
 				
 				
@@ -245,32 +257,32 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	@SuppressWarnings("rawtypes")
 	private void populateWorkSheets(HSSFWorkbook wb) {
 		int sheetCtr=0;
-		int currentRow = 8;
+		int currentRow = 9;
 		int currentColumn = 1;
 		
-		int rowLimit = 60;
+		int rowLimit = 70;
 		
 		HSSFSheet sheet = wb.getSheetAt(sheetCtr);
 		
 		
 		//subcategory style
 		HSSFRow row = sheet.getRow(1);
-		HSSFCell cell = row.getCell(12);
+		HSSFCell cell = row.getCell(15);
 		subCategoryCellStyle = cell.getCellStyle();
 		
 		//headeritem style
 		row = sheet.getRow(2);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		headerListStyle = cell.getCellStyle();
 		
 		//normal item style
 		row = sheet.getRow(3);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		itemListStyle = cell.getCellStyle();
 		
 		//no style
 		row = sheet.getRow(4);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		noStyle = cell.getCellStyle();
 		
 		
@@ -293,10 +305,10 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				}
 				if(currentRow>rowLimit/2) {
 					currentColumn++;
-					currentRow = 8;
+					currentRow = 9;
 				}
 			}
-			currentRow = 8;
+			currentRow = 9;
 			currentColumn = 1;
 			
 		}
@@ -307,25 +319,25 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		
 		//subcategory style
 		row = sheet.getRow(1);
-		cell = row.createCell(12);
+		cell = row.createCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//normal item style
 		row = sheet.getRow(2);
-		cell = row.createCell(12);
+		cell = row.createCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//headeritem style
 		row = sheet.getRow(3);
-		cell = row.createCell(12);		
+		cell = row.createCell(15);		
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//no style
 		row = sheet.getRow(4);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 	}
@@ -363,23 +375,29 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 			poiUtil.putCellValue(cell, "");
 			cell = poiUtil.getCurrentCell(row,4);
 			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, tempItem.getCustomerStockLevel());
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, "");
 			
 		}else if (currentColumn ==2) {
 			HSSFRow row=poiUtil.getRow(sheet, currentRow);
-			HSSFCell cell = poiUtil.getCurrentCell(row,6);
+			HSSFCell cell = poiUtil.getCurrentCell(row,7);
 			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, tempItem.getItemCode());
-			cell = poiUtil.getCurrentCell(row,7);
-			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, tempItem.getDescription());
 			cell = poiUtil.getCurrentCell(row,8);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, tempItem.getUnitOfMeasurement());
+			poiUtil.putCellValue(cell, tempItem.getDescription());
 			cell = poiUtil.getCurrentCell(row,9);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, "");
+			poiUtil.putCellValue(cell, tempItem.getUnitOfMeasurement());
 			cell = poiUtil.getCurrentCell(row,10);
+			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, "");
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, tempItem.getCustomerStockLevel());
+			cell = poiUtil.getCurrentCell(row,12);
 			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, "");
 		}
@@ -407,8 +425,14 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		if(currentColumn==1) {
 			HSSFCell cell = poiUtil.getCurrentCell(row,3);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "QTY");
-			sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
+			poiUtil.putCellValue(cell, "Inventory");
+			cell = poiUtil.getCurrentCell(row,4);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Stock");
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Store");
+			
 			row=poiUtil.getRow(sheet, ++currentRow);
 			cell = poiUtil.getCurrentCell(row,0);
 			cell.setCellStyle(headerListStyle);
@@ -419,31 +443,45 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 			cell = poiUtil.getCurrentCell(row,2);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "UOM");
+			
 			cell = poiUtil.getCurrentCell(row,3);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "INV");
+			poiUtil.putCellValue(cell, "Physical Count");
 			cell = poiUtil.getCurrentCell(row,4);
 			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Level");
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "ORDER");
+			
 		}else if (currentColumn ==2) {
-			HSSFCell cell = poiUtil.getCurrentCell(row,9);
+			HSSFCell cell = poiUtil.getCurrentCell(row,10);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "QTY");
-			sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 9, 10));
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Stock");
+			cell = poiUtil.getCurrentCell(row,12);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Store");
+			
 			row=poiUtil.getRow(sheet, ++currentRow);
-			cell = poiUtil.getCurrentCell(row,6);
+			cell = poiUtil.getCurrentCell(row,7);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "CODE");
-			cell = poiUtil.getCurrentCell(row,7);
+			cell = poiUtil.getCurrentCell(row,8);
 			cell.setCellStyle(subCategoryCellStyle);
 			poiUtil.putCellValue(cell, subClass);
-			cell = poiUtil.getCurrentCell(row,8);
-			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "UOM");
 			cell = poiUtil.getCurrentCell(row,9);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "INV");
+			poiUtil.putCellValue(cell, "UOM");
 			cell = poiUtil.getCurrentCell(row,10);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Physical Count");
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Level");
+			cell = poiUtil.getCurrentCell(row,12);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "ORDER");
 		}

@@ -25,7 +25,6 @@ var subMenu=0;
 	<h4 class="title">Manage Stock Level</h4>
 		<s:form action="manageStockLevelPageAction" validate="true" id="stockLevelPage" method="post" enctype="multipart/form-data">
 				<s:hidden name="cusId" value="%{customer.customerNo}"/>	
-				
 				<s:actionerror/>
 				<s:actionmessage/>	
 			<table border=0 class="form">

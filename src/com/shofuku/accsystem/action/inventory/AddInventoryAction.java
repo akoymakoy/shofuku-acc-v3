@@ -30,6 +30,7 @@ import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
 import com.shofuku.accsystem.domain.lookups.InventoryClassification;
 import com.shofuku.accsystem.domain.lookups.UnitOfMeasurements;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
@@ -57,6 +58,7 @@ public class AddInventoryAction extends ActionSupport {
 	FPTS fpts;
 	RequisitionForm rf;
 	ReturnSlip rs;
+	Utensils u;
 
 	String returnSlipToValue;
 	
@@ -228,6 +230,35 @@ public class AddInventoryAction extends ActionSupport {
 					}
 				}
 				return "tradedItems";
+			} else if (getSubModule().equalsIgnoreCase("utensils")) {
+				
+				if (validateUtensils()) {
+				} else {
+				
+					if (isExistingInAllItems(getU()
+							.getItemCode())) {
+						addActionMessage(SASConstants.EXISTS);
+					} else {
+						if (otherUOMSelected)
+							if (lookupManager.addNewUOM(new UnitOfMeasurements(
+									u.getUnitOfMeasurement(), "GENERAL"),
+									session)) {
+								session = getSession();
+								loadLookLists();
+							}
+						processItemPricing(session, u);
+						addResult = manager.addInventoryObject(u, session);
+
+						if (addResult == true) {
+							addActionMessage(SASConstants.ADD_SUCCESS);
+							forWhat = "true";
+							forWhatDisplay = "edit";
+						} else {
+							addActionError(SASConstants.FAILED);
+						}
+					}
+				}
+				return "utensils";
 			}else if (getSubModule().equalsIgnoreCase("returnSlip")) {
 				return addReturnSlip();
 						
@@ -279,9 +310,7 @@ public class AddInventoryAction extends ActionSupport {
 						} else {
 							addActionError(SASConstants.FAILED);
 						}
-						
 					}
-					
 				}
 				loadLookLists();
 				return "finGood";
@@ -292,6 +321,8 @@ public class AddInventoryAction extends ActionSupport {
 				return "rawMat";
 			}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
 				return "tradedItems";
+			}else if (getSubModule().equalsIgnoreCase("utensils")) {
+				return "utensils";
 			}else if (getSubModule().equalsIgnoreCase("fpts")) {
 				return "fpts";
 			}else if (getSubModule().equalsIgnoreCase("rf")) {
@@ -613,6 +644,10 @@ public class AddInventoryAction extends ActionSupport {
 			itemPricing = invUtil.getItemPricing(session, ti.getItemCode());
 			itemCode = ti.getItemCode();
 			itemType = SASConstants.TRADED_ITEM_ABBR;
+		}else if (obj instanceof Utensils) {
+			itemPricing = invUtil.getItemPricing(session, u.getItemCode());
+			itemCode = u.getItemCode();
+			itemType = SASConstants.UTENSILS_ABBR;
 		}
 		// else if (obj instanceof TradedItem)
 
@@ -624,6 +659,8 @@ public class AddInventoryAction extends ActionSupport {
 				itemPricing = fg.getItemPricing();
 			}else if (obj instanceof TradedItem) {
 				itemPricing = ti.getItemPricing();
+			}else if (obj instanceof Utensils) {
+				itemPricing = u.getItemPricing();
 			}
 			
 			itemPricing.setItemCode(itemCode);
@@ -639,6 +676,8 @@ public class AddInventoryAction extends ActionSupport {
 			fg.setItemPricing(itemPricing);
 		} else if (obj instanceof TradedItem) {
 			ti.setItemPricing(itemPricing);
+		}else if (obj instanceof Utensils) {
+			u.setItemPricing(itemPricing);
 		}
 		// else if (obj instanceof TradedItem)
 
@@ -835,6 +874,14 @@ public class AddInventoryAction extends ActionSupport {
 				UnitOfMeasurements.class, "GENERAL", session));
 		return "tradedItems";
 	}
+	public String loadLookListsInUtensils() {
+		Session session = getSession();
+		
+	
+		UOMList = generateUOMStrings(lookupManager.getLookupElements(
+				UnitOfMeasurements.class, "GENERAL", session));
+		return "utensils";
+	}
 	
 
 
@@ -856,6 +903,8 @@ public class AddInventoryAction extends ActionSupport {
 				return "rawMat";
 			}else if (getSubModule().equalsIgnoreCase("tradedItems") || getRequestingModule().equalsIgnoreCase("tradedItems")) {
 					return "tradedItems";
+			}else if (getSubModule().equalsIgnoreCase("utensils") || getRequestingModule().equalsIgnoreCase("utensils")) {
+				return "utensils";
 			}else if (getSubModule().equalsIgnoreCase("returnSlip") || getRequestingModule().equalsIgnoreCase("returnSlip")) {
 				return "returnSlip";
 			}else if (getSubModule().equalsIgnoreCase("finishedGood") || getRequestingModule().equalsIgnoreCase("finishedGood")){
@@ -885,6 +934,9 @@ public class AddInventoryAction extends ActionSupport {
 		}else if (requestingModule != null
 				&& requestingModule.equalsIgnoreCase("tradedItems")) {
 			return "tradedItems";
+		}else if (requestingModule != null
+				&& requestingModule.equalsIgnoreCase("utensils")) {
+			return "utensils";
 		} else if (requestingModule != null
 				&& requestingModule.equalsIgnoreCase("returnSlip")) {
 			return "returnSlip";
@@ -913,6 +965,15 @@ public class AddInventoryAction extends ActionSupport {
 				ti.setItemCode(ti.getItemCode());
 			}
 			return "tradedItems";
+		}else if (getSubModule().equals("utensils")) {
+			setItemNo(itemNo);
+			
+			if (!itemNo.equals("")){
+				u.setItemCode(itemNo);
+			}else{
+				u.setItemCode(u.getItemCode());
+			}
+			return "utensils";
 		}else if (getSubModule().equals("rawMat")) {
 			setItemNo(itemNo);
 			
@@ -969,6 +1030,8 @@ public class AddInventoryAction extends ActionSupport {
 			return "rawMat";
 		}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
 			return "tradedItems";
+		}else if (getSubModule().equalsIgnoreCase("utensils")) {
+			return "utensils";
 		}else {
 			return "finGood";
 		}
@@ -1273,6 +1336,52 @@ public class AddInventoryAction extends ActionSupport {
 		}
 		if (ti.getUnitOfMeasurement().equalsIgnoreCase("OTHERS")) {
 			addFieldError("ti.unitOfMeasurementText", "REQUIRED");
+		}
+
+		return errorFound;
+	}
+	
+	private boolean validateUtensils() {
+		loadLookLists();
+		boolean errorFound = false;
+		if ("".equals(getU().getItemCode())) {
+			addFieldError("u.itemCode", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getU().getItemCode().length() > 45) {
+				addFieldError("u.itemCode", "item code too long");
+				errorFound = true;
+			}
+		}
+		if ("".equals(getU().getDescription())) {
+			addFieldError("u.description", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getU().getDescription().trim().length() > 200) {
+				addFieldError("u.description",
+						"MAXIMUM LENGTH: 200 characters");
+			}
+		}
+		if (u.getUnitOfMeasurement() == null) {
+		}
+
+		else {
+			if (u.getUnitOfMeasurement().indexOf(", ") > -1) {
+				if ("".equals(u.getUnitOfMeasurement().substring(
+						u.getUnitOfMeasurement().indexOf(", ")))) {
+					addFieldError("u.unitOfMeasurement", "REQUIRED");
+					errorFound = true;
+				} else {
+					otherUOMSelected = true;
+					u.setUnitOfMeasurement(u
+							.getUnitOfMeasurement()
+							.substring(
+									u.getUnitOfMeasurement().indexOf(", ") + 2));
+				}
+			}
+		}
+		if (u.getUnitOfMeasurement().equalsIgnoreCase("OTHERS")) {
+			addFieldError("u.unitOfMeasurementText", "REQUIRED");
 		}
 
 		return errorFound;
@@ -1693,4 +1802,13 @@ public class AddInventoryAction extends ActionSupport {
 			this.transactions = transactions;
 		}
 		//END 2013 - PHASE 3 : PROJECT 1: MARK 
+
+		public Utensils getU() {
+			return u;
+		}
+
+		public void setU(Utensils u) {
+			this.u = u;
+		}
+		
 }

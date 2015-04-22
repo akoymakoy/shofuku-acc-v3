@@ -3,13 +3,12 @@ package com.shofuku.accsystem.action.customer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
 
-import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
@@ -93,13 +92,6 @@ public class UpdateCustomerAction extends ActionSupport {
 				if (validateCustomer()) {
 					
 				}else {
-					Map sess = ActionContext.getContext().getSession();
-					
-					if(sess.get("customerStockLevelMap")==null){
-					}else{
-						customer.setCustomerStockLevelMap((Map)sess.get("customerStockLevelMap"));
-					}
-					
 					updateResult = manager.updateCustomer(customer,session);
 					if (updateResult == true) {
 						addActionMessage(SASConstants.UPDATED);
