@@ -26,7 +26,7 @@ public class SASConstants {
 	public final static String IMPORT_ORDERING_FORM = "2";
 
 	//ordering form blank template
-	public final static String ORDERING_FORM_ROOT = "/../templates/OrderingFormBlankTemplate.xls";
+	public final static String ORDERING_FORM_ROOT = "/../templates/OrderingFormBlankTemplate_v2.xls";
 	
 	//search results export template
 	public final static String SEARCH_RESULTS_TEMPLATE_ROOT = "/../templates/SearchResultsExportTemplate.xls";

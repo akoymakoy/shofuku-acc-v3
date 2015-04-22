@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -22,6 +23,8 @@ import org.hibernate.Session;
 
 import com.opensymphony.xwork2.ActionSupport;
 import com.shofuku.accsystem.controllers.InventoryManager;
+import com.shofuku.accsystem.domain.customers.Customer;
+import com.shofuku.accsystem.domain.customers.CustomerStockLevel;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Item;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
@@ -42,6 +45,8 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	POIUtil poiUtil = new POIUtil();
 	
 	String orderingFormType;
+	
+	Customer customer;
 	
 	
 	InventoryManager manager=new InventoryManager();
@@ -68,6 +73,16 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private HashMap<String,HashMap<String,ArrayList<Item>>> getAllItemList(Session session) {
 		Iterator iterator = null;
+		
+		//START: 2015 - PHASE 3a - stock level per customer
+		
+		//temp value: CMJCC01
+		List result = manager.listByParameter(Customer.class, "customerNo","CMJCC01",session);
+		customer =(Customer) result.get(0);
+		Map customerSpecificStockLevel = customer.getCustomerStockLevelMap();
+		//END: 2015 - PHASE 3a - stock level per customer
+		
+		
 		
 		List<RawMaterial> rawMatList =manager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
 		List<TradedItem> tradedItemList =manager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
@@ -100,8 +115,14 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 								.get(rawMaterial.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(rawMaterial.getItemCode()); 
+				double tempStockLevelValue=csl.getStockLevel();
+				//END: 2015 - PHASE 3a - stock level per customer
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable()));
+				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(rawMaterial.getSubClassification(), tempList);
 				itemMap.put(rawMaterial.getClassification(), subClassMap);
@@ -134,8 +155,14 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 								.get(tradedItem.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(tradedItem.getItemCode()); 
+				double tempStockLevelValue=csl.getStockLevel();
+				//END: 2015 - PHASE 3a - stock level per customer
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable()));
+				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(tradedItem.getSubClassification(), tempList);
 				itemMap.put(tradedItem.getClassification(), subClassMap);
@@ -165,13 +192,23 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 						tempList = (ArrayList<Item>) subClassMap.get(finGood.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(finGood.getProductCode()); 
+				double tempStockLevelValue=csl.getStockLevel();
+				//END: 2015 - PHASE 3a - stock level per customer
+				
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable()));
+				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(finGood.getSubClassification(), tempList);
 				itemMap.put(finGood.getClassification(),subClassMap);
 			}
 		}
+		
+		
+	
 		
 		return itemMap;
 	}
@@ -412,6 +449,14 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		}
 		
 		
+	}
+	
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
 	}
 
 	public InputStream getExcelStream() {

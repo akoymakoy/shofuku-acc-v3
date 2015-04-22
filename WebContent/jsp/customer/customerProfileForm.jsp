@@ -94,7 +94,9 @@
 							<td><s:textfield disabled="%{forWhat}" label="Fax Number: " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="customer.faxNumber"></s:textfield></td>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: " onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="customer.mobileNumber"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: " onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="customer.mobileNumber"></s:textfield>
+							<s:hidden name="customerStockLevelMap" value="%{customer.customerStockLevelMap}"/>	
+							</td>
 							
 						</tr>
 						
