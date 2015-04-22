@@ -76,7 +76,9 @@ public class ManageStockLevelAction extends ActionSupport{
 	
 	public String showCustomerProfile() {
 		Session session = getSession();
+		
 			customer = (Customer) manager.listByParameter(Customer.class, "customerNo", cusId, session).get(0);
+						
 		return "showCustomer";
 	}
 	
@@ -138,7 +140,4 @@ public class ManageStockLevelAction extends ActionSupport{
 	public void setForWhatDisplay(String forWhatDisplay) {
 		this.forWhatDisplay = forWhatDisplay;
 	}
-	
-	
-
 }
