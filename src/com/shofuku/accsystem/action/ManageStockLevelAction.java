@@ -6,8 +6,14 @@ import java.util.Iterator;
 import java.util.List;
 
 
+
+import java.util.Map;
+
+import javax.servlet.http.HttpSession;
+
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.domain.customers.Customer;
@@ -30,9 +36,7 @@ public class ManageStockLevelAction extends ActionSupport{
 	CustomerManager manager = new CustomerManager();
 	POIUtil poiUtil = new POIUtil();
 	private String forWhat = "false";
-	private String forWhatDisplay ="edit";
-	
-	private Session getSession() {
+	private String forWhatDisplay ="edit";  Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
 	}
 
@@ -76,10 +80,13 @@ public class ManageStockLevelAction extends ActionSupport{
 	
 	public String showCustomerProfile() {
 		Session session = getSession();
-		
 			customer = (Customer) manager.listByParameter(Customer.class, "customerNo", cusId, session).get(0);
-						
+			
+			Map sess = ActionContext.getContext().getSession();
+			sess.put("customerStockLevelMap",customer.getCustomerStockLevelMap());
+			
 		return "showCustomer";
+		
 	}
 	
 	
@@ -140,4 +147,7 @@ public class ManageStockLevelAction extends ActionSupport{
 	public void setForWhatDisplay(String forWhatDisplay) {
 		this.forWhatDisplay = forWhatDisplay;
 	}
+	
+	
+
 }

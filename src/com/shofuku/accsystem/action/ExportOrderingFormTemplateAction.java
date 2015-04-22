@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -22,6 +23,8 @@ import org.hibernate.Session;
 
 import com.opensymphony.xwork2.ActionSupport;
 import com.shofuku.accsystem.controllers.InventoryManager;
+import com.shofuku.accsystem.domain.customers.Customer;
+import com.shofuku.accsystem.domain.customers.CustomerStockLevel;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Item;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
@@ -42,6 +45,8 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	POIUtil poiUtil = new POIUtil();
 	
 	String orderingFormType;
+	
+	Customer customer;
 	
 	
 	InventoryManager manager=new InventoryManager();
@@ -68,6 +73,16 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private HashMap<String,HashMap<String,ArrayList<Item>>> getAllItemList(Session session) {
 		Iterator iterator = null;
+		
+		//START: 2015 - PHASE 3a - stock level per customer
+		
+		//temp value: CMJCC01
+		List result = manager.listByParameter(Customer.class, "customerNo","CMJCC01",session);
+		customer =(Customer) result.get(0);
+		Map customerSpecificStockLevel = customer.getCustomerStockLevelMap();
+		//END: 2015 - PHASE 3a - stock level per customer
+		
+		
 		
 		List<RawMaterial> rawMatList =manager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
 		List<TradedItem> tradedItemList =manager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
@@ -100,8 +115,18 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 								.get(rawMaterial.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(rawMaterial.getItemCode()); 
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
+				//END: 2015 - PHASE 3a - stock level per customer
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable()));
+				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(rawMaterial.getSubClassification(), tempList);
 				itemMap.put(rawMaterial.getClassification(), subClassMap);
@@ -134,8 +159,18 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 								.get(tradedItem.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(tradedItem.getItemCode()); 
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
+				//END: 2015 - PHASE 3a - stock level per customer
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable()));
+				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(tradedItem.getSubClassification(), tempList);
 				itemMap.put(tradedItem.getClassification(), subClassMap);
@@ -165,13 +200,27 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 						tempList = (ArrayList<Item>) subClassMap.get(finGood.getSubClassification());
 					}
 				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(finGood.getProductCode()); 
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
+				//END: 2015 - PHASE 3a - stock level per customer
+				
+				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable()));
+				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(finGood.getSubClassification(), tempList);
 				itemMap.put(finGood.getClassification(),subClassMap);
 			}
 		}
+		
+		
+	
 		
 		return itemMap;
 	}
@@ -208,32 +257,32 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	@SuppressWarnings("rawtypes")
 	private void populateWorkSheets(HSSFWorkbook wb) {
 		int sheetCtr=0;
-		int currentRow = 8;
+		int currentRow = 9;
 		int currentColumn = 1;
 		
-		int rowLimit = 60;
+		int rowLimit = 70;
 		
 		HSSFSheet sheet = wb.getSheetAt(sheetCtr);
 		
 		
 		//subcategory style
 		HSSFRow row = sheet.getRow(1);
-		HSSFCell cell = row.getCell(12);
+		HSSFCell cell = row.getCell(15);
 		subCategoryCellStyle = cell.getCellStyle();
 		
 		//headeritem style
 		row = sheet.getRow(2);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		headerListStyle = cell.getCellStyle();
 		
 		//normal item style
 		row = sheet.getRow(3);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		itemListStyle = cell.getCellStyle();
 		
 		//no style
 		row = sheet.getRow(4);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		noStyle = cell.getCellStyle();
 		
 		
@@ -256,10 +305,10 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				}
 				if(currentRow>rowLimit/2) {
 					currentColumn++;
-					currentRow = 8;
+					currentRow = 9;
 				}
 			}
-			currentRow = 8;
+			currentRow = 9;
 			currentColumn = 1;
 			
 		}
@@ -270,25 +319,25 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		
 		//subcategory style
 		row = sheet.getRow(1);
-		cell = row.createCell(12);
+		cell = row.createCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//normal item style
 		row = sheet.getRow(2);
-		cell = row.createCell(12);
+		cell = row.createCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//headeritem style
 		row = sheet.getRow(3);
-		cell = row.createCell(12);		
+		cell = row.createCell(15);		
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 		
 		//no style
 		row = sheet.getRow(4);
-		cell = row.getCell(12);
+		cell = row.getCell(15);
 		cell.setCellValue("");
 		cell.setCellStyle(noStyle);
 	}
@@ -326,23 +375,29 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 			poiUtil.putCellValue(cell, "");
 			cell = poiUtil.getCurrentCell(row,4);
 			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, tempItem.getCustomerStockLevel());
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, "");
 			
 		}else if (currentColumn ==2) {
 			HSSFRow row=poiUtil.getRow(sheet, currentRow);
-			HSSFCell cell = poiUtil.getCurrentCell(row,6);
+			HSSFCell cell = poiUtil.getCurrentCell(row,7);
 			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, tempItem.getItemCode());
-			cell = poiUtil.getCurrentCell(row,7);
-			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, tempItem.getDescription());
 			cell = poiUtil.getCurrentCell(row,8);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, tempItem.getUnitOfMeasurement());
+			poiUtil.putCellValue(cell, tempItem.getDescription());
 			cell = poiUtil.getCurrentCell(row,9);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, "");
+			poiUtil.putCellValue(cell, tempItem.getUnitOfMeasurement());
 			cell = poiUtil.getCurrentCell(row,10);
+			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, "");
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(itemListStyle);
+			poiUtil.putCellValue(cell, tempItem.getCustomerStockLevel());
+			cell = poiUtil.getCurrentCell(row,12);
 			cell.setCellStyle(itemListStyle);
 			poiUtil.putCellValue(cell, "");
 		}
@@ -370,8 +425,14 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		if(currentColumn==1) {
 			HSSFCell cell = poiUtil.getCurrentCell(row,3);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "QTY");
-			sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 3, 4));
+			poiUtil.putCellValue(cell, "Inventory");
+			cell = poiUtil.getCurrentCell(row,4);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Stock");
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Store");
+			
 			row=poiUtil.getRow(sheet, ++currentRow);
 			cell = poiUtil.getCurrentCell(row,0);
 			cell.setCellStyle(headerListStyle);
@@ -382,36 +443,58 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 			cell = poiUtil.getCurrentCell(row,2);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "UOM");
+			
 			cell = poiUtil.getCurrentCell(row,3);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "INV");
+			poiUtil.putCellValue(cell, "Physical Count");
 			cell = poiUtil.getCurrentCell(row,4);
 			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Level");
+			cell = poiUtil.getCurrentCell(row,5);
+			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "ORDER");
+			
 		}else if (currentColumn ==2) {
-			HSSFCell cell = poiUtil.getCurrentCell(row,9);
+			HSSFCell cell = poiUtil.getCurrentCell(row,10);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "QTY");
-			sheet.addMergedRegion(new CellRangeAddress(currentRow, currentRow, 9, 10));
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Stock");
+			cell = poiUtil.getCurrentCell(row,12);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Store");
+			
 			row=poiUtil.getRow(sheet, ++currentRow);
-			cell = poiUtil.getCurrentCell(row,6);
+			cell = poiUtil.getCurrentCell(row,7);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "CODE");
-			cell = poiUtil.getCurrentCell(row,7);
+			cell = poiUtil.getCurrentCell(row,8);
 			cell.setCellStyle(subCategoryCellStyle);
 			poiUtil.putCellValue(cell, subClass);
-			cell = poiUtil.getCurrentCell(row,8);
-			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "UOM");
 			cell = poiUtil.getCurrentCell(row,9);
 			cell.setCellStyle(headerListStyle);
-			poiUtil.putCellValue(cell, "INV");
+			poiUtil.putCellValue(cell, "UOM");
 			cell = poiUtil.getCurrentCell(row,10);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Physical Count");
+			cell = poiUtil.getCurrentCell(row,11);
+			cell.setCellStyle(headerListStyle);
+			poiUtil.putCellValue(cell, "Level");
+			cell = poiUtil.getCurrentCell(row,12);
 			cell.setCellStyle(headerListStyle);
 			poiUtil.putCellValue(cell, "ORDER");
 		}
 		
 		
+	}
+	
+	public Customer getCustomer() {
+		return customer;
+	}
+
+	public void setCustomer(Customer customer) {
+		this.customer = customer;
 	}
 
 	public InputStream getExcelStream() {
