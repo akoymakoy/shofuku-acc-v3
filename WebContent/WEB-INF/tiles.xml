@@ -161,6 +161,15 @@
 	<definition name="showTradedItemsForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/inventory/tradedItemsForm.jsp"/>
 	</definition>
+	<definition name="showUtensilsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/utensilsForm.jsp"/>
+	</definition>
+	<definition name="showOfficeSuppliesForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/officeSuppliesForm.jsp"/>
+	</definition>
+	<definition name="showUnlistedItemsForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/inventory/unlistedItemsForm.jsp"/>
+	</definition>
 	<definition name="showReturnSlipForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/inventory/ReturnSlipForm.jsp"/>
 	</definition>
@@ -170,14 +179,9 @@
 	<definition name="showFinishedProductTransferSlipForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/inventory/finishedProductTransferSlipForm.jsp"/>
 	</definition>
-	
-
-	
 	<definition name="showOrderRequisitionForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/inventory/orderRequisitionForm.jsp"/>
 	</definition>
-	
-	
 	<definition name="showInventorySummaryForm.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/inventory/summaryInventorySearchForm.jsp"/>
 	</definition>
@@ -189,6 +193,10 @@
 	
 	<definition name="showExportOrderingFormTemplate.tiles" extends="baseLayout.tiles">
 		<put-attribute name="body" value="/jsp/util/exportOrderingFormTemplate.jsp"/>
+	</definition>
+	
+	<definition name="showImportOfflineOrdersForm.tiles" extends="baseLayout.tiles">
+		<put-attribute name="body" value="/jsp/util/importOfflineOrdersForm.jsp"/>
 	</definition>
 	
 	<!--  Security -->

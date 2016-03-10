@@ -41,14 +41,21 @@ import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Ingredient;
 import com.shofuku.accsystem.domain.inventory.ItemPricing;
 import com.shofuku.accsystem.domain.inventory.Memo;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
+import com.shofuku.accsystem.domain.inventory.RawMaterial;
+import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.SASConstants;
 
 public class InventoryDaoImpl extends BaseHibernateDaoImpl {
 
 	// add specific HQL calls here if any
+	
 
 	private Transaction getCurrentTransaction(Session session){
 		Transaction tx = null;
@@ -312,7 +319,7 @@ public class InventoryDaoImpl extends BaseHibernateDaoImpl {
 		Properties prop = new Properties();
 		try {
 			prop.load(new FileInputStream(
-					"c://ShofukuAccountingSystemDatabase.properties"));
+					SASConstants.PROPERTY_FILE_PATH));
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -372,7 +379,7 @@ public class InventoryDaoImpl extends BaseHibernateDaoImpl {
 		Properties prop = new Properties();
 		try {
 			prop.load(new FileInputStream(
-					"c://ShofukuAccountingSystemDatabase.properties"));
+					SASConstants.PROPERTY_FILE_PATH));
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -461,7 +468,7 @@ public class InventoryDaoImpl extends BaseHibernateDaoImpl {
 		Properties prop = new Properties();
 		try {
 			prop.load(new FileInputStream(
-					"c://ShofukuAccountingSystemDatabase.properties"));
+					SASConstants.PROPERTY_FILE_PATH));
 		} catch (FileNotFoundException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -566,5 +573,66 @@ public class InventoryDaoImpl extends BaseHibernateDaoImpl {
 		} 
 		return false;
 	}
+
+	public List listInventoryItemsByStatus(String subModule,
+			String searchByStatus, Session session) {
+		Transaction tx = null;
+		try {
+			tx = getCurrentTransaction(session);
+
+			List list = new ArrayList();
+			String orderBy = "";
+
+			Class clazz = null;
+
+			if (subModule.equalsIgnoreCase("RawMaterials")) {
+				clazz = RawMaterial.class;
+				orderBy = "itemCode";
+			} else if (subModule.equalsIgnoreCase("TradedItems")) {
+				clazz = TradedItem.class;
+				orderBy = "itemCode";
+			}else if (subModule.equalsIgnoreCase("Utensils")) {
+				clazz = Utensils.class;
+				orderBy = "itemCode";
+			}else if (subModule.equalsIgnoreCase("OfficeSupplies")) {
+				clazz = OfficeSupplies.class;
+				orderBy = "itemCode";
+			} else if (subModule.equalsIgnoreCase("FinishedGoods")) {
+				clazz = FinishedGood.class;
+				orderBy = "productCode";
+			}
+
+			Criteria criteria = session.createCriteria(clazz);
+			criteria.addOrder(Order.asc(orderBy));
+
+			switch (searchByStatus) {
+			case "A":
+				searchByStatus = "B";
+				criteria.add(Restrictions.or(Restrictions.or(
+						Restrictions.eq("template", "S"),
+						Restrictions.eq("template", "B")), Restrictions.eq(
+						"template", "C")));
+				break;
+			case "I":
+				searchByStatus = "N";
+				criteria.add(Restrictions.eq("template", "N"));
+				break;
+			case "B":
+				searchByStatus = "";
+				break;
+
+			}
+
+			return criteria.list();
+		} catch (RuntimeException re) {
+			tx.rollback();
+			re.printStackTrace();
+		} finally {
+
+		}
+		return null;
+
+	}
+	
 
 }

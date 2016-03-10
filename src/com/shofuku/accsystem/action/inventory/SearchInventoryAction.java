@@ -4,29 +4,54 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
+import com.shofuku.accsystem.controllers.LookupManager;
+import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.inventory.FPTS;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Item;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
+import com.shofuku.accsystem.domain.inventory.UnlistedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class SearchInventoryAction extends ActionSupport{
+public class SearchInventoryAction extends ActionSupport implements Preparable{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1121251364643576096L;
+	
+	Map actionSession;
+	UserAccount user;
+
+	InventoryManager inventoryManager;
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		
+	}
 	
 	private String subModule;
 	private String moduleParameter;
@@ -36,12 +61,14 @@ public class SearchInventoryAction extends ActionSupport{
 	RawMaterial rm;
 	FinishedGood fg;
 	TradedItem ti;
+	Utensils u;
+	OfficeSupplies os;
+	UnlistedItem unl;
 	FPTS fpts;
 	RequisitionForm rf;
 	List<Item> resultList = new ArrayList<Item>();
 	
-
-	InventoryManager manager=new InventoryManager();
+	
 	HashMap<String,HashMap<String,ArrayList<Item>>> itemMap = new HashMap<String,HashMap<String,ArrayList<Item>>>(); 
 	String orderingFormType;
 	
@@ -54,52 +81,82 @@ public class SearchInventoryAction extends ActionSupport{
 			if (getClicked().equals("true")) {
 
 				if ((null != getModuleParameter()&& getSubModule().equalsIgnoreCase("rawMat")) 
-						|| (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("tradedItems"))) {
+						|| (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("tradedItems"))
+						|| (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("utensils"))
+						|| (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("ofcSup"))
+						|| (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("unlistedItems"))) {
 				
 					if (getModuleParameter().equalsIgnoreCase("description")) {
 						if (getSubModule().equalsIgnoreCase("rawMat")){
-						inventoryList = manager.listInventoryByParameterLike(RawMaterial.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(RawMaterial.class, moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("tradedItems")){
+							inventoryList = inventoryManager.listInventoryByParameterLike(TradedItem.class, moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("utensils")){
+							inventoryList = inventoryManager.listInventoryByParameterLike(Utensils.class, moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("ofcSup")){
+							inventoryList = inventoryManager.listInventoryByParameterLike(OfficeSupplies.class, moduleParameter, moduleParameterValue,session);
 						}else{
-							inventoryList = manager.listInventoryByParameterLike(TradedItem.class, moduleParameter, moduleParameterValue,session);
+							inventoryList = inventoryManager.listInventoryByParameterLike(UnlistedItem.class, moduleParameter, moduleParameterValue,session);
 						}
 					}else if (moduleParameter.equalsIgnoreCase("ALL")) {
 						if (getSubModule().equalsIgnoreCase("rawMat")){
-						inventoryList = manager.listAlphabeticalAscByParameter(RawMaterial.class, "itemCode",session);
+							inventoryList = inventoryManager.listAlphabeticalAscByParameter(RawMaterial.class, "itemCode",session);
+						}else if (getSubModule().equalsIgnoreCase("tradedItems")){
+							inventoryList = inventoryManager.listAlphabeticalAscByParameter(TradedItem.class, "itemCode",session);
+						}else if (getSubModule().equalsIgnoreCase("utensils")){
+							inventoryList = inventoryManager.listAlphabeticalAscByParameter(Utensils.class, "itemCode",session);
+						}else if (getSubModule().equalsIgnoreCase("ofcSup")){
+							inventoryList = inventoryManager.listAlphabeticalAscByParameter(OfficeSupplies.class, "itemCode",session);
 						}else{
-							inventoryList = manager.listAlphabeticalAscByParameter(TradedItem.class, "itemCode",session);
+							inventoryList = inventoryManager.listAlphabeticalAscByParameter(UnlistedItem.class, "itemCode",session);
 						}
 						moduleParameterValue="all";
 					}else {
 						if (getSubModule().equalsIgnoreCase("rawMat")){
-						inventoryList = manager.listInventoryByParameter(RawMaterial.class,
+						inventoryList = inventoryManager.listInventoryByParameter(RawMaterial.class,
 										moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("utensils")){
+							inventoryList = inventoryManager.listInventoryByParameter(Utensils.class,
+									moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("ofcSup")){
+							inventoryList = inventoryManager.listInventoryByParameter(OfficeSupplies.class,
+									moduleParameter, moduleParameterValue,session);
+						}else if (getSubModule().equalsIgnoreCase("unlisteditems")){
+						inventoryList = inventoryManager.listInventoryByParameter(UnlistedItem.class,
+								moduleParameter, moduleParameterValue,session);
 						}else{
-							inventoryList = manager.listInventoryByParameter(TradedItem.class,
+							inventoryList = inventoryManager.listInventoryByParameter(TradedItem.class,
 									moduleParameter, moduleParameterValue,session);
 						}
 					}
-						if (inventoryList.size()==0) {
+						if (inventoryList == null || inventoryList.size()==0) {
 							addActionMessage(SASConstants.NO_LIST);
 						}
 					
 					if (getSubModule().equalsIgnoreCase("rawMat")){
 						return "rawMat";
+					}else if (getSubModule().equalsIgnoreCase("utensils")){
+						return "utensils";
+					}else if (getSubModule().equalsIgnoreCase("ofcSup")){
+						return "ofcSup";
+					}else if (getSubModule().equalsIgnoreCase("unlistedItems")){
+						return "unlistedItems";
 					}else {
 						return "tradedItems";
 					}
 				}  else if(null != getModuleParameter()&& getSubModule().equalsIgnoreCase("returnSlip")) {
 					if (getModuleParameter().equalsIgnoreCase("returnSlipNo")) {
-						inventoryList = manager.listInventoryByParameterLike(ReturnSlip.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(ReturnSlip.class, moduleParameter, moduleParameterValue,session);
 					}else if (moduleParameter.equalsIgnoreCase("orderReferenceNo")) {
-						inventoryList = manager.listInventoryByParameterLike(ReturnSlip.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(ReturnSlip.class, moduleParameter, moduleParameterValue,session);
 					}else if(moduleParameter.equalsIgnoreCase("ALL")){
-						inventoryList = manager.listAlphabeticalAscByParameter(ReturnSlip.class, "returnSlipNo",session);
+						inventoryList = inventoryManager.listAlphabeticalAscByParameter(ReturnSlip.class, "returnSlipNo",session);
 						moduleParameterValue="all";
 					}else {
-						inventoryList = manager.listInventoryByParameter(FinishedGood.class,
+						inventoryList = inventoryManager.listInventoryByParameter(FinishedGood.class,
 										moduleParameter, moduleParameterValue,session);
 					}
-						if (inventoryList.size()==0) {
+						if (inventoryList == null || inventoryList.size()==0) {
 							addActionMessage(SASConstants.NO_LIST);
 						}
 					return "returnSlip";
@@ -107,22 +164,22 @@ public class SearchInventoryAction extends ActionSupport{
 				
 					FPTS fpts = new FPTS();
 					 if (moduleParameter.equalsIgnoreCase("ALL")) {
-						inventoryList = manager.listAlphabeticalAscByParameter(FPTS.class, "fptsNo",session);
+						inventoryList = inventoryManager.listAlphabeticalAscByParameter(FPTS.class, "fptsNo",session);
 						moduleParameterValue="all";
 					}else if (getModuleParameter().equalsIgnoreCase("fptsFrom") || getModuleParameter().equalsIgnoreCase("fptsTo")) {
-						inventoryList = manager.listInventoryByParameterLike(FPTS.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(FPTS.class, moduleParameter, moduleParameterValue,session);
 					}else if (null != getModuleParameter() && moduleParameter.equalsIgnoreCase("requisitionNo")) {
-						inventoryList = manager.searchFPTSByOrderRequisitionNo(FPTS.class, "requisitionForm.requisitionNo", moduleParameterValue, session);
+						inventoryList = inventoryManager.searchFPTSByOrderRequisitionNo(FPTS.class, "requisitionForm.requisitionNo", moduleParameterValue, session);
 					} else if (moduleParameter.endsWith("Date")) {
-						inventoryList = manager.getInventoryElementsByDate(
+						inventoryList = inventoryManager.getInventoryElementsByDate(
 								new DateFormatHelper()
 										.parseStringToTime(moduleParameterValue),
 								fpts.getClass().getName(), moduleParameter,session);
 					}else {
-						inventoryList = manager.listInventoryByParameter(FPTS.class,
+						inventoryList = inventoryManager.listInventoryByParameter(FPTS.class,
 										moduleParameter, moduleParameterValue,session);
 					}
-						if (inventoryList.size()==0) {
+						if (inventoryList == null || inventoryList.size()==0) {
 							addActionMessage(SASConstants.NO_LIST);
 						}
 					return "fpts";
@@ -130,34 +187,34 @@ public class SearchInventoryAction extends ActionSupport{
 				
 					RequisitionForm rf = new RequisitionForm();
 					 if (moduleParameter.equalsIgnoreCase("ALL")) {
-						inventoryList = manager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo",session);
+						inventoryList = inventoryManager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo",session);
 						moduleParameterValue="all";
 					}else if (getModuleParameter().equalsIgnoreCase("requisitionTo") || getModuleParameter().equalsIgnoreCase("requisitionBy")) {
-						inventoryList = manager.listInventoryByParameterLike(RequisitionForm.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(RequisitionForm.class, moduleParameter, moduleParameterValue,session);
 					} else if (moduleParameter.endsWith("Date")) {
-						inventoryList = manager.getInventoryElementsByDate(
+						inventoryList = inventoryManager.getInventoryElementsByDate(
 								new DateFormatHelper()
 										.parseStringToTime(moduleParameterValue),
 								rf.getClass().getName(), moduleParameter,session);
 					}else {
-						inventoryList = manager.listInventoryByParameter(RequisitionForm.class,
+						inventoryList = inventoryManager.listInventoryByParameter(RequisitionForm.class,
 										moduleParameter, moduleParameterValue,session);
 					}
-						if (inventoryList.size()==0) {
+						if (inventoryList == null || inventoryList.size()==0) {
 							addActionMessage(SASConstants.NO_LIST);
 						}
 					return "rf";
 				}  else if (null != getModuleParameter()&& getSubModule().equalsIgnoreCase("finGood")) {
 					if (getModuleParameter().equalsIgnoreCase("description")) {
-						inventoryList = manager.listInventoryByParameterLike(FinishedGood.class, moduleParameter, moduleParameterValue,session);
+						inventoryList = inventoryManager.listInventoryByParameterLike(FinishedGood.class, moduleParameter, moduleParameterValue,session);
 					}else if (moduleParameter.equalsIgnoreCase("ALL")) {
-						inventoryList = manager.listAlphabeticalAscByParameter(FinishedGood.class, "productCode",session);
+						inventoryList = inventoryManager.listAlphabeticalAscByParameter(FinishedGood.class, "productCode",session);
 						moduleParameterValue="all";
 					}else {
-						inventoryList = manager.listInventoryByParameter(FinishedGood.class,
+						inventoryList = inventoryManager.listInventoryByParameter(FinishedGood.class,
 										moduleParameter, moduleParameterValue,session);
 					}
-						if (inventoryList.size()==0) {
+						if (inventoryList == null || inventoryList.size()==0) {
 							addActionMessage(SASConstants.NO_LIST);
 						}
 					return "finGood";
@@ -165,7 +222,7 @@ public class SearchInventoryAction extends ActionSupport{
 					//select *  from RM, TI, FG where item code/product code = "module parameter value"
 					//get from textbox
 					List<Item> tempList = new ArrayList<Item>();
-					tempList = manager.getAllItemList(session);
+					tempList = inventoryManager.getAllItemList(session);
 									
 					//use this for display
 					
@@ -182,7 +239,7 @@ public class SearchInventoryAction extends ActionSupport{
 									}
 								}
 							}
-							if (resultList.size()==0) {
+							if (resultList == null || resultList.size()==0) {
 								addActionMessage(SASConstants.NO_LIST);
 							}
 				}
@@ -194,6 +251,12 @@ public class SearchInventoryAction extends ActionSupport{
 				return "rawMat";
 			}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
 				return "tradedItems";
+			}else if (getSubModule().equalsIgnoreCase("utensils")) {
+				return "utensils";
+			}else if (getSubModule().equalsIgnoreCase("ofcSup")) {
+				return "ofcSup";
+			}else if (getSubModule().equalsIgnoreCase("unlistedItems")) {
+				return "unlistedItems";
 			}else if (getSubModule().equalsIgnoreCase("fpts")) {
 				return "fpts";
 			}else if (getSubModule().equalsIgnoreCase("rf")) {
@@ -298,6 +361,23 @@ public class SearchInventoryAction extends ActionSupport{
 	public void setResultList(List<Item> resultList) {
 		this.resultList = resultList;
 	}
-	
+	public Utensils getU() {
+		return u;
+	}
+	public void setU(Utensils u) {
+		this.u = u;
+	}
+	public UnlistedItem getUnl() {
+		return unl;
+	}
+	public void setUnl(UnlistedItem unl) {
+		this.unl = unl;
+	}
+	public OfficeSupplies getOs() {
+		return os;
+	}
+	public void setOs(OfficeSupplies os) {
+		this.os = os;
+	}
 	
 }

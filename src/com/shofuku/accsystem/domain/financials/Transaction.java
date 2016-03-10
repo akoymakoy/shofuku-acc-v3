@@ -2,8 +2,11 @@ package com.shofuku.accsystem.domain.financials;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Map;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
+import com.shofuku.accsystem.domain.security.UserAccount;
 
 public class Transaction implements Serializable {
 

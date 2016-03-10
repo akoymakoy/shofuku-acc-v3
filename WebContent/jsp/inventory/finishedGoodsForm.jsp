@@ -29,7 +29,7 @@
 		<div class="mainForm">
 			<h4 class="title">Finished Goods</h4>
 
-			<s:form action="loadLookUpItems" value="true" id="finForm">
+			<s:form action="loadLookUpItems" value="true" id="finForm" >
 				<div class="form" id="wholeForm">
 					<div class="errors">
 						<s:actionerror />
@@ -100,6 +100,9 @@
 							</tr>
 							<tr>	
 								<td><s:select disabled="%{forWhat}" label="Is Vatable? :" name="fg.isVattable" list="#{'N':'NO','Y':'YES'}" headerKey="-1"></s:select></td>
+								<td><s:select disabled="%{forWhat}" label="Is Active? :" name="fg.isActive" value="%{fg.isActive}" 
+										list="#{'Y':'YES','N':'NO'}" ></s:select>
+							</td>
 							</tr>
 						</table>
 
@@ -189,14 +192,14 @@
 							</tr>
 							<tr>
 								<td><s:textfield readOnly="readOnly"
-										label="Quantity Per Record:" name="fg.quantityPerRecord" />
+										label="Quantity Per Record:" name="fg.warehouse.quantityPerRecord" />
 									<s:if test="%{forWhat == 'true'}">
 										<s:hidden name="fg.quantityPerRecord"
 											value="%{fg.quantityPerRecord}" />
 									</s:if>
 								</td>
 								<td><s:textfield disabled="%{forWhat}"
-										label="Quantity Per Count:" name="fg.quantityPerCount" />
+										label="Quantity Per Count:" name="fg.warehouse.quantityPerPhysicalCount" />
 									<s:if test="%{forWhat == 'true'}">
 										<s:hidden name="fg.quantityPerCount"
 											value="%{fg.quantityPerCount}" />
@@ -213,22 +216,7 @@
 								<th colspan="6">Ingredients</th>
 							</tr>
 						</table>
-						<table class="form">
-							<tr>
-								<%-- <td><s:submit disabled="%{forWhat}" cssClass="myButtons"
-										id="bGetItem" type="button" label="Get details"
-										action="loadIngredientAction">
-									</s:submit></td> --%>
-								<td><s:hidden name="forWhat" value="%{forWhat}" /></td>
-								<td><s:submit cssClass="myButtons" id="bAddItem"
-										type="button" label="Add Item" action="addIngredientAction">
-									</s:submit></td>
-								<td><s:submit cssClass="myButtons" id="bDeleteItem"
-										type="button" label="Delete Item"
-										action="deleteIngredientAction">
-									</s:submit></td>
-							</tr>
-						</table>
+						
 						<table>
 							<tr class="others">
 								<td class="desc">Item Code</td>
@@ -266,9 +254,22 @@
 										name="sangkap.transferPricePerUnit" theme="simple"></s:textfield></td>
 
 							</tr>
-
 						</table>
-
+						<table>
+						<s:hidden name="forWhat" value="%{forWhat}"/>
+							<tr>
+								<td>
+									<s:submit cssClass="myButtons" id="bAddItem"
+										type="button" label="Add Item" action="addIngredientAction">
+									</s:submit>
+								</td>
+								<td><s:submit cssClass="myButtons" id="bDeleteItem"
+										type="button" label="Delete Item"
+										action="deleteIngredientAction">
+									</s:submit>
+								</td>
+							</tr>
+						</table>
 					</div>
 					</p>
 
@@ -384,6 +385,7 @@
 					<td><s:textfield label="Mark Up %:" value="%{fg.markUp}"
 							size="5" /></td>
 				<td><s:textfield size="10"  label="Is Vatable? :" name="fg.isVattable"/></td>
+				<td><s:textfield label="Is Active? :" name="fg.isActive"/></td>
 								
 				</tr>
 			</table>

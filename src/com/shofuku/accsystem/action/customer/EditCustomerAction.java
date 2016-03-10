@@ -1,14 +1,15 @@
 package com.shofuku.accsystem.action.customer;
 
-
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
@@ -19,13 +20,48 @@ import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class EditCustomerAction extends ActionSupport {
+public class EditCustomerAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
+	 
+	Map actionSession;
+	UserAccount user;
+	
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	CustomerManager customerManager;
+	
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+		
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager= (InventoryManager) actionSession.get("inventoryManager");
+		customerManager = (CustomerManager) actionSession.get("customerManager");		
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+	}
 
 	private String customerModule;
 	private String forWhat;
@@ -39,26 +75,17 @@ public class EditCustomerAction extends ActionSupport {
 	List deliveryReceiptNoList;
 	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
-			List accountProfileCodeList;
-			List<Transaction> transactionList;
-			List<Transaction> transactions;
-			Iterator itr;
-			//END 2013 - PHASE 3 : PROJECT 1: MARK  
-	
-	
-	PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-	PurchaseOrderDetailHelper poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
-	
-	//START 2013 - PHASE 3 : PROJECT 1: MARK
-		AccountEntryManager accountEntryManager = new AccountEntryManager();
-		TransactionManager transactionMananger = new TransactionManager();
-		//END 2013 - PHASE 3 : PROJECT 1: MARK
-@Deprecated
+	List accountProfileCodeList;
+	List<Transaction> transactionList;
+	List<Transaction> transactions;
+	Iterator itr;
+	//END 2013 - PHASE 3 : PROJECT 1: MARK  
+		
 	public String loadCustomerPO() {
 	Session session = getSession();
 	try{
 		CustomerPurchaseOrder custPO = new CustomerPurchaseOrder();
-		custPO = (CustomerPurchaseOrder) manager.listByParameter(
+		custPO = (CustomerPurchaseOrder) customerManager.listByParameter(
 				custPO.getClass(), "customerPurchaseOrderId",
 				this.getDr().getCustomerPurchaseOrder().getCustomerPurchaseOrderId(),session).get(0);
 		
@@ -66,7 +93,7 @@ public class EditCustomerAction extends ActionSupport {
 		poDetailsHelper.generateCommaDelimitedValues();
 		
 		if(null==poDetailsHelperToCompare) {
-			poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 		}
 		poDetailsHelperToCompare.generatePODetailsListFromSet(custPO.getPurchaseOrderDetails());
 		poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -82,12 +109,11 @@ public class EditCustomerAction extends ActionSupport {
 		}
 	}
 	}
-@Deprecated	
 	public String loadCustomerDR() {
 	Session session = getSession();
 	try{	
 	DeliveryReceipt custDr = new DeliveryReceipt();
-		custDr = (DeliveryReceipt) manager.listByParameter(
+		custDr = (DeliveryReceipt) customerManager.listByParameter(
 				custDr.getClass(), "deliveryReceiptNo",
 				this.getInvoice().getDeliveryReceipt().getDeliveryReceiptNo(),session).get(0);
 		
@@ -110,22 +136,25 @@ private Session getSession() {
 }
 public String execute() throws Exception{
 	Session session = getSession();
+	poDetailsHelper.setActionSession(actionSession);
+	poDetailsHelperToCompare.setActionSession(actionSession);
+	
 	try{
 		forWhatDisplay="edit";
 		accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);
 			if (getCustomerModule().equals("profile")) {
 				
 				Customer profile = new Customer();
-				profile = (Customer) manager.listByParameter(
+				profile = (Customer) customerManager.listByParameter(
 						profile.getClass(), "customerNo",
 						this.getCustomer().getCustomerNo(),session).get(0);
 				this.setCustomer(profile);
 				return "profile";
 			} else if (getCustomerModule().equals("purchaseOrder")) {
 				CustomerPurchaseOrder custPO = new CustomerPurchaseOrder();
-				customerNoList = manager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+				customerNoList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
 				
-				custPO = (CustomerPurchaseOrder) manager.listByParameter(
+				custPO = (CustomerPurchaseOrder) customerManager.listByParameter(
 						custPO.getClass(), "customerPurchaseOrderId",
 						this.getCustpo().getCustomerPurchaseOrderId(),session).get(0);
 				poDetailsHelper.generatePODetailsListFromSet(custPO.getPurchaseOrderDetails());
@@ -135,14 +164,14 @@ public String execute() throws Exception{
 				return "purchaseOrder";
 			} else if (getCustomerModule().equals("deliveryReceipt")) {
 				DeliveryReceipt custDr = new DeliveryReceipt();
-				purchaseOrderNoList = manager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
+				purchaseOrderNoList = customerManager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
 				
-				custDr = (DeliveryReceipt) manager.listByParameter(
+				custDr = (DeliveryReceipt) customerManager.listByParameter(
 						custDr.getClass(), "deliveryReceiptNo",
 						this.getDr().getDeliveryReceiptNo(),session).get(0);
 
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", dr.getDeliveryReceiptNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", dr.getDeliveryReceiptNo(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -162,9 +191,9 @@ public String execute() throws Exception{
 				/*
 				 * Checking and fetching existing return slips
 				 */
-				InventoryManager invManager= new InventoryManager();
+				
 				Session drSession = getSession();
-				List returnSlipList = invManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", dr.getDeliveryReceiptNo(), drSession);
+				List returnSlipList = inventoryManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", dr.getDeliveryReceiptNo(), drSession);
 				
 				if(returnSlipList.size()>0) {
 					custDr.setReturnSlipList(returnSlipList);
@@ -173,7 +202,7 @@ public String execute() throws Exception{
 				}
 				
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				}
 				poDetailsHelperToCompare.generatePODetailsListFromSet(custDr.getCustomerPurchaseOrder().getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -195,13 +224,13 @@ public String execute() throws Exception{
 				return "deliveryReceipt";
 			} else if (getCustomerModule().equals("invoice")) {
 				CustomerSalesInvoice custInv = new CustomerSalesInvoice();
-				deliveryReceiptNoList = manager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
+				deliveryReceiptNoList = customerManager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
 				
-				custInv = (CustomerSalesInvoice) manager.listByParameter(
+				custInv = (CustomerSalesInvoice) customerManager.listByParameter(
 						custInv.getClass(), "customerInvoiceNo",
 						this.getInvoice().getCustomerInvoiceNo(),session).get(0);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber",invoice.getCustomerInvoiceNo() , session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber",invoice.getCustomerInvoiceNo() , session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -219,7 +248,7 @@ public String execute() throws Exception{
 				this.setTransactionList(transactionList);
 				//END Phase 3 - Azhee
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				}
 				poDetailsHelperToCompare.generatePODetailsListFromSet(custInv.getDeliveryReceipt().getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -317,7 +346,6 @@ public String execute() throws Exception{
 		this.forWhat = forWhat;
 	}
 
-	CustomerManager manager = new CustomerManager();
 
 	public String getCustomerModule() {
 		return customerModule;

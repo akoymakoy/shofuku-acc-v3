@@ -6,11 +6,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.LookupManager;
@@ -24,16 +27,38 @@ import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.lookups.ExpenseClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentTerms;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class EditDisbursementAction extends ActionSupport {
+public class EditDisbursementAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	
+
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	LookupManager lookupManager;
+	DisbursementManager disbursementManager;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		
+		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
+		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		
+	}
 	private String subModule;
 	private String forWhat;
 	private String forWhatDisplay;
@@ -41,24 +66,19 @@ public class EditDisbursementAction extends ActionSupport {
 	List classifList;
 	List orderDetails;
 	List invoiceNoList;
-	LookupManager lookUpManager = new LookupManager();
-	SupplierManager supplierManager = new SupplierManager();
-
+	
 	private String moduleParameter;
 	PettyCash pc;
 	CashPayment cp;
 	CheckPayments chp;
-	DisbursementManager manager = new DisbursementManager();
+	
+
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
-		AccountEntryManager accountEntryManager = new AccountEntryManager();
-		TransactionManager transactionMananger = new TransactionManager();
-		
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
 		Iterator itr;
 	//END 2013 - PHASE 3 : PROJECT 1: MARK  
-
 	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -71,12 +91,12 @@ public class EditDisbursementAction extends ActionSupport {
 			
 			if (getSubModule().equalsIgnoreCase("AA")) {
 				PettyCash pc = new PettyCash();
-				pc = (PettyCash) manager.listDisbursementsByParameter(
+				pc = (PettyCash) disbursementManager.listDisbursementsByParameter(
 						pc.getClass(), "pcVoucherNumber",
 						this.getPc().getPcVoucherNumber(),session).get(0);
 				
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", pc.getPcVoucherNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", pc.getPcVoucherNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -95,16 +115,16 @@ public class EditDisbursementAction extends ActionSupport {
 				this.pc.setTransactions(transactionList);
 				//END Phase 3 - Azhee
 				setPc(pc);
-				classifList = lookUpManager.getLookupElements(ExpenseClassification.class, "PETTYCASH",session);
+				classifList = lookupManager.getLookupElements(ExpenseClassification.class, "PETTYCASH",session);
 				
 				return "pettyCash";
 			} else if (getSubModule().equalsIgnoreCase("BB")) {
 				CashPayment cp = new CashPayment();
-				cp = (CashPayment) manager.listDisbursementsByParameter(
+				cp = (CashPayment) disbursementManager.listDisbursementsByParameter(
 						cp.getClass(), "cashVoucherNumber",
 						this.getCp().getCashVoucherNumber(),session).get(0);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", cp.getCashVoucherNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", cp.getCashVoucherNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -123,16 +143,16 @@ public class EditDisbursementAction extends ActionSupport {
 				this.cp.setTransactions(transactionList);
 				//END Phase 3 - Azhee
 				this.setCp(cp);
-				classifList = lookUpManager.getLookupElements(PaymentClassification.class, "CASHPAYMENT",session);
+				classifList = lookupManager.getLookupElements(PaymentClassification.class, "CASHPAYMENT",session);
 				
 				return "cashPayment";
 			} else if (getSubModule().equalsIgnoreCase("CC"))  {
 				CheckPayments chp = new CheckPayments();
-				chp = (CheckPayments) manager.listDisbursementsByParameter(
+				chp = (CheckPayments) disbursementManager.listDisbursementsByParameter(
 						chp.getClass(), "checkVoucherNumber",
 						this.getChp().getCheckVoucherNumber(),session).get(0);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", chp.getCheckVoucherNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", chp.getCheckVoucherNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -151,18 +171,18 @@ public class EditDisbursementAction extends ActionSupport {
 				this.chp.setTransactions(transactionList);
 				//END Phase 3 - Azhee
 				this.setChp(chp);
-				classifList = lookUpManager.getLookupElements(PaymentTerms.class, "CHECKPAYMENT",session);
+				classifList = lookupManager.getLookupElements(PaymentTerms.class, "CHECKPAYMENT",session);
 				return "checkPayment";
 			} else {
 				CheckPayments chp = new CheckPayments();
-				invoiceNoList = manager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
+				invoiceNoList = disbursementManager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
 				
-				chp = (CheckPayments) manager.listDisbursementsByParameter(
+				chp = (CheckPayments) disbursementManager.listDisbursementsByParameter(
 						chp.getClass(), "checkVoucherNumber",
 						this.getChp().getCheckVoucherNumber(),session).get(0);
 				
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", chp.getCheckVoucherNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", chp.getCheckVoucherNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -196,7 +216,7 @@ public class EditDisbursementAction extends ActionSupport {
 					sortListsAlphabetically();
 				chp.setInvoice(invoice);
 				this.setChp(chp);
-				classifList = lookUpManager.getLookupElements(PaymentTerms.class, "CHECKPAYMENT",session);
+				classifList = lookupManager.getLookupElements(PaymentTerms.class, "CHECKPAYMENT",session);
 				return "checkVoucher";
 			}
 		} catch (RuntimeException re) {

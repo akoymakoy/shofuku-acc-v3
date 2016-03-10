@@ -1,24 +1,22 @@
 package com.shofuku.accsystem.action.disbursement;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
-import org.hibernate.annotations.Check;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.LookupManager;
 import com.shofuku.accsystem.controllers.SupplierManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
-import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
-import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
-import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.disbursements.CashPayment;
 import com.shofuku.accsystem.domain.disbursements.CheckPayments;
 import com.shofuku.accsystem.domain.disbursements.PettyCash;
@@ -28,19 +26,45 @@ import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.lookups.ExpenseClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentTerms;
+import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class AddDisbursementAction extends ActionSupport {
+public class AddDisbursementAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5808746491946120539L;
-	DisbursementManager manager = new DisbursementManager();
 	
+
+	Map actionSession;
+	UserAccount user;
+
+	RecordCountHelper rch;
+	
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	LookupManager lookupManager;
+	DisbursementManager disbursementManager;
+	FinancialsManager financialsManager;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		rch = new RecordCountHelper(actionSession);
+		
+		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
+		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		financialsManager 		= (FinancialsManager) 	actionSession.get("financialsManager");
+		
+	}
 	// search parameters
 	private String subModule;
 	private String moduleParameter;
@@ -52,53 +76,50 @@ public class AddDisbursementAction extends ActionSupport {
 	List classifList;
 	List invoiceNoList;
 	SupplierInvoice invoice;
+	Supplier supplier;
 	// disbursement objects
 	PettyCash pc;
 	CashPayment cp;
 	CheckPayments chp;
-	RecordCountHelper rch = new RecordCountHelper();
 	private String invId;
 
 	List orderDetails;
+	List supplierList;
 	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
 		//END 2013 - PHASE 3 : PROJECT 1: MARK 
-	LookupManager lookUpManager = new LookupManager();
-	SupplierManager supplierManager = new SupplierManager();
-	AccountEntryManager accountEntryManager = new AccountEntryManager();
-	TransactionManager transactionMananger = new TransactionManager();
-	FinancialsManager financialsManager = new FinancialsManager();
-
+	
 	public String newDisbursementEntry() {
 		Session session = getSession();
+		supplierList = supplierManager.listAlphabeticalAscByParameter(Supplier.class,"supplierName", session);
 		try {
 			if (getSubModule().equalsIgnoreCase("PettyCash")) {
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						ExpenseClassification.class, "PETTYCASH",session);
 				pc = new PettyCash();
 				pc.setPcVoucherNumber(rch.getPrefix(SASConstants.PETTYCASH,
 						SASConstants.PETTYCASH_PREFIX));
-				return "pettyCash";
+								return "pettyCash";
 			} else if (getSubModule().equalsIgnoreCase("cashPayment")) {
 
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						PaymentClassification.class, "CASHPAYMENT",session);
 				cp = new CashPayment();
 				cp.setCashVoucherNumber(rch.getPrefix(SASConstants.CASHPAYMENT,
 						SASConstants.CASHPAYMENT_PREFIX));
 				return "cashPayment";
 			} else if (getSubModule().equalsIgnoreCase("checkPayment")) {
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						PaymentTerms.class, "CHECKPAYMENT",session);
 				chp = new CheckPayments();
 				chp.setCheckVoucherNumber(rch.getPrefix(SASConstants.CHECK_VOUCHER,
 						SASConstants.CHECK_VOUCHER_PREFIX));
 				return "checkPayment";
 			}else {
-				invoiceNoList = manager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
+				invoiceNoList = disbursementManager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
 				chp = new CheckPayments();
 				chp.setCheckVoucherNumber(rch.getPrefix(SASConstants.CHECK_VOUCHER,
 						SASConstants.CHECK_VOUCHER_PREFIX));
@@ -130,17 +151,20 @@ public class AddDisbursementAction extends ActionSupport {
 
 	public String execute() throws Exception {
 		Session session = getSession();
-
+		supplierList = supplierManager.listAlphabeticalAscByParameter(Supplier.class,"supplierName", session);
 		try {
 			// insert addFunction
 			boolean addResult = false;
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);			
+			
 			if (getSubModule().equalsIgnoreCase("pettyCash")) {
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						ExpenseClassification.class, "PETTYCASH",session);
+				supplier = (Supplier) supplierManager.listSuppliersByParameter(Supplier.class, "supplierName", pc.getPayee(), session).get(0);
+				
 				if (validatePettyCash()) {
 				} else {
-					List pcList = manager.listDisbursementsByParameter(
+					List pcList = disbursementManager.listDisbursementsByParameter(
 							PettyCash.class, "pcVoucherNumber", getPc()
 									.getPcVoucherNumber(),session);
 					if (!(pcList.isEmpty())) {
@@ -160,19 +184,21 @@ public class AddDisbursementAction extends ActionSupport {
 						Vat vatDetails = new Vat();
 						//vatDetails.setAddress(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getCompanyAddress());
 						//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
-						vatDetails.setTinNumber("000-000-000-001");
+						vatDetails.setTinNumber(supplier.getTin());
 						vatDetails.setPayee(pc.getPayee());
-						vatDetails.setVattableAmount(manager.computeVat(pc.getAmount()));
-						vatDetails.setVatAmount(manager.computeVatAmount(vatDetails.getVattableAmount()));
+						vatDetails.setAmount(pc.getAmount());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(pc.getAmount()));
+						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(pc.getPcVoucherNumber());
-						vatDetails.setAddress(pc.getVatDetails().getAddress());
+						//vatDetails.setAddress(pc.getVatDetails().getAddress());
+						vatDetails.setAddress(supplier.getCompanyAddress());
 						vatDetails.setOrNo(pc.getVatDetails().getOrNo());
 						vatDetails.setOrDate(pc.getPcVoucherDate());
 						pc.setVatDetails(vatDetails);
-						//FinancialsManager financialsManager = new FinancialsManager();
+						
 						financialsManager.insertVatDetails(vatDetails, session);							
 						//END: 2013 - PHASE 3 : PROJECT 4: AZ
-						addResult = manager.addDisbursementObject(pc,session);
+						addResult = disbursementManager.addDisbursementObject(pc,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.PETTYCASH, "add");
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -185,11 +211,13 @@ public class AddDisbursementAction extends ActionSupport {
 				}
 				return "pettyCash";
 			} else if (getSubModule().equalsIgnoreCase("cashPayment")) {
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						PaymentClassification.class, "CASHPAYMENT",session);
+				supplier = (Supplier) supplierManager.listSuppliersByParameter(Supplier.class, "supplierName", cp.getPayee(), session).get(0);
+				
 				if (validateCashPayment()) {
 				} else {
-					List cpList = manager.listDisbursementsByParameter(
+					List cpList = disbursementManager.listDisbursementsByParameter(
 							CashPayment.class, "cashVoucherNumber", getCp()
 									.getCashVoucherNumber(),session);
 					if (!(cpList.isEmpty())) {
@@ -209,17 +237,19 @@ public class AddDisbursementAction extends ActionSupport {
 						Vat vatDetails = new Vat();
 						//vatDetails.setAddress(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getCompanyAddress());
 						//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
-						vatDetails.setTinNumber("000-000-000-001");
+						vatDetails.setTinNumber(supplier.getTin());
 						vatDetails.setPayee(cp.getPayee());
-						vatDetails.setVattableAmount(manager.computeVat(cp.getAmount()));
-						vatDetails.setVatAmount(manager.computeVatAmount(vatDetails.getVattableAmount()));
+						vatDetails.setAmount(cp.getAmount());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(cp.getAmount()));
+						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(cp.getCashVoucherNumber());
-						vatDetails.setAddress(cp.getVatDetails().getAddress());
+						//vatDetails.setAddress(cp.getVatDetails().getAddress());
+						vatDetails.setAddress(supplier.getCompanyAddress());
 						vatDetails.setOrNo(cp.getVatDetails().getOrNo());
 						vatDetails.setOrDate(cp.getCashVoucherDate());
 						cp.setVatDetails(vatDetails);
 						financialsManager.insertVatDetails(vatDetails, session);							
-						addResult = manager.addDisbursementObject(cp,session);
+						addResult = disbursementManager.addDisbursementObject(cp,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.CASHPAYMENT, "add");
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -234,11 +264,13 @@ public class AddDisbursementAction extends ActionSupport {
 			} else if (getSubModule().equalsIgnoreCase("supplierCheckVoucher")) {
 				return addSupplierCheckVoucher();
 			} else {
-				classifList = lookUpManager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						PaymentTerms.class, "CHECKPAYMENT",session);
+				supplier = (Supplier) supplierManager.listSuppliersByParameter(Supplier.class, "supplierName", chp.getPayee(), session).get(0);
+				
 				if (validateCheckPayment()) {
 				} else {
-					List chpList = manager.listDisbursementsByParameter(
+					List chpList = disbursementManager.listDisbursementsByParameter(
 							CheckPayments.class, "checkVoucherNumber", getChp()
 									.getCheckVoucherNumber(),session);
 					if (!(chpList.isEmpty())) {
@@ -266,18 +298,19 @@ public class AddDisbursementAction extends ActionSupport {
 						Vat vatDetails = new Vat();
 						//vatDetails.setAddress(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getCompanyAddress());
 						//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
-						vatDetails.setTinNumber("000-000-000-001");
+						vatDetails.setTinNumber(supplier.getTin());
 						vatDetails.setPayee(chp.getPayee());
-						vatDetails.setVattableAmount(manager.computeVat(chp.getAmount()));
-						vatDetails.setVatAmount(manager.computeVatAmount(vatDetails.getVattableAmount()));
+						vatDetails.setAmount(chp.getAmount());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(chp.getAmount()));
+						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(chp.getCheckVoucherNumber());
-						vatDetails.setAddress(chp.getVatDetails().getAddress());
+						//vatDetails.setAddress(chp.getVatDetails().getAddress());
+						vatDetails.setAddress(supplier.getCompanyAddress());
 						vatDetails.setOrNo(chp.getVatDetails().getOrNo());
 						vatDetails.setOrDate(chp.getCheckVoucherDate());
-						//FinancialsManager financialsManager = new FinancialsManager();
 						chp.setVatDetails(vatDetails);
 						financialsManager.insertVatDetails(vatDetails, session);							
-						addResult = manager.addDisbursementObject(chp,session);
+						addResult = disbursementManager.addDisbursementObject(chp,session);
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
 							rch.updateCount(SASConstants.CHECK_VOUCHER, "add");
@@ -312,11 +345,12 @@ public class AddDisbursementAction extends ActionSupport {
 	private String addSupplierCheckVoucher() {
 		boolean addResult = false;
 		Session session = getSession();
-		invoiceNoList = manager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
+		
+		invoiceNoList = disbursementManager.listAlphabeticalAscByParameter(SupplierInvoice.class, "supplierInvoiceNo", session);
 		try {
 			if (validateCheckVoucher()) {
 			}else {
-				List chpList = manager.listDisbursementsByParameter(
+				List chpList = disbursementManager.listDisbursementsByParameter(
 						CheckPayments.class, "checkVoucherNumber", getChp()
 						.getCheckVoucherNumber(),session);
 				if (!(chpList.isEmpty())) {
@@ -354,6 +388,7 @@ public class AddDisbursementAction extends ActionSupport {
 						chp.setAmountToPay(0);
 						chp.setRemainingBalance(invoice.getRemainingBalance());
 						//START PHASE 3 
+						
 						transactionList = new ArrayList();
 						Transaction transaction = new Transaction();
 						transactionList.add(transaction);
@@ -365,15 +400,15 @@ public class AddDisbursementAction extends ActionSupport {
 						//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
 						vatDetails.setTinNumber(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getTin());
 						vatDetails.setPayee(chp.getPayee());
-						vatDetails.setVattableAmount(invoice.getVatDetails().getVattableAmount());
-						vatDetails.setVatAmount(invoice.getVatDetails().getVatAmount());
+						vatDetails.setAmount(chp.getAmount());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(chp.getAmountToPay()));
+						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(chp.getCheckVoucherNumber());
 						vatDetails.setOrNo(chp.getVatDetails().getOrNo());
 						vatDetails.setOrDate(chp.getCheckVoucherDate());
 						chp.setVatDetails(vatDetails);
 						financialsManager.insertVatDetails(vatDetails, session);							
-						addResult = manager.addDisbursementObject(chp,session);
-//						Session supplierSession = getSession();
+						addResult = disbursementManager.addDisbursementObject(chp,session);
 //						supplierManager.updateSupplier(invoice, supplierSession);
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -526,7 +561,7 @@ public class AddDisbursementAction extends ActionSupport {
 			addFieldError("chp.checkVoucherNumber", "REQUIRED");
 			errorFound = true;
 		}
-		 if (null == chp.getCheckVoucherDate()) {
+		 /*if (null == chp.getCheckVoucherDate()) {
 		 addActionMessage("REQUIRED: Voucher Date");
 		 errorFound = true;
 		 }
@@ -534,6 +569,7 @@ public class AddDisbursementAction extends ActionSupport {
 			 addFieldError("chp.checkNo", "REQUIRED");
 			 errorFound = true;
 			 }
+			*/
 		 if ("".equals(chp.getBankName())) {
 			 addFieldError("chp.bankName", "REQUIRED");
 			 errorFound = true;
@@ -676,6 +712,22 @@ public class AddDisbursementAction extends ActionSupport {
 
 		public void setTransactions(List<Transaction> transactions) {
 			this.transactions = transactions;
+		}
+
+		public String getInvId() {
+			return invId;
+		}
+
+		public void setInvId(String invId) {
+			this.invId = invId;
+		}
+
+		public List getSupplierList() {
+			return supplierList;
+		}
+
+		public void setSupplierList(List supplierList) {
+			this.supplierList = supplierList;
 		}
 		
 		//END 2013 - PHASE 3 : PROJECT 1: MARK 

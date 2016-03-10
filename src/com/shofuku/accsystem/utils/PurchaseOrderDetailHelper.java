@@ -10,27 +10,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hibernate.Criteria;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.sql.JoinType;
 
+import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
-import com.shofuku.accsystem.dao.impl.BaseHibernateDaoImpl;
 import com.shofuku.accsystem.domain.inventory.Item;
-import com.shofuku.accsystem.domain.inventory.PurchaseOrder;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
-import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
 
 public class PurchaseOrderDetailHelper {
 
+	Map<String,Object> actionSession;
 	
-	public PurchaseOrderDetailHelper() {
-
+	public Map<String, Object> getActionSession() {
+		return actionSession;
+	}
+	public void setActionSession(Map<String, Object> actionSession) {
+		this.actionSession = actionSession;
+	}
+	private void initializeController() {
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		
 	}
 	
+	AccountEntryManager accountEntryManager;
+	InventoryManager inventoryManager;
+	
+	public PurchaseOrderDetailHelper(Map<String, Object> actionSession) {
+		this.actionSession = actionSession;
+	}
+	public PurchaseOrderDetailHelper() {
+	}
+
 	private Timestamp orderDate;
 
 	public Timestamp getOrderDate() {
@@ -299,66 +311,6 @@ public class PurchaseOrderDetailHelper {
 		}
 	}
 	
-	public void flushUnRelatedOrders(Session session) {
-		BaseHibernateDaoImpl dao = new BaseHibernateDaoImpl();
-
-		// add specific HQL / criteria calls here if any
-		
-		if(session.isOpen()){
-		}else{
-			session=HibernateUtil.getSessionFactory().getCurrentSession();
-		}
-
-		Transaction tx = getCurrentTransaction(session);
-		try {
-
-			Query query = session.createQuery("from PurchaseOrder");
-			List<PurchaseOrder> list = query.list();
-
-			int x = 0;
-			Set ordersSet = new HashSet();
-			while (x < list.size()) {
-				ordersSet.add(((PurchaseOrder) list.get(x++)).getId());
-			}
-
-			query = session.createQuery("from PurchaseOrderDetails");
-			List<PurchaseOrderDetails> listDetails = query.list();
-
-			x = 0;
-			Set detailsSet = new HashSet();
-			while (x < listDetails.size()) {
-				detailsSet.add(((PurchaseOrderDetails) listDetails.get(x++))
-						.getId());
-			}
-
-			Set unusedDetailsSet = new HashSet();
-			Iterator itr = detailsSet.iterator();
-			while (itr.hasNext()) {
-				int details = (Integer) itr.next();
-				if (ordersSet.contains(details)) {
-				} else {
-					unusedDetailsSet.add(details);
-				}
-			}
-			if(unusedDetailsSet!=null && !unusedDetailsSet.isEmpty()){
-				query = session
-						.createQuery("delete PurchaseOrderDetails where id in  (:idList)");
-				query.setParameterList("idList", unusedDetailsSet);
-				int result = query.executeUpdate();
-				tx.commit();
-			}
-		} catch (RuntimeException re) {
-			tx.rollback();
-			re.printStackTrace();
-		} finally {
-			if(session.isOpen()){
-				session.close();
-				session.getSessionFactory().close();
-			}
-		}
-
-	}
-
 	private Transaction getCurrentTransaction(Session session){
 		Transaction tx = null;
 		try{
@@ -372,7 +324,6 @@ public class PurchaseOrderDetailHelper {
 		Set<PurchaseOrderDetails> poset = generatePODetailsSet();
 		Iterator<PurchaseOrderDetails> itr = poset.iterator();
 		Set<PurchaseOrderDetails> persistedSet = new HashSet<PurchaseOrderDetails>();
-		BaseHibernateDaoImpl dao = new BaseHibernateDaoImpl();
 		Transaction tx = null;
 		tx = getCurrentTransaction(ss);
 		while(itr.hasNext()) {
@@ -509,8 +460,7 @@ public class PurchaseOrderDetailHelper {
 	
 	
 	public void generateItemTypesForExistingItems(Session session) {
-		
-		InventoryManager inventoryManager=new InventoryManager();
+		initializeController();
 		List<Item> allItemList = new ArrayList<Item>();
 		allItemList = inventoryManager.getAllItemList(session);
 		Iterator itr  =allItemList.iterator();
@@ -559,12 +509,22 @@ public class PurchaseOrderDetailHelper {
 		HashMap<String,PurchaseOrderDetails> map = new HashMap<String,PurchaseOrderDetails>();
 		Set<PurchaseOrderDetails> sortedMap = new HashSet<PurchaseOrderDetails>();
 		List itemCodeList = new ArrayList();
+		List unlistedItemsList= new ArrayList();
+		HashMap<String,PurchaseOrderDetails> unlistedItemsMap = new HashMap<String,PurchaseOrderDetails>();
+		
 		try {
 			Iterator<PurchaseOrderDetails> itr =purchaseOrderDetailsList.iterator();
 			while(itr.hasNext()) {
 				PurchaseOrderDetails podetails = (PurchaseOrderDetails)itr.next();
-				map.put(podetails.getItemCode(),podetails);
-				itemCodeList.add(podetails.getItemCode());
+				if(null==podetails.getItemCode() || podetails.getItemCode().trim().equalsIgnoreCase("")) {
+					unlistedItemsMap.put(SASConstants.NOT_APPLICABLE,podetails);
+					// YOU LEFT HERE PROBLEM: PODETAILS CANT SHOW FOR SAME ITEM CODES WHICH IS BLANK FOR UNLISTED ITEMS
+					unlistedItemsList.add(podetails);
+					
+				}else {
+					map.put(podetails.getItemCode(),podetails);
+					itemCodeList.add(podetails.getItemCode());
+				}
 			}
 			
 			Collections.sort(itemCodeList);
@@ -575,6 +535,16 @@ public class PurchaseOrderDetailHelper {
 				sortedPurchaseOrderDetailsList.add(map.get(code));
 				sortedMap.add(map.get(code));
 			}
+			
+			//include unlisted items
+			Iterator unlistedItemsMapItr = unlistedItemsList.iterator();
+			while(unlistedItemsMapItr.hasNext()) {
+				PurchaseOrderDetails podetails = (PurchaseOrderDetails)unlistedItemsMapItr.next();
+				sortedMap.add(podetails);
+			}
+			sortedPurchaseOrderDetailsList.addAll(unlistedItemsList);
+			//end include unlisted items
+			
 			
 			this.setPurchaseOrderDetailsSet(sortedMap);
 			this.setPurchaseOrderDetailsList(sortedPurchaseOrderDetailsList);

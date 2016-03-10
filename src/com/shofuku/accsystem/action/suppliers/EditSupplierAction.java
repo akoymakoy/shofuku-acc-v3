@@ -3,13 +3,17 @@ package com.shofuku.accsystem.action.suppliers;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
+import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.controllers.SupplierManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
@@ -18,21 +22,66 @@ import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class EditSupplierAction extends ActionSupport{
+public class EditSupplierAction extends ActionSupport implements Preparable{
 
-	SupplierManager manager = new SupplierManager();
 	Supplier supplier;
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = Logger.getLogger(EditSupplierAction.class);
+	
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	DisbursementManager disbursementManager;
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	FinancialsManager financialsManager;	
+	RecordCountHelper rch;
+	InventoryUtil invUtil;
+	
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager = (SupplierManager) actionSession.get("supplierManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		disbursementManager = (DisbursementManager) actionSession.get("disbursementManager");
+		
+		rch = new RecordCountHelper(actionSession);
+		invUtil = new InventoryUtil(actionSession);
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		
+	}
 	
 	private String supplierModule;
 	private String moduleParameter;
@@ -46,6 +95,7 @@ public class EditSupplierAction extends ActionSupport{
 	List supplierNoList;
 	List receivingReportNoList;
 	List checkVoucherList;
+	List tempList;
 	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 		List accountProfileCodeList;
@@ -54,19 +104,11 @@ public class EditSupplierAction extends ActionSupport{
 		Iterator itr;
 		//END 2013 - PHASE 3 : PROJECT 1: MARK  
 
-	PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-	PurchaseOrderDetailHelper poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
 	
 	SupplierInvoice invoice;
 	ReceivingReport rr;
 	CheckPayments chp;
 	SupplierPurchaseOrder po;
-	
-	DisbursementManager disbursementManager = new DisbursementManager();
-	//START 2013 - PHASE 3 : PROJECT 1: MARK
-	AccountEntryManager accountEntryManager = new AccountEntryManager();
-	TransactionManager transactionMananger = new TransactionManager();
-	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 	
 	
 	DateFormatHelper df = new DateFormatHelper();
@@ -80,13 +122,13 @@ public class EditSupplierAction extends ActionSupport{
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);
 			if (getSupplierModule().equalsIgnoreCase("profile")){
 				Supplier supplier = new Supplier();
-				supplier = (Supplier) manager.listSuppliersByParameter(supplier.getClass(), "supplierId", this.getSupplier().getSupplierId(),session).get(0);
+				supplier = (Supplier) supplierManager.listSuppliersByParameter(supplier.getClass(), "supplierId", this.getSupplier().getSupplierId(),session).get(0);
 				this.setSupplier(supplier);
 				return "profile";
 			}else if (getSupplierModule().equalsIgnoreCase("purchaseOrder")){
-				supplierNoList = manager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
+				supplierNoList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
 				SupplierPurchaseOrder po = new SupplierPurchaseOrder();
-				po = (SupplierPurchaseOrder) manager.listSuppliersByParameter(po.getClass(), "supplierPurchaseOrderId", this.getPo().getSupplierPurchaseOrderId(),session).get(0);
+				po = (SupplierPurchaseOrder) supplierManager.listSuppliersByParameter(po.getClass(), "supplierPurchaseOrderId", this.getPo().getSupplierPurchaseOrderId(),session).get(0);
 				poDetailsHelper.generatePODetailsListFromSet(po.getPurchaseOrderDetails());
 				poDetailsHelper.generateCommaDelimitedValues();
 				this.setSupplier(po.getSupplier());
@@ -95,18 +137,25 @@ public class EditSupplierAction extends ActionSupport{
 				return "purchaseOrder";
 			}else if (getSupplierModule().equalsIgnoreCase("receivingReport")){
 				ReceivingReport rr = new ReceivingReport();
-				purchaseOrderNoList = manager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);
-				rr = (ReceivingReport) manager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", this.getRr().getReceivingReportNo(),session).get(0);
+				purchaseOrderNoList = supplierManager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);
+				rr = (ReceivingReport) supplierManager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", this.getRr().getReceivingReportNo(),session).get(0);
 				
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", rr.getReceivingReportNo(), session);
+				tempList = new ArrayList<>();
+				tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", rr.getReceivingReportNo(), session);
+				if(tempList.size()>0) {
 				itr = tempList.iterator();
 				transactionList = new ArrayList<Transaction>(); 
-				while(itr.hasNext()) {
-					Transaction transaction = (Transaction)itr.next();
-					if(transaction.getIsInUse().equalsIgnoreCase(SASConstants.TRANSACTION_IN_USE)) {
-						transactionList.add(transaction);
+					while(itr.hasNext()) {
+						Transaction transaction = (Transaction)itr.next();
+						if(transaction.getIsInUse().equalsIgnoreCase(SASConstants.TRANSACTION_IN_USE)) {
+							transactionList.add(transaction);
+						}
 					}
+				}else {
+					transactionList = new ArrayList();
+					Transaction transaction = new Transaction();
+					transactionList.add(transaction);
 				}
 				this.setTransactionList(transactionList);
 				//END Phase 3 - Azhee
@@ -126,7 +175,7 @@ public class EditSupplierAction extends ActionSupport{
 				}
 				
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				}
 				poDetailsHelperToCompare.generatePODetailsListFromSet(rr.getSupplierPurchaseOrder().getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -154,7 +203,7 @@ public class EditSupplierAction extends ActionSupport{
 				return "receivingReport";
 			}else  {
 				SupplierInvoice supInv = new SupplierInvoice();
-				receivingReportNoList = manager.listAlphabeticalAscByParameter(ReceivingReport.class, "receivingReportNo", session);
+				receivingReportNoList = supplierManager.listAlphabeticalAscByParameter(ReceivingReport.class, "receivingReportNo", session);
 				checkVoucherList= disbursementManager.listDisbursementsByParameter(CheckPayments.class, "invoice.supplierInvoiceNo", this.getInvoice().getSupplierInvoiceNo(), session);
 				
 				Iterator itr = checkVoucherList.iterator();
@@ -164,11 +213,12 @@ public class EditSupplierAction extends ActionSupport{
 					tempTotal = tempTotal + chpFromList.getAmountToPay();
 				}
 				
-				supInv = (SupplierInvoice) manager.listSuppliersByParameter(supInv.getClass(), "supplierInvoiceNo", this.getInvoice().getSupplierInvoiceNo(),session).get(0);
+				supInv = (SupplierInvoice) supplierManager.listSuppliersByParameter(supInv.getClass(), "supplierInvoiceNo", this.getInvoice().getSupplierInvoiceNo(),session).get(0);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);
-				//START Phase 3 - Project 1 - Mark
-				if(tempList.size()>0) {
+				
+				tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);
+					//START Phase 3 - Project 1 - Mark
+				if (tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
 					while(itr.hasNext()) {
@@ -187,7 +237,7 @@ public class EditSupplierAction extends ActionSupport{
 				//END Phase 3 - Azhee
 				
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				}
 				poDetailsHelperToCompare.generatePODetailsListFromSet(supInv.getReceivingReport().getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();

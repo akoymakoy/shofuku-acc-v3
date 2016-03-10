@@ -1,12 +1,19 @@
 package com.shofuku.accsystem.action.suppliers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.controllers.SupplierManager;
+import com.shofuku.accsystem.controllers.TransactionManager;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
@@ -17,15 +24,42 @@ import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class DeleteSupplierAction extends ActionSupport {
+public class DeleteSupplierAction extends ActionSupport implements Preparable {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	SupplierManager manager = new SupplierManager();
-	InventoryManager inventoryManager = new InventoryManager();
-	RecordCountHelper rch = new RecordCountHelper();
+	
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	InventoryManager inventoryManager;
+	RecordCountHelper rch;
+	InventoryUtil invUtil;
+	
+	PurchaseOrderDetailHelper helperItemsToDelete;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager = (SupplierManager) actionSession.get("supplierManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		
+		rch = new RecordCountHelper(actionSession);
+		invUtil = new InventoryUtil(actionSession);
+		
+		
+		
+		if(helperItemsToDelete==null) {
+			helperItemsToDelete = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			helperItemsToDelete.setActionSession(actionSession);
+		}
+	}
 	
 	private String subModule;
 	private String supId;
@@ -49,18 +83,20 @@ public class DeleteSupplierAction extends ActionSupport {
 			boolean deleteResult = false;
 
 			if (getSubModule().equalsIgnoreCase("supplierProfile")) {
-				deleteResult = manager.deleteSupplierByParameter(getSupId(),
+				deleteResult = supplierManager.deleteSupplierByParameter(getSupId(),
 						Supplier.class,session);
 				if (deleteResult == true) {
+					supplier = new Supplier();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "profileDeleted";
 			} else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
-				deleteResult = manager.deleteSupplierByParameter(getPoId(),
+				deleteResult = supplierManager.deleteSupplierByParameter(getPoId(),
 						SupplierPurchaseOrder.class,session);
 				if (deleteResult == true) {
+					po = new SupplierPurchaseOrder();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
@@ -68,23 +104,10 @@ public class DeleteSupplierAction extends ActionSupport {
 				return "poDeleted";
 			} else if (getSubModule().equalsIgnoreCase("receivingReport")) {
 
-				/*
-				 * this is the part to update inventory
-				 * inventoryManager
-				 * .updateInventoryFromOrders(poDetailsHelper
-				 * ,"rr");
-				 */
-				
-				/*parameters for the changein order
-				 *  1st - old orderDetail helper (for update use only , for add leave it blank)
-				 *  2nd - incoming order
-				 *  3rd - order type to determine if there is an addition or deduction to inventory
-				*/
-				InventoryUtil invUtil = new InventoryUtil();
 				ReceivingReport orderToDelete = 
-						(ReceivingReport) manager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", 
+						(ReceivingReport) supplierManager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", 
 								rrId,getSession()).get(0);
-				PurchaseOrderDetailHelper helperItemsToDelete = new PurchaseOrderDetailHelper();
+				
 				helperItemsToDelete.generatePODetailsListFromSet(orderToDelete.getPurchaseOrderDetails());
 				String orderType =SASConstants.ORDER_TYPE_RR; 
 				try {
@@ -95,17 +118,19 @@ public class DeleteSupplierAction extends ActionSupport {
 					addActionError("FAILED TO UPDATE INVENTORY AFTER DELETE");
 				}
 				
-				deleteResult = manager.deleteSupplierByParameter(getRrId(),ReceivingReport.class,session);
+				deleteResult = supplierManager.deleteSupplierByParameter(getRrId(),ReceivingReport.class,session);
 				if (deleteResult == true) {
+					rr= new ReceivingReport();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "rrDeleted";
 			} else {
-				deleteResult = manager.deleteSupplierByParameter(getInvId(),
+				deleteResult = supplierManager.deleteSupplierByParameter(getInvId(),
 						SupplierInvoice.class,session);
 				if (deleteResult == true) {
+					invoice = new SupplierInvoice();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);

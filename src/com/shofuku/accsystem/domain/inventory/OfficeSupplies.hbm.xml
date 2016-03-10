@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+	<class name="com.shofuku.accsystem.domain.inventory.OfficeSupplies"
+		table="t301_office_supplies">
+
+		<id name="itemCode" 						type="string" 	column="ITEM_CODE"></id>
+		<property name="classification" 				type="string" 	column="CLASSIFICATION" />
+		<property name="subClassification" 				type="string" 	column="SUBCLASSIFICATION" />
+		<property name="template" 				type="string" 	column="TEMPLATE" />
+		<property name="description" 				type="string" 	column="DESCRIPTION" />
+		<property name="unitOfMeasurement" 			type="string" 	column="UNIT_OF_MEASUREMENT" />
+		<property name="isVattable" 				type="string" 	column="IS_VATTABLE" />
+		<property name="isActive" 				type="string" 	column="IS_ACTIVE" />
+		<property name="location" 				type="string" 	column="LOCATION" />
+		<property name="quantityIn" 				type="double" 	column="QUANTITY_IN" />
+		<property name="quantityOut" 				type="double" 	column="QUANTITY_OUT" />
+
+		<many-to-one name="itemPricing"
+			class="com.shofuku.accsystem.domain.inventory.ItemPricing" column="PRICING_ID"
+			not-null="false" unique="true" lazy="false" />
+			
+		<set name="warehouses" table="t300_ITEM_X_WAREHOUSE" cascade="all" lazy="false">
+			<key column="OFFICE_SUPPLIES_ITEM_CODE" />
+			<many-to-many lazy="false" column="id" unique="true"
+				class="com.shofuku.accsystem.domain.inventory.Warehouse" />
+		</set>
+	</class>
+</hibernate-mapping>

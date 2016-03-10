@@ -1,34 +1,44 @@
 package com.shofuku.accsystem.action.financials;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.AccountingRules;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class UpdateFinancialsAction extends ActionSupport{
+public class UpdateFinancialsAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
 	private static final Logger logger = Logger
 			.getLogger(AddFinancialsAction.class);
 
 	private static final Logger logger2 = logger.getRootLogger();
+	
 
-	AccountEntryManager aepManager = new AccountEntryManager();
-	String parentCode;
-	
-	private Session getSession() {
-		return HibernateUtil.getSessionFactory().getCurrentSession();
+	Map actionSession;
+	UserAccount user;
+	AccountEntryManager accountEntryManager;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
 	}
-	
-	// beans
+		
+	String parentCode;
 		private String subModule;
 		private String forWhat;
 		private String forWhatDisplay;
@@ -36,6 +46,10 @@ public class UpdateFinancialsAction extends ActionSupport{
 		
 		AccountEntryProfile aep;
 		JournalEntryProfile jep;
+		
+	private Session getSession() {
+			return HibernateUtil.getSessionFactory().getCurrentSession();
+		}
 	
 	public String execute() throws Exception {
 		Session session = getSession();
@@ -69,10 +83,10 @@ public class UpdateFinancialsAction extends ActionSupport{
 		
 		try {
 			if (getSubModule().equalsIgnoreCase("accountEntryProfile")) {
-				accountCodeList = aepManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
+				accountCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
 				return "accountEntryProfile";
 			}else {
-				accountCodeList = aepManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
+				accountCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
 				return "journalEntryProfile";
 			}
 			
@@ -100,22 +114,22 @@ public class UpdateFinancialsAction extends ActionSupport{
 				//aep.setParentCode(parentCode);
 				//loadParentCode();
 			}else {
-				AccountingRules aepRule = aepManager.loadAccountingProfileRuleByAccountCode(aep.getAccountCode(), session);
+				AccountingRules aepRule = accountEntryManager.loadAccountingProfileRuleByAccountCode(aep.getAccountCode(), session);
 				if(aepRule==null) {
 					AccountingRules newAepRule = aep.getAccountingRules();
 					newAepRule.setAccountCode(aep.getAccountCode());
-					int totalExistingRules= aepManager.getTotalRecordCount(AccountingRules.class, session).intValue();
+					int totalExistingRules= accountEntryManager.getTotalRecordCount(AccountingRules.class, session).intValue();
 					newAepRule.setRuleId(totalExistingRules);
-					aepManager.addAccountEntryRule(aep.getAccountingRules(), session);
+					accountEntryManager.addAccountEntryRule(aep.getAccountingRules(), session);
 					aep.setAccountingRules(newAepRule);
 				}else {
 					AccountingRules updatedAepRule = aep.getAccountingRules();
 					updatedAepRule.setRuleId(aepRule.getRuleId());
 					aep.setAccountingRules(updatedAepRule);
 					updatedAepRule.setAccountCode(aep.getAccountCode());
-					aepManager.updateAccountingRule(updatedAepRule, session);
+					accountEntryManager.updateAccountingRule(updatedAepRule, session);
 				}
-				updateResult = aepManager.updateAccountEntryProfile(aep, session);
+				updateResult = accountEntryManager.updateAccountEntryProfile(aep, session);
 				
 					if (updateResult == true) {
 						addActionMessage(SASConstants.UPDATED);
@@ -136,7 +150,7 @@ public class UpdateFinancialsAction extends ActionSupport{
 			if (validateJournalProfileEntry()) {
 				loadParentCode();
 			}else {
-				updateResult = aepManager.updateAccountEntryProfile(jep, session);
+				updateResult = accountEntryManager.updateAccountEntryProfile(jep, session);
 					if (updateResult == true) {
 						addActionMessage(SASConstants.UPDATED);
 						loadParentCode();

@@ -12,17 +12,39 @@ import javax.servlet.ServletContext;
 import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.ReceiptsManager;
 import com.shofuku.accsystem.controllers.ReportAndSummaryManager;
+import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class PrintReceiptAction extends ActionSupport{
-private static final long serialVersionUID = 1L;
+public class PrintReceiptAction extends ActionSupport implements Preparable{
+
+	private static final long serialVersionUID = 1L;
+
+	Map actionSession;
+	UserAccount user;
+
+	ReceiptsManager receiptsManager;
+	ReportAndSummaryManager reportAndSummaryManager;
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		receiptsManager = (ReceiptsManager) actionSession.get("receiptsManager");
+		reportAndSummaryManager = (ReportAndSummaryManager) actionSession.get("reportAndSummaryManager");
+	}
 	
 	InputStream excelStream;
 	String contentDisposition;
@@ -37,7 +59,6 @@ private static final long serialVersionUID = 1L;
 	ORSales orSales;
 	OROthers orOthers;
 	CashCheckReceipts ccReceipts;
-	ReceiptsManager manager = new ReceiptsManager();
 	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -49,19 +70,19 @@ private static final long serialVersionUID = 1L;
 			ServletContext servletContext = ServletActionContext
 					.getServletContext();
 			Map receiptMap = new HashMap();
-			ReportAndSummaryManager reportSummaryMgr = new ReportAndSummaryManager();
+		
 			if (getSubModule().equalsIgnoreCase("orSales")){
 				ORSales orSales = new ORSales();
-				orSales = (ORSales) manager.listReceiptsByParameter(ORSales.class, "orNumber",getOrSNo(),session).get(0);
+				orSales = (ORSales) receiptsManager.listReceiptsByParameter(ORSales.class, "orNumber",getOrSNo(),session).get(0);
 				receiptMap =createReceiptMap(orSales);
 			}
 			else if (getSubModule().equalsIgnoreCase("orOthers")){
 				OROthers orOthers= new OROthers();
-				orOthers = (OROthers) manager.listReceiptsByParameter(OROthers.class, "orNumber",getOrONo(),session).get(0);
+				orOthers = (OROthers) receiptsManager.listReceiptsByParameter(OROthers.class, "orNumber",getOrONo(),session).get(0);
 				receiptMap =createReceiptMap(orOthers);
 			}
 
-			excelStream = reportSummaryMgr.printReceipt(receiptMap,subModule,servletContext);
+			excelStream = reportAndSummaryManager.printReceipt(receiptMap,subModule,servletContext);
 			forWhat="print";
 			contentDisposition = "filename=\"receipt.xls\"";
 
@@ -89,7 +110,7 @@ private static final long serialVersionUID = 1L;
 			if (getSubModule().equalsIgnoreCase("orSales")){
 				
 				ORSales orSales = new ORSales();
-				orSales = (ORSales) manager.listReceiptsByParameter(
+				orSales = (ORSales) receiptsManager.listReceiptsByParameter(
 						ORSales.class, "orNumber",
 						getOrSNo(),session).get(0);
 				this.setOrSales(orSales);
@@ -97,7 +118,7 @@ private static final long serialVersionUID = 1L;
 					return "orSales";
 			}else if (getSubModule().equalsIgnoreCase("orOthers")){
 				OROthers orOthers= new OROthers();
-				orOthers = (OROthers) manager.listReceiptsByParameter(
+				orOthers = (OROthers) receiptsManager.listReceiptsByParameter(
 						OROthers.class, "orNumber",
 						this.getOrONo(),session).get(0);
 				setOrOthers(orOthers);
@@ -105,7 +126,7 @@ private static final long serialVersionUID = 1L;
 				return "orOthers";
 			}else {
 				CashCheckReceipts cashCheckReceipts = new CashCheckReceipts();
-				cashCheckReceipts = (CashCheckReceipts) manager.listReceiptsByParameter(
+				cashCheckReceipts = (CashCheckReceipts) receiptsManager.listReceiptsByParameter(
 						CashCheckReceipts.class, "cashReceiptNo",
 						this.getCrNo(),session).get(0);
 				this.setCcReceipts(cashCheckReceipts);

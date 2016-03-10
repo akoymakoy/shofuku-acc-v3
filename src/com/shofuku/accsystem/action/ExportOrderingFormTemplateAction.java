@@ -21,44 +21,117 @@ import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.CustomerManager;
+import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
+import com.shofuku.accsystem.controllers.LookupManager;
+import com.shofuku.accsystem.controllers.SupplierManager;
+import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerStockLevel;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Item;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
+import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.UnlistedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.POIUtil;
+import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class ExportOrderingFormTemplateAction extends ActionSupport  {
+public class ExportOrderingFormTemplateAction extends ActionSupport implements Preparable {
 
 	private static final long serialVersionUID = -8557620697888911805L;
+	
+	Map actionSession;
+	UserAccount user;
 
-	private static final Logger logger = Logger
-			.getLogger(ExportOrderingFormTemplateAction.class);
+	InventoryUtil inventoryUtil;
+	AccountEntryProfileUtil accountEntryUtil;
+	POIUtil poiUtil;
+	
+	SupplierManager supplierManager;
+	CustomerManager customerManager;
+	InventoryManager inventoryManager; 
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	LookupManager lookupManager;
+	DisbursementManager disbursementManager;
+
+	PurchaseOrderDetails orderDetails;
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsGrouped;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+
+	// add other managers for other modules Manager()
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryUtil = new InventoryUtil(actionSession);
+		accountEntryUtil = new AccountEntryProfileUtil(actionSession);
+		poiUtil = new POIUtil(actionSession);
+		
+		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		inventoryManager 		= (InventoryManager) 	actionSession.get("inventoryManager"); 
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
+		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(poDetailsGrouped==null) {
+			poDetailsGrouped = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsGrouped.setActionSession(actionSession);
+		}
+		
+	}
 	
 	InputStream excelStream;
 	String contentDisposition;
-	POIUtil poiUtil = new POIUtil();
 	
 	String orderingFormType;
-	
 	Customer customer;
-	
-	
-	InventoryManager manager=new InventoryManager();
+	List customerNoList;
 	
 	HashMap<String,HashMap<String,ArrayList<Item>>> itemMap = new HashMap<String,HashMap<String,ArrayList<Item>>>(); 
+	
+	private static final Logger logger = Logger
+			.getLogger(ExportOrderingFormTemplateAction.class);
 	
 	@Override
 	public String execute() throws Exception {
 
 		Session session = getSession();
-		
-		
 		
 		//GET INVENTORY LIST PER CLASSIFICATION (WET/DRY/OFFICE)
 		itemMap = getAllItemList(session);
@@ -70,23 +143,34 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		return SUCCESS;
 	}
 
+	public String listCustomer(){
+		Session session = getSession();
+		customerNoList = customerManager.listAllCustomerNo(session);
+		
+		return "listCustomer";
+		
+	}
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private HashMap<String,HashMap<String,ArrayList<Item>>> getAllItemList(Session session) {
 		Iterator iterator = null;
-		
+		customerNoList = customerManager.listAllCustomerNo(session);
 		//START: 2015 - PHASE 3a - stock level per customer
-		
+		Map customerSpecificStockLevel = new HashMap<>();
 		//temp value: CMJCC01
-		List result = manager.listByParameter(Customer.class, "customerNo","CMJCC01",session);
-		customer =(Customer) result.get(0);
-		Map customerSpecificStockLevel = customer.getCustomerStockLevelMap();
-		//END: 2015 - PHASE 3a - stock level per customer
+		if (orderingFormType.equalsIgnoreCase("S")){
+			List result = inventoryManager.listByParameter(Customer.class, "customerNo",customer.getCustomerNo(),session);
+			customer =(Customer) result.get(0);
+			customerSpecificStockLevel = customer.getCustomerStockLevelMap();
+			//END: 2015 - PHASE 3a - stock level per customer
+		}
 		
 		
-		
-		List<RawMaterial> rawMatList =manager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
-		List<TradedItem> tradedItemList =manager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
-		List<FinishedGood> finList = manager.listAlphabeticalAscByParameter(FinishedGood.class, "subClassification", session);
+		List<RawMaterial> rawMatList =inventoryManager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
+		List<TradedItem> tradedItemList =inventoryManager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
+		List<Utensils> utensilsList =inventoryManager.listAlphabeticalAscByParameter(Utensils.class, "subClassification",session);
+		List<OfficeSupplies> ofcSupList =inventoryManager.listAlphabeticalAscByParameter(OfficeSupplies.class, "subClassification",session);
+		List<FinishedGood> finList = inventoryManager.listAlphabeticalAscByParameter(FinishedGood.class, "subClassification", session);
+		List<UnlistedItem> ulList = inventoryManager.listAlphabeticalAscByParameter(UnlistedItem.class, "description", session); 
 		
 		HashMap<String,ArrayList<Item>> subClassMap = new HashMap<String,ArrayList<Item>>();
 		
@@ -126,7 +210,8 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				//END: 2015 - PHASE 3a - stock level per customer
 				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable(),tempStockLevelValue));
+				tempList.add(new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(),
+						rawMaterial.getSubClassification(),rawMaterial.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(rawMaterial.getSubClassification(), tempList);
 				itemMap.put(rawMaterial.getClassification(), subClassMap);
@@ -170,13 +255,103 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				//END: 2015 - PHASE 3a - stock level per customer
 				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable(),tempStockLevelValue));
+				tempList.add(new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),
+						tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(tradedItem.getSubClassification(), tempList);
 				itemMap.put(tradedItem.getClassification(), subClassMap);
 			}
 		}
 		
+		iterator = utensilsList.iterator();
+		while(iterator.hasNext()) {
+			Utensils utensils = (Utensils) iterator.next();
+			if(utensils.getItemCode().equalsIgnoreCase("FD01")) {
+				System.out.println("FOUND");
+			}	
+			if  (utensils.getClassification() == null ||
+					(!utensils.getTemplate().equalsIgnoreCase(orderingFormType)
+					&& (!utensils.getTemplate().equalsIgnoreCase("B")  
+						|| utensils.getTemplate().equalsIgnoreCase("N"))))  {
+				System.out.println(utensils.getDescription()+" : not included");
+			} else {
+
+				if (itemMap.get(utensils.getClassification()) == null) {
+					tempList = new ArrayList<Item>();
+					subClassMap = new HashMap<String, ArrayList<Item>>();
+				} else {
+					subClassMap = itemMap.get(utensils.getClassification());
+
+					if (subClassMap.get(utensils.getSubClassification()) == null) {
+						tempList = new ArrayList<Item>();
+					} else {
+						tempList = (ArrayList<Item>) subClassMap
+								.get(utensils.getSubClassification());
+					}
+				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(utensils.getItemCode()); 
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
+				//END: 2015 - PHASE 3a - stock level per customer
+				
+				//START: 2013 - PHASE 3 : PROJECT 4: MARK
+				tempList.add(new Item(utensils.getItemCode(), utensils.getDescription(), utensils.getUnitOfMeasurement(),
+						utensils.getClassification(), utensils.getSubClassification(),utensils.getIsVattable(),tempStockLevelValue));
+				//END: 2013 - PHASE 3 : PROJECT 4: MARK
+				subClassMap.put(utensils.getSubClassification(), tempList);
+				itemMap.put(utensils.getClassification(), subClassMap);
+			}
+		}
+		
+		iterator = ofcSupList.iterator();
+		while(iterator.hasNext()) {
+			OfficeSupplies ofcSup = (OfficeSupplies) iterator.next();
+			if(ofcSup.getItemCode().equalsIgnoreCase("FD01")) {
+				System.out.println("FOUND");
+			}	
+			if  (ofcSup.getClassification() == null ||
+					(!ofcSup.getTemplate().equalsIgnoreCase(orderingFormType)
+					&& (!ofcSup.getTemplate().equalsIgnoreCase("B")  
+						|| ofcSup.getTemplate().equalsIgnoreCase("N"))))  {
+				System.out.println(ofcSup.getDescription()+" : not included");
+			} else {
+
+				if (itemMap.get(ofcSup.getClassification()) == null) {
+					tempList = new ArrayList<Item>();
+					subClassMap = new HashMap<String, ArrayList<Item>>();
+				} else {
+					subClassMap = itemMap.get(ofcSup.getClassification());
+
+					if (subClassMap.get(ofcSup.getSubClassification()) == null) {
+						tempList = new ArrayList<Item>();
+					} else {
+						tempList = (ArrayList<Item>) subClassMap
+								.get(ofcSup.getSubClassification());
+					}
+				}
+				
+				//START: 2015 - PHASE 3a - stock level per customer
+				CustomerStockLevel csl = (CustomerStockLevel)customerSpecificStockLevel.get(ofcSup.getItemCode()); 
+				double tempStockLevelValue=0;
+				if(csl==null) {
+				}else {
+				tempStockLevelValue=csl.getStockLevel();
+				}
+				//END: 2015 - PHASE 3a - stock level per customer
+				
+				//START: 2013 - PHASE 3 : PROJECT 4: MARK
+				tempList.add(new Item(ofcSup.getItemCode(), ofcSup.getDescription(), ofcSup.getUnitOfMeasurement(),
+						ofcSup.getClassification(), ofcSup.getSubClassification(),ofcSup.getIsVattable(),tempStockLevelValue));
+				//END: 2013 - PHASE 3 : PROJECT 4: MARK
+				subClassMap.put(ofcSup.getSubClassification(), tempList);
+				itemMap.put(ofcSup.getClassification(), subClassMap);
+			}
+		}
 		
 		tempList = new ArrayList<Item>();
 		iterator = finList.iterator();
@@ -212,15 +387,43 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 				
 				
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable(),tempStockLevelValue));
+				tempList.add(new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),
+						finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable(),tempStockLevelValue));
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				subClassMap.put(finGood.getSubClassification(), tempList);
 				itemMap.put(finGood.getClassification(),subClassMap);
 			}
 		}
 		
-		
-	
+		iterator = ulList.iterator();
+		while(iterator.hasNext()) {
+			UnlistedItem unlistedItem = (UnlistedItem) iterator.next();
+			if(unlistedItem.getClassification() == null) {
+				System.out.println(unlistedItem.getDescription()+" : not included");	
+			}else {
+				if (itemMap.get(unlistedItem.getClassification()) == null) {
+					tempList = new ArrayList<Item>();
+					subClassMap = new HashMap<String, ArrayList<Item>>();
+				} else {
+					subClassMap = itemMap.get(unlistedItem.getClassification());
+
+					if (subClassMap.get(SASConstants.UNLISTED_ITEMS) == null) {
+						tempList = new ArrayList<Item>();
+					} else {
+						tempList = (ArrayList<Item>) subClassMap
+								.get(SASConstants.UNLISTED_ITEMS);
+					}
+				}
+				//START: 2015 - PHASE 3a - stock level per customer
+			
+				double tempStockLevelValue=0;
+				
+				tempList.add(new Item(unlistedItem.getItemCode(), unlistedItem.getDescription(), unlistedItem.getUom(),unlistedItem.getClassification(), SASConstants.UNLISTED_ITEMS,"N",tempStockLevelValue));
+				subClassMap.put(SASConstants.UNLISTED_ITEMS, tempList);
+				itemMap.put(unlistedItem.getClassification(), subClassMap);
+				//END: 2015 - PHASE 3a - stock level per customer
+			}
+		}
 		
 		return itemMap;
 	}
@@ -260,7 +463,10 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 		int currentRow = 9;
 		int currentColumn = 1;
 		
-		int rowLimit = 70;
+		int rowLimit = 0;
+		
+		//for unlistedItemPointer
+		int lastRow=0;
 		
 		HSSFSheet sheet = wb.getSheetAt(sheetCtr);
 		
@@ -292,10 +498,15 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 			rowLimit = getRowLimit(subClassessMap);
 			String sheetName = sheet.getSheetName();
 			System.out.println("NOW PROCESSING SHEET: "+ sheetName);
+			ArrayList<Item> unlistedItemList= new ArrayList<Item>();
 			for(ArrayList<Item> itemArrayListPerSubClass : subClassessMap.values()) {
 				//create sub class header
 				//TODO:addNullCheck
 				String subClassDesc = ((Item)itemArrayListPerSubClass.get(0)).getSubClassification();
+				if(subClassDesc.equalsIgnoreCase(SASConstants.UNLISTED_ITEMS)) {
+					unlistedItemList.addAll(itemArrayListPerSubClass);
+					continue;
+				}
 				createSubClassHeader(sheet,subClassDesc,currentRow,currentColumn);
 				currentRow+=2;
 				Iterator iterator = itemArrayListPerSubClass.iterator();
@@ -303,11 +514,29 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 					Item tempItem = (Item)iterator.next();
 					insertItem(sheet,currentRow++,currentColumn,tempItem);
 				}
+				
+				lastRow=currentRow;
 				if(currentRow>rowLimit/2) {
 					currentColumn++;
+					
 					currentRow = 9;
 				}
 			}
+			
+			//write unlisted items
+			currentRow=lastRow++;
+			currentColumn = 2;
+			
+			createSubClassHeader(sheet,SASConstants.UNLISTED_ITEMS,currentRow,currentColumn);
+			currentRow+=2;
+			Iterator iterator = unlistedItemList.iterator();
+			while(iterator.hasNext()) {
+				Item tempItem = (Item)iterator.next();
+				//to force write on 2nd column
+				insertItem(sheet,currentRow++,currentColumn,tempItem);
+			}
+			
+			
 			currentRow = 9;
 			currentColumn = 1;
 			
@@ -525,4 +754,13 @@ public class ExportOrderingFormTemplateAction extends ActionSupport  {
 	public void setOrderingFormType(String orderingFormType) {
 		this.orderingFormType = orderingFormType;
 	}
+
+	public List getCustomerNoList() {
+		return customerNoList;
+	}
+
+	public void setCustomerNoList(List customerNoList) {
+		this.customerNoList = customerNoList;
+	}
+	
 }

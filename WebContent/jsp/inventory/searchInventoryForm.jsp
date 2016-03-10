@@ -3,6 +3,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%@ taglib prefix="s" uri="/struts-tags"%>
 <%@ taglib prefix="sx" uri="/struts-dojo-tags"%>
+<%@ taglib prefix="auth" uri="/tld/Authorization.tld"%>
 
 <html>
 <head>
@@ -42,16 +43,39 @@
 					
 					<td><s:select label="Inventory Module:" headerKey="-1"
 							headerValue="--Choose Module--"
-							list="#{'items':'Item/s','rawMat':'Raw Materials', 'finGood':'Finished Goods', 'tradedItems':'Traded Items','fpts':'FP Transfer Slip','rf':'Order Requisition', 'returnSlip':'Return Slip'}"
+							list="#{'items':'Item/s','rawMat':'Raw Materials', 'finGood':'Finished Goods', 'tradedItems':'Traded Items','utensils':'Utensils', 'ofcSup':'Office Supplies','unlistedItems':'Unlisted Items','fpts':'FP Transfer Slip','rf':'Order Requisition', 'returnSlip':'Return Slip'}"
 							name="subModule"
 							onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
 					
 					
 
-					<s:if
-						test="%{#subModule == 'rawMat' || #subModule == 'tradedItems'}">
+					<s:if test="%{#subModule == 'rawMat'}">
 						<td><s:select label="Search Raw Materials By:"
 								list="#{'ALL':'ALL','itemCode':'Item Code', 'description':'Description'}"
+								name="moduleParameter"
+								onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
+					</s:if>
+					<s:if test="%{#subModule == 'tradedItems'}">
+						<td><s:select label="Search Traded Items By:"
+								list="#{'ALL':'ALL','itemCode':'Item Code', 'description':'Description'}"
+								name="moduleParameter"
+								onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
+					</s:if>
+				 	<s:if test="%{#subModule == 'utensils'}">
+						<td><s:select label="Search Utensils By:"
+								list="#{'ALL':'ALL','itemCode':'Item Code', 'description':'Description'}"
+								name="moduleParameter"
+								onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
+					</s:if>
+					<s:if test="%{#subModule == 'ofcSup'}">
+						<td><s:select label="Search Office Supplies By:"
+								list="#{'ALL':'ALL','itemCode':'Item Code', 'description':'Description'}"
+								name="moduleParameter"
+								onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
+					</s:if>
+					<s:if test="%{#subModule == 'unlistedItems'}">
+						<td><s:select label="Search Unlisted Items By:"
+								list="#{'ALL':'ALL','description':'Description'}"
 								name="moduleParameter"
 								onchange="javascript:onTypeChangeInventory('searchForm');" /></td>
 					</s:if>
@@ -85,10 +109,7 @@
 					</s:if>
 				
 				</tr>
-
-
 				<tr>
-
 					<s:if test="%{#subModule == 'fpts' || #subModule == 'rf'}">
 
 						<s:if test="%{#moduleParameter  == 'transactionDate'}">
@@ -110,7 +131,6 @@
 					<td><s:submit cssClass="myButtons" label="Submit"
 							value="SEARCH"></s:submit></td>
 				</tr>
-				
 			</table>
 			</p>
 		</s:form>
@@ -159,6 +179,42 @@
 
 					</tr>
 				</s:elseif>
+				<s:elseif test="%{#subModule == 'utensils'}">
+					<tr>
+						<th>ITEM CODE</th>
+						<th width="300px">DESCRIPTION</th>
+						<th>CO STANDARD PRICE</th>
+						<th>CO ACTUAL PRICE</th>
+						<th>CO TRANSFER PRICE</th>
+
+						<th>FR STANDARD PRICE</th>
+						<th>FR ACTUAL PRICE</th>
+						<th>FR TRANSFER PRICE</th>
+
+					</tr>
+				</s:elseif>
+				<s:elseif test="%{#subModule == 'ofcSup'}">
+					<tr>
+						<th>ITEM CODE</th>
+						<th width="300px">DESCRIPTION</th>
+						<th>CO STANDARD PRICE</th>
+						<th>CO ACTUAL PRICE</th>
+						<th>CO TRANSFER PRICE</th>
+
+						<th>FR STANDARD PRICE</th>
+						<th>FR ACTUAL PRICE</th>
+						<th>FR TRANSFER PRICE</th>
+
+					</tr>
+				</s:elseif>
+				<s:elseif test="%{#subModule == 'unlistedItems'}">
+					<tr>
+						<th width="300px">DESCRIPTION</th>
+						<th>UOM</th>
+						<th>CLASSIFICATION</th>
+
+					</tr>
+				</s:elseif>
 				<s:elseif test="%{#subModule == 'fpts'}">
 					<tr>
 						<th>FPTS NO</th>
@@ -190,17 +246,21 @@
 					</tr>
 				</s:elseif>
 
-				<s:if test="%{#subModule != 'items'}">
+			<s:if test="%{#subModule != 'items'}">
 				<s:iterator value="inventoryList" status="inventoryList">
 					<s:if test="%{#subModule == 'rawMat'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="10">
+								<s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 									<s:param name="rm.itemCode" value="%{itemCode}">itemCode</s:param>
 									<s:param name="subModule" value="%{'rawMat'}">subModule</s:param>
-								</s:url> <s:a href="%{displayId}">
-									<s:property value="itemCode" />
-								</s:a></td>
+								</s:url> 
+								</auth:isAuth>
+								<s:a href="%{displayId}"><s:property value="itemCode" />
+								</s:a>
+							</td>
 							<td align="left"><s:property value="description" /></td>
 							<td><s:property
 									value="itemPricing.companyOwnedStandardPricePerUnit" /></td>
@@ -221,11 +281,15 @@
 					</s:if>
 					<s:elseif test="%{#subModule == 'finGood'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="14">
+								<s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 									<s:param name="fg.productCode" value="%{productCode}">productCode</s:param>
 									<s:param name="subModule" value="%{'finGood'}">subModule</s:param>
-								</s:url> <s:a href="%{displayId}">
+								</s:url> 
+								</auth:isAuth>
+								<s:a href="%{displayId}">
 									<s:property value="productCode" />
 								</s:a></td>
 							<td align="left"><s:property value="description" /></td>
@@ -247,11 +311,15 @@
 					</s:elseif>
 					<s:elseif test="%{#subModule == 'tradedItems'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="11">
+								<s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 									<s:param name="ti.itemCode" value="%{itemCode}">itemCode</s:param>
 									<s:param name="subModule" value="%{'tradedItems'}">subModule</s:param>
-								</s:url> <s:a href="%{displayId}">
+								</s:url>
+								</auth:isAuth>
+								 <s:a href="%{displayId}">
 									<s:property value="itemCode" />
 								</s:a></td>
 							<td align="left"><s:property value="description" /></td>
@@ -272,45 +340,130 @@
 
 						</tr>
 					</s:elseif>
+					<s:elseif test="%{#subModule == 'utensils'}">
+						<tr>
+							<td align="left">
+								<auth:isAuth role="13">
+								<s:url id="displayId" action="editInventoryAction">
+									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
+									<s:param name="u.itemCode" value="%{itemCode}">itemCode</s:param>
+									<s:param name="subModule" value="%{'utensils'}">subModule</s:param>
+								</s:url> 
+								</auth:isAuth>
+								<s:a href="%{displayId}">
+									<s:property value="itemCode" />
+								</s:a></td>
+							<td align="left"><s:property value="description" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedStandardPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedActualPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedTransferPricePerUnit" /></td>
+
+							<td><s:property
+									value="itemPricing.franchiseStandardPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.franchiseActualPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.franchiseTransferPricePerUnit" /></td>
+						</tr>
+					</s:elseif>
+					<s:elseif test="%{#subModule == 'ofcSup'}">
+						<tr>
+							<td align="left">
+								<auth:isAuth role="12">
+								<s:url id="displayId" action="editInventoryAction">
+									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
+									<s:param name="os.itemCode" value="%{itemCode}">itemCode</s:param>
+									<s:param name="subModule" value="%{'ofcSup'}">subModule</s:param>
+								</s:url>
+								</auth:isAuth>
+								 <s:a href="%{displayId}">
+									<s:property value="itemCode" />
+								</s:a></td>
+							<td align="left"><s:property value="description" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedStandardPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedActualPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.companyOwnedTransferPricePerUnit" /></td>
+
+							<td><s:property
+									value="itemPricing.franchiseStandardPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.franchiseActualPricePerUnit" /></td>
+							<td><s:property
+									value="itemPricing.franchiseTransferPricePerUnit" /></td>
+						</tr>
+					</s:elseif>
+					<s:elseif test="%{#subModule == 'unlistedItems'}">
+						<tr>
+							<td align="left">
+								<auth:isAuth role="34">
+								<s:url id="displayId" action="editInventoryAction">
+									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
+									<s:param name="unl.description" value="%{description}">description</s:param>
+									<s:param name="subModule" value="%{'unlistedItems'}">subModule</s:param>
+								</s:url>
+								</auth:isAuth>
+								 <s:a href="%{displayId}">
+									<s:property value="description" />
+								</s:a></td>
+							<td><s:property
+									value="uom" /></td>
+							<td><s:property
+									value="classification" /></td>
+						</tr>
+					</s:elseif>
 					<s:elseif test="%{#subModule == 'fpts'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="15">
+								<s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 									<s:param name="fpts.fptsNo" value="%{fptsNo}">fptsNo</s:param>
 									<s:param name="subModule" value="%{'fpts'}">subModule</s:param>
-								</s:url> <s:a href="%{displayId}">
+								</s:url>
+								</auth:isAuth>
+								 <s:a href="%{displayId}">
 									<s:property value="fptsNo" />
 								</s:a></td>
 							<td align="left"><s:property value="transactionDate" /></td>
 							<td align="left"><s:property value="fptsFrom" /></td>
 							<td align="left"><s:property value="fptsTo" /></td>
 
-
 						</tr>
 					</s:elseif>
 					<s:elseif test="%{#subModule == 'rf'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="16">
+								<s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 									<s:param name="rf.requisitionNo" value="%{requisitionNo}">rfNo</s:param>
 									<s:param name="subModule" value="%{'rf'}">subModule</s:param>
-								</s:url> <s:a href="%{displayId}">
+								</s:url> 
+								</auth:isAuth>
+								<s:a href="%{displayId}">
 									<s:property value="requisitionNo" />
 								</s:a></td>
 							<td align="left"><s:property value="requisitionDate" /></td>
 							<td align="left"><s:property value="requisitionTo" /></td>
 							<td align="left"><s:property value="requisitionBy" /></td>
-
-
 						</tr>
 					</s:elseif>
 					<s:elseif test="%{#subModule == 'returnSlip'}">
 						<tr>
-							<td align="left"><s:url id="displayId" action="editInventoryAction">
+							<td align="left">
+								<auth:isAuth role="17">
+								<s:url id="displayId" action="editInventoryAction">
 										<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
 										<s:param name="rs.returnSlipNo" value="%{returnSlipNo}">itemCode</s:param>
 										<s:param name="subModule" value="%{'returnSlip'}">subModule</s:param>
 									</s:url>
+								</auth:isAuth>
 									<s:a href="%{displayId}"><s:property value="returnSlipNo"/></s:a>
 							</td>
 							<td align="left"><s:property value="returnDate" /></td>
@@ -318,11 +471,10 @@
 						</tr>
 					</s:elseif>
 				</s:iterator>
-				</s:if>
+			</s:if>
 				
 				<s:else>
 				<s:iterator value="resultList" status="resultList">
-					
 					<tr>
 							<td align="left"><s:url id="displayId" action="editInventoryAction">
 									<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
@@ -337,10 +489,7 @@
 				</s:iterator>
 				</s:else>
 			</table>
-			
-			
 		</div>
 	</div>
-
 </body>
 </html>

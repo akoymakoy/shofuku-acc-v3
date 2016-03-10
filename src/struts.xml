@@ -12,25 +12,53 @@
 	<constant name="struts.ui.theme" value="makyong" />
 	<constant name="struts.ui.templateDir" value="template" />
 
-
+	
+	
+	   
 	<package name="default" extends="struts-default">
+
+
 
 		<!-- Redirect Action -->
 		<result-types>
 			<result-type name="tiles"
 				class="org.apache.struts2.views.tiles.TilesResult" />
 		</result-types>
+		
+		<interceptors>
+		 
+		 <interceptor name="sessionCheckerInterceptor" class="com.shofuku.accsystem.utils.SessionInterceptor" />
+		
+		 <interceptor-stack name="sessionExpirayStack">
+		  <interceptor-ref name="sessionCheckerInterceptor"/>
+		  <interceptor-ref name="defaultStack"/>
+		 </interceptor-stack>
+		 
+		</interceptors>
+		
+		<default-interceptor-ref name="sessionExpirayStack"/>
+
+		<global-results>
+		   <result name="loginRedirect">/jsp/util/loginForm.jsp</result>
+		</global-results>
+
 
 		<!-- LOGIN -->
 
 		<action name="showLoginForm">
-			<result>/jsp/loginForm.jsp</result>
+			<result>/jsp/util/loginForm.jsp</result>
 		</action>
+		
 		<action name="login" class="com.shofuku.accsystem.action.LoginAction">
-			<result name="input">/jsp/loginForm.jsp</result>
-			<result name="error">/jsp/loginForm.jsp</result>
-			<result name="cancel" type="redirect">/jsp/loginForm.jsp</result>
+			<interceptor-ref name="defaultStack"/>
+			<result name="input">/jsp/util/loginForm.jsp</result>
+			<result name="error">/jsp/util/loginForm.jsp</result>
+			<result name="cancel" type="redirect">/jsp/util/loginForm.jsp</result>
 			<result name="success" type="tiles">baseLayout.tiles</result>
+		</action>
+		
+		<action name="logout" class="com.shofuku.accsystem.action.LoginAction" method="logout">
+			<result name="success">/jsp/util/loginForm.jsp</result>
 		</action>
 
 		<action name="showBaselayout">
@@ -69,6 +97,7 @@
 		<!-- SUPPLIER MODULE -->
 
 		<action name="showSupplierProfileForm">
+		 	<interceptor-ref name="sessionExpirayStack" />
 			<result type="tiles">showSupplierForm.tiles</result>
 		</action>
 
@@ -672,6 +701,15 @@
 		<action name="showTradedItemsForm">
 			<result type="tiles">showTradedItemsForm.tiles</result>
 		</action>
+		<action name="showUtensilsForm">
+			<result type="tiles">showUtensilsForm.tiles</result>
+		</action>
+		<action name="showOfficeSuppliesForm">
+			<result type="tiles">showOfficeSuppliesForm.tiles</result>
+		</action>
+		<action name="showUnlistedItemsForm">
+			<result type="tiles">showUnlistedItemsForm.tiles</result>
+		</action>
 		<action name="showFinishedProductTransferSlipForm">
 			<result type="tiles">showFinishedProductTransferSlipForm.tiles
 			</result>
@@ -706,6 +744,9 @@
 			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
 			method="execute">
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles</result>
 			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
 			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
@@ -718,6 +759,8 @@
 			method="loadItemSubClassificationList">
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
 			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
 		</action>
 		
@@ -730,6 +773,12 @@
 			<result name="finGood" type="tiles">showSearchInventoryForm.tiles
 			</result>
 			<result name="tradedItems" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="utensils" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="ofcSup" type="tiles">showSearchInventoryForm.tiles
+			</result>
+			<result name="unlistedItems" type="tiles">showSearchInventoryForm.tiles
 			</result>
 			<result name="returnSlip" type="tiles">showSearchInventoryForm.tiles
 			</result>
@@ -745,8 +794,10 @@
 			method="execute">
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
-			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles
-			</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles</result>
+			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
 			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
 			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
 			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
@@ -757,6 +808,9 @@
 			method="execute">
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles</result>
 			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
 			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
 			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
@@ -768,37 +822,41 @@
 			method="execute">
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles</result>
 			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
 			<result name="input" type="tiles">showFinishedGoodsForm.tiles</result>
 			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
 			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
 			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
-			
 
 		</action>
 		<action name="printInventoryAction"
 			class="com.shofuku.accsystem.action.inventory.PrintInventoryAction"
 			method="execute">
 			<result name="tradedItems">/jsp/inventory/tradedItemsForm.jsp</result>
+			<result name="utensils">/jsp/inventory/utensilsForm.jsp</result>
+			<result name="ofcSup">/jsp/inventory/officeSuppliesForm.jsp</result>
+			<result name="unlistedItems">/jsp/inventory/unlistedItemsForm.jsp</result>
 			<result name="rawMat">/jsp/inventory/rawMaterialsForm.jsp</result>
 			<result name="finGood">/jsp/inventory/finishedGoodsForm.jsp</result>
 			<result name="fpts">/jsp/inventory/finishedProductTransferSlipForm.jsp</result>
 			<result name="rf">/jsp/inventory/orderRequisitionForm.jsp</result>
 			<result name="returnSlip">/jsp/inventory/ReturnSlipForm.jsp</result>
-			
 		</action>
 
 		<action name="loadLookUpItems"
 			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
 			method="loadLookLists">
 			<result name="rawMat" type="tiles">showRawMaterialsForm.tiles</result>
-			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles
-			</result>
+			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles</result>
+			<result name="utensils" type="tiles">showUtensilsForm.tiles</result>
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles</result>
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles</result>
 			<result name="finGood" type="tiles">showFinishedGoodsForm.tiles</result>
-			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles
-			</result>
-			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles
-			</result>
+			<result name="returnSlip" type="tiles">showReturnSlipForm.tiles</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
 		</action>
 
 		<action name="loadLookUpItemsInRawMat"
@@ -813,7 +871,24 @@
 			<result name="tradedItems" type="tiles">showTradedItemsForm.tiles
 			</result>
 		</action>
-
+		<action name="loadLookUpItemsInUtensils"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookListsInUtensils">
+			<result name="utensils" type="tiles">showUtensilsForm.tiles
+			</result>
+		</action>
+		<action name="loadLookUpItemsInOfficeSupplies"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookListsInOfficeSupplies">
+			<result name="ofcSup" type="tiles">showOfficeSuppliesForm.tiles
+			</result>
+		</action>
+		<action name="loadLookUpItemsInUnlistedItems"
+			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
+			method="loadLookListsInUnlistedItems">
+			<result name="unlistedItems" type="tiles">showUnlistedItemsForm.tiles
+			</result>
+		</action>
 
 		<action name="addIngredientAction"
 			class="com.shofuku.accsystem.action.inventory.AddInventoryAction"
@@ -872,8 +947,20 @@
 		<action name="manageStockLevelPageAction" method="readStockLevelExcel"
 			class="com.shofuku.accsystem.action.ManageStockLevelAction">
 			<result name="updated" type="tiles">showManageStockLevelPage.tiles</result>
-			
 		</action>
+		
+		<!-- import offline orders -->
+		
+		<action name="importOfflineOrdersAction" method="execute"
+			class="com.shofuku.accsystem.action.ImportOfflineOrdersAction">
+			<result name="imported" type="tiles">showImportOfflineOrdersForm.tiles</result>
+		</action>
+		
+		<action name="showImportOfflineOrdersForm" >
+			<result type="tiles">showImportOfflineOrdersForm.tiles</result>
+					
+		</action>
+		
 		<action name="showCustomerProfileAction" method="showCustomerProfile"
 			class="com.shofuku.accsystem.action.ManageStockLevelAction">
 			<result name="showCustomer" type="tiles">showCustomerProfileForm.tiles</result>
@@ -897,19 +984,13 @@
 			class="com.shofuku.accsystem.action.AddOrderDetailsAction" method="finalizeOrder">
 			<result name="supplierPO" type="tiles">showSupplierPurchaseOrderForm.tiles
 			</result>
-			<result name="supplierRR" type="tiles">showSupplierReceivingReportForm.tiles
-			</result>
-			<result name="supplierInvoice" type="tiles">showSupplierInvoiceForm.tiles
-			</result>
-
-			<result name="customerPO" type="tiles">showCustomerPurchaseOrderForm.tiles
-			</result>
-			<result name="customerDR" type="tiles">showCustomerDeliveryReceiptForm.tiles
-			</result>
-			<result name="customerInvoice" type="tiles">showCustomerInvoiceForm.tiles
-			</result>
-			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles
-			</result>
+			<result name="input">/jsp/util/addOrderDetailsForm.jsp</result>
+			<result name="supplierRR" type="tiles">showSupplierReceivingReportForm.tiles</result>
+			<result name="supplierInvoice" type="tiles">showSupplierInvoiceForm.tiles</result>
+			<result name="customerPO" type="tiles">showCustomerPurchaseOrderForm.tiles</result>
+			<result name="customerDR" type="tiles">showCustomerDeliveryReceiptForm.tiles</result>
+			<result name="customerInvoice" type="tiles">showCustomerInvoiceForm.tiles</result>
+			<result name="fpts" type="tiles">showFinishedProductTransferSlipForm.tiles</result>
 			<result name="rf" type="tiles">showOrderRequisitionForm.tiles</result>
 			
 		</action>
@@ -939,8 +1020,11 @@
 		
 		<!-- TOOLS FUNCTIONS MODULE -->
 
-
-		<action name="showExportOrderingFormTemplate">
+		<action name="listCustomer" method="listCustomer" class="com.shofuku.accsystem.action.ExportOrderingFormTemplateAction">
+			<result name="listCustomer" type="tiles">showExportOrderingFormTemplate.tiles</result>
+		</action>
+		
+		<action name="showExportOrderingFormTemplate" >
 			<result type="tiles">showExportOrderingFormTemplate.tiles</result>
 		</action>
 		<action name="showUserAccountForm">
@@ -948,6 +1032,13 @@
 		</action>
 		<action name="showUserRoleForm">
 			<result type="tiles">showUserRoleForm.tiles</result>
+		</action>
+		
+		<action name="loadModulesAction"
+			class="com.shofuku.accsystem.action.security.SearchSecurityAction"
+			method="loadModules">
+			<result name="success" type="tiles">showUserRoleForm.tiles</result>
+			<result name="error" type="tiles">showUserRoleForm.tiles</result>
 		</action>
 
 		
@@ -966,6 +1057,7 @@
 		
 		<action name="addSecurityAction" class="com.shofuku.accsystem.action.security.AddSecurityAction"
 			method="execute">
+			<result name="input" type="tiles">showUserRoleForm.tiles</result>
 			<result name="userAccountAdded" type="tiles">showUserAccountForm.tiles</result>
 			<result name="userRoleAdded" type="tiles">showUserRoleForm.tiles</result>
 		</action>

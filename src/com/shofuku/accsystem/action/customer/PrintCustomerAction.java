@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletContext;
@@ -14,23 +15,70 @@ import javax.servlet.ServletContext;
 import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.ReportAndSummaryManager;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
-import com.shofuku.accsystem.domain.disbursements.CheckPayments;
-import com.shofuku.accsystem.domain.inventory.Ingredient;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
-import com.shofuku.accsystem.utils.SASConstants;
 
-public class PrintCustomerAction extends ActionSupport{
+public class PrintCustomerAction extends ActionSupport implements Preparable{
 	
 	private static final long serialVersionUID = 1L;
+	
+
+	Map actionSession;
+	UserAccount user;
+
+	CustomerManager customerManager;
+	ReportAndSummaryManager reportAndSummaryManager;
+
+	PurchaseOrderDetails orderDetails;
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsGrouped;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+
+	// add other managers for other modules Manager()
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		reportAndSummaryManager = (ReportAndSummaryManager) actionSession.get("reportAndSummaryManager");
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(poDetailsGrouped==null) {
+			poDetailsGrouped = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsGrouped.setActionSession(actionSession);
+		}
+		
+	}
+	
 	private String subModule;
 	private String cusId;
 	private String custpoid;
@@ -43,27 +91,21 @@ public class PrintCustomerAction extends ActionSupport{
 	CustomerPurchaseOrder custpo;
 	DeliveryReceipt dr;
 	CustomerSalesInvoice invoice;
-	CustomerManager manager = new CustomerManager();
 	List<PurchaseOrderDetails> poDetailList;
-	
-	PurchaseOrderDetailHelper poDetailsHelper;
-	PurchaseOrderDetailHelper poDetailsHelperToCompare ;
-	
 	InputStream excelStream;
 	String contentDisposition;
 	String documentFormat = "xls";
+	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
 	}
 	public String execute() throws Exception{
 		Session session = getSession();
 		try {
-			
-			
 			if (getSubModule().equalsIgnoreCase("profile")) {
 
 				Customer profile = new Customer();
-				profile = (Customer) manager.listByParameter(
+				profile = (Customer) customerManager.listByParameter(
 						Customer.class, "customerNo",
 						this.cusId,session).get(0);
 				if (profile.getCustomerType().equalsIgnoreCase("C")){
@@ -76,7 +118,7 @@ public class PrintCustomerAction extends ActionSupport{
 				return "profile";
 			} else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
 				CustomerPurchaseOrder custPO = new CustomerPurchaseOrder();
-				custPO = (CustomerPurchaseOrder) manager.listByParameter(
+				custPO = (CustomerPurchaseOrder) customerManager.listByParameter(
 						CustomerPurchaseOrder.class, "customerPurchaseOrderId",
 						this.custpoid,session).get(0);
 				poDetailsHelper.generatePODetailsListFromSet(custPO.getPurchaseOrderDetails());
@@ -95,9 +137,9 @@ public class PrintCustomerAction extends ActionSupport{
 				return "purchaseOrder";
 			} else if (getSubModule().equalsIgnoreCase("deliveryReceipt")) {
 				DeliveryReceipt custDr = new DeliveryReceipt();
-				custDr = (DeliveryReceipt) manager.listByParameter(DeliveryReceipt.class, "deliveryReceiptNo",this.getDrId(),session).get(0);
+				custDr = (DeliveryReceipt) customerManager.listByParameter(DeliveryReceipt.class, "deliveryReceiptNo",this.getDrId(),session).get(0);
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				}
 				poDetailsHelperToCompare.generatePODetailsListFromSet(custDr.getCustomerPurchaseOrder().getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -122,7 +164,7 @@ public class PrintCustomerAction extends ActionSupport{
 				return "deliveryReceipt";
 			} else {
 				CustomerSalesInvoice custInv = new CustomerSalesInvoice();
-				custInv = (CustomerSalesInvoice) manager.listByParameter(
+				custInv = (CustomerSalesInvoice) customerManager.listByParameter(
 						CustomerSalesInvoice.class, "customerInvoiceNo",
 						this.getInvId(),session).get(0);
 
@@ -217,14 +259,13 @@ public class PrintCustomerAction extends ActionSupport{
 		try {
 			ServletContext servletContext = ServletActionContext
 					.getServletContext();
-			ReportAndSummaryManager reportSummaryMgr = new ReportAndSummaryManager();
 			
 			CustomerSalesInvoice custInv = new CustomerSalesInvoice();
-			custInv = (CustomerSalesInvoice) manager.listByParameter(
+			custInv = (CustomerSalesInvoice) customerManager.listByParameter(
 					CustomerSalesInvoice.class, "customerInvoiceNo",
 					this.getInvId(),session).get(0);
 
-			excelStream = reportSummaryMgr.printCustomerInvoice(custInv,subModule,servletContext);
+			excelStream = reportAndSummaryManager.printCustomerInvoice(custInv,subModule,servletContext);
 			forWhat="print";
 			contentDisposition = "filename=\"customerInvoice.xls\"";
 			return SUCCESS;

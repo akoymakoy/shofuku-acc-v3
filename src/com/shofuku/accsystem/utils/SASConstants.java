@@ -34,10 +34,13 @@ public class SASConstants {
 	//ordering form filename
 	public final static String ORDERING_FORM_FILENAME = "OrderingFormTemplate.xls";
 	
+	//BASE HIBERNATE CONSTANTS
+	public static final String ORDER = "ORDER";
+	
 	//POI CONSTANTS
-	public final static int ORDERING_FORM_FIRST_ROW = 9;
+	public final static int ORDERING_FORM_FIRST_ROW = 11;
 	public final static int ORDERING_FORM_FIRST_COLUMN = 0;
-	public final static int ORDERING_FORM_SECOND_COLUMN = 6;
+	public final static int ORDERING_FORM_SECOND_COLUMN = 7;
 	
 	public final static String EXISTS = "RECORD ALREADY EXIST";
 	public final static String NON_EXISTS = "RECORD NOT EXIST";
@@ -101,6 +104,7 @@ public class SASConstants {
 	public final static String SUMMARY_TEMPLATE_HEADER_CUSTOMER_INV = "CUSTOMER INVOICE SUMMARY";
 	public final static String SUMMARY_TEMPLATE_HEADER_CUSTOMER_INV_ORDERS = "CUSTOMER INVOICE SUMMARY - ORDER DETAILS";
 	public static final String SUMMARY_TEMPLATE_HEADER_ITEMS_SOLD_TO_CUSTOMERS = "ITEMS SOLD TO CUSTOMERS";
+	public static final String SUMMARY_TEMPLATE_HEADER_ITEMS_PURCHASED_FROM_SUPPLIER = "ITEMS PURCHASED FROM SUPPLIER";
 	public static final String SUMMARY_TEMPLATE_HEADER_STATEMENT_OF_ACCOUNT = "STATEMENT OF ACCOUNT";
 	
 	public final static String SUMMARY_TEMPLATE_HEADER_PETTY_CASH = "PETTY CASH";
@@ -110,6 +114,8 @@ public class SASConstants {
 	public static final String SUMMARY_TEMPLATE_HEADER_RAW_MATERIALS = "RAW MATERIALS SUMMARY";
 	public static final String SUMMARY_TEMPLATE_HEADER_FINISHED_GOODS = "FINISHED PRODUCTS SUMMARY";
 	public static final String SUMMARY_TEMPLATE_HEADER_TRADED_ITEMS = "TRADED ITEMS SUMMARY";
+	public static final String SUMMARY_TEMPLATE_HEADER_UTENSILS = "UTENSILS SUMMARY";
+	public static final String SUMMARY_TEMPLATE_HEADER_OFFICE_SUPPLIES = "OFFICE SUPPLIES SUMMARY";
 	public static final String SUMMARY_TEMPLATE_HEADER_STOCK_STATUS_REPORT = "STOCK STATUS REPORT";
 	public static final String SUMMARY_TEMPLATE_HEADER_FPTS = "FINISHED PRODUCT TRANSFER SLIP SUMMARY";
 	public static final String SUMMARY_TEMPLATE_HEADER_RF = "ORDER REQUISITION SUMMARY";
@@ -307,6 +313,7 @@ public class SASConstants {
 	public static final String SUPPLIERPO_PREFIX = "SPO-";
 	public static final String RECEIVINGREPORT_PREFIX = "RR-";
 	
+	public static final String CUSTOMER = "CUSTOMER";
 	public static final String CUSTOMERPO = "CustomerPurchaseOrder";
 	public static final String DELIVERYREPORT = "DeliveryReceipt";
 	public static final String CUSTOMERINVOICE = "CustomerInvoice";
@@ -382,6 +389,7 @@ public class SASConstants {
 	public static final int SupplierPurchaseOrderTotalAmountRowMapping = 19;
 	public static final String TRADED_ITEM_ABBR ="TI";
 	public static final String UTENSILS_ABBR ="U";
+	public static final String OFFICE_SUPPLIES_ABBR = "OS";
 	public static final double VAT_PERCENT = 1.12;
 	public static final double VAT_AMOUNT_PERCENT = 0.12;
 	
@@ -463,5 +471,62 @@ public class SASConstants {
 	public static final String JOURNAL_ENTRIES_FILENAME = "Journal Entry Report - ";
 	public static final int JOURNAL_ENTRIES_VARIABLES_COLUMN_START = 3;
 	public static final int JOURNAL_ENTRIES_VALUES_COLUMN = 2;
+
+	
+	public static final String UNLISTED_ITEMS = "Unlisted Items";
+	public static final String NOT_APPLICABLE = "N/A";
+	
+	
+	/*
+	 * IMPORT OFFLINE ORDERS INDEX VALUES
+	 */
+	public static final int IMPORT_OFFLINE_ORDER_STARTING_ROW = 3;
+	
+	public final static int IMPORT_COLUMN_CUSTOMER_NO =0;
+	public final static int IMPORT_COLUMN_PO_DATE =1;
+	public final static int IMPORT_COLUMN_PO_DELIVERY_DATE =2;
+	public final static int IMPORT_COLUMN_PO_PAYMENT_DATE =3;
+	public final static int IMPORT_COLUMN_PO_PAYMENT_TERMS =4;
+	public final static int IMPORT_COLUMN_PO_ITEM_CODE =5;
+	public final static int IMPORT_COLUMN_PO_UNLISTED_ITEM_DESCRIPTION =6;
+	public final static int IMPORT_COLUMN_PO_UNLISTED_ITEM_UOM =7;
+	public final static int IMPORT_COLUMN_PO_ITEM_QUANTITY =8;
+
+	public final static int IMPORT_COLUMN_PO_NUMBER=9;
+	
+	public final static int IMPORT_COLUMN_DR_DATE =10;
+	public final static int IMPORT_COLUMN_DR_SHIPPING_METHOD =11;
+	public final static int IMPORT_COLUMN_DR_SHIPPING_DATE =12;
+	public final static int IMPORT_COLUMN_DR_DUE_DATE =13;
+	public final static int IMPORT_COLUMN_DR_REMARKS =14;
+	public final static int IMPORT_COLUMN_DR_ITEM_CODE =15;
+	public final static int IMPORT_COLUMN_DR_UNLISTED_ITEM_DESCRIPTION =16;
+	public final static int IMPORT_COLUMN_DR_ITEM_QUANTITY =17;
+	
+	public static final String DEFAULT_TIN = "000-000-000-000";
+	
+	/**
+	 * USER LOCATIONS
+	 */
+	public static final String LOCATION_MANILA = "MNL";
+	public static final String LOCATION = "location";
+	public static final String ARRAY_CLASS_WITHOUT_LOCATION[] = {
+			"Module.class", "UserAccount.class", 
+			"UnitOfMeasurements.class", "ExpenseClassification.class","InventoryClassification.class","PaymentClassification.class", "PaymentTerms.class","Remarks.class",
+			"SupplierStatus.class",	"UnitOfMeasurements.class,CustomerStockLevel.class"
+	};
+	public static final String SHOFUKU_PACKAGE_NAME = "com.shofuku.accsystem.";
+	public static final String ARRAY_PACKAGES_WITHOUT_LOCATION [] = {"utils","helpers","security,financials"};
+	
+	
+	/*
+	 * MISCELANEAOUS CONSTANTS
+	 * */
+	public static final String PROPERTY_FILE_PATH = "c://ShofukuAppLogs//ShofukuAccountingSystemDatabase.properties";
+	public static final String ADD = "ADD";
+	public static final String SUBTRACT = "SUBTRACT";
+
+
+	
 	
 }

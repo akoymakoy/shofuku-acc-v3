@@ -5,38 +5,56 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+
 import org.apache.log4j.Logger;
 import org.hibernate.Session;
 
-import com.opensymphony.xwork2.ActionSupport;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
-import com.shofuku.accsystem.controllers.CustomerManager;
-import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.AccountingRules;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
 
-public class AddFinancialsAction extends ActionSupport {
+public class AddFinancialsAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
+	
+
+	Map actionSession;
+	UserAccount user;
+
+	RecordCountHelper rch;
+	
+	AccountEntryManager accountEntryManager;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		rch = new RecordCountHelper(actionSession);
+		
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		
+	}
 	private static final Logger logger = Logger
 			.getLogger(AddFinancialsAction.class);
 
 	private static final Logger logger2 = logger.getRootLogger();
 
-	AccountEntryManager aepManager = new AccountEntryManager();
-	RecordCountHelper rch = new RecordCountHelper();
-	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
 	}
@@ -76,18 +94,16 @@ public class AddFinancialsAction extends ActionSupport {
 		
 	}
 
-	
-
 	public String loadParentCode() {
 		Session session = getSession();
 		
 		
 		try {
 			if (getSubModule().equalsIgnoreCase("accountEntryProfile")) {
-				accountCodeList = aepManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
+				accountCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
 				return "accountEntryProfile";
 			}else {
-				accountCodeList = aepManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
+				accountCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
 				return "journalEntryProfile";
 			}
 			
@@ -119,7 +135,7 @@ public class AddFinancialsAction extends ActionSupport {
 					addActionError(SASConstants.AEP_FAILED);
 				}else {
 					
-				AccountEntryProfile parent = aepManager.loadAccountEntryProfile(aep.getParentCode());
+				AccountEntryProfile parent = accountEntryManager.loadAccountEntryProfile(aep.getParentCode());
 				aep.setHierarchy(getAepLevel(parent.getHierarchy()));
 				if(aep.getParentCode().equalsIgnoreCase("none")) {
 					aep.setParentCode("0");
@@ -129,15 +145,15 @@ public class AddFinancialsAction extends ActionSupport {
 				}else {
 					if((aep.getParentCode().equalsIgnoreCase("21010000") || aep.getParentCode().equalsIgnoreCase("11020100"))) {
 					}else {
-						aep.setAccountCode(aepManager.getAccountCode(aep.getParentCode(), session));
+						aep.setAccountCode(accountEntryManager.getAccountCode(aep.getParentCode(), session));
 					}
 					AccountingRules accntgRules = aep.getAccountingRules();
 					accntgRules.setAccountCode(aep.getAccountCode());
 					accntgRules.setRuleId(rch.getAccountingRulesCount()+1);
-					aepManager.addAccountEntryRule(accntgRules,session);
+					accountEntryManager.addAccountEntryRule(accntgRules,session);
 				}
 				
-				addResult = aepManager.addAccountEntryProfile(aep, session);
+				addResult = accountEntryManager.addAccountEntryProfile(aep, session);
 				
 					if (addResult == true) {
 						addActionMessage(SASConstants.ADD_SUCCESS);
@@ -177,13 +193,13 @@ public class AddFinancialsAction extends ActionSupport {
 			loadParentCode();
 		
 		}else {
-			AccountEntryProfile aepCredit = aepManager.loadAccountEntryProfile(jep.getAepCredit().getAccountCode());
-			AccountEntryProfile aepDebit = aepManager.loadAccountEntryProfile(jep.getAepDebit().getAccountCode());
+			AccountEntryProfile aepCredit = accountEntryManager.loadAccountEntryProfile(jep.getAepCredit().getAccountCode());
+			AccountEntryProfile aepDebit = accountEntryManager.loadAccountEntryProfile(jep.getAepDebit().getAccountCode());
 			
 			jep.setAepCredit(aepCredit);
 			jep.setAepDebit(aepDebit);
 			
-			addResult = aepManager.addAccountEntryProfile(jep, session);
+			addResult = accountEntryManager.addAccountEntryProfile(jep, session);
 			
 				if (addResult == true) {
 					addActionMessage(SASConstants.ADD_SUCCESS);

@@ -4,15 +4,21 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.CustomerManager;
+import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.controllers.LookupManager;
+import com.shofuku.accsystem.controllers.SupplierManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
@@ -20,34 +26,99 @@ import com.shofuku.accsystem.domain.inventory.FPTS;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Ingredient;
 import com.shofuku.accsystem.domain.inventory.ItemPricing;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.UnlistedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.inventory.Warehouse;
 import com.shofuku.accsystem.domain.lookups.InventoryClassification;
 import com.shofuku.accsystem.domain.lookups.UnitOfMeasurements;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.DoubleConverter;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
 
-public class UpdateInventoryAction extends ActionSupport{
+public class UpdateInventoryAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
 
+	Map actionSession;
+	UserAccount user;
+
+	InventoryManager inventoryManager;
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	FinancialsManager financialsManager;	
+	LookupManager lookupManager;
+	CustomerManager customerManager;
+	
+	RecordCountHelper rch;
+	InventoryUtil invUtil;
+	AccountEntryProfileUtil apeUtil;
+	
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+	PurchaseOrderDetailHelper helperOld;
+	
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager = (SupplierManager) actionSession.get("supplierManager");
+		customerManager = (CustomerManager) actionSession.get("customerManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		lookupManager = (LookupManager) actionSession.get("lookupManager");
+		
+		rch = new RecordCountHelper(actionSession);
+		invUtil = new InventoryUtil(actionSession);
+		apeUtil = new AccountEntryProfileUtil(actionSession);
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(helperOld ==null) {
+			helperOld  = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			helperOld .setActionSession(actionSession);
+		}
+	}
+	
 	private String forWhat;
 	private String forWhatDisplay;
 	private String productNo;
 	private String itemNo;
 	private String subModule;
 	
-
 	List<Ingredient> ingredients;
 	String pcItr;
 	String descItr;
@@ -59,6 +130,9 @@ public class UpdateInventoryAction extends ActionSupport{
 	RawMaterial rm;
 	FinishedGood fg;
 	TradedItem ti;
+	Utensils u;
+	OfficeSupplies os;
+	UnlistedItem unl;
 	ReturnSlip rs;
 	FPTS fpts;
 	String fptsId;
@@ -67,8 +141,6 @@ public class UpdateInventoryAction extends ActionSupport{
 	RequisitionForm rf;
 	String rfNo;
 	String rfId;
-	
-
 	String rsIdNo;
 
 	List itemSubClassificationList;
@@ -76,21 +148,12 @@ public class UpdateInventoryAction extends ActionSupport{
 	String tempClassif;
 
 	private boolean otherUOMSelected; 
-	PurchaseOrderDetailHelper poDetailsHelperDraft;	
-
-	
-	PurchaseOrderDetailHelper poDetailsHelperToCompare;
-	PurchaseOrderDetailHelper poDetailsHelper;
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
-		AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil();
-		AccountEntryManager accountEntryManager = new AccountEntryManager();
-		TransactionManager transactionMananger = new TransactionManager();
-		//END 2013 - PHASE 3 : PROJECT 1: MARK  
-	InventoryManager manager=new InventoryManager();
-	InventoryUtil invUtil = new InventoryUtil();
+	//END 2013 - PHASE 3 : PROJECT 1: MARK  
+	
 	DateFormatHelper df = new DateFormatHelper();
 	
 	private Session getSession() {
@@ -105,10 +168,8 @@ public class UpdateInventoryAction extends ActionSupport{
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);	
 			
 			if (getSubModule().equalsIgnoreCase("rawMat")){
-				
 				rm.setItemCode(this.getItemNo());
 				if (validateRawMat()) {
-					
 				}else {
 					if(otherUOMSelected){
 						if(lookupManager.addNewUOM(new UnitOfMeasurements(rm.getUnitOfMeasurement(),"GENERAL"), session)){
@@ -120,7 +181,22 @@ public class UpdateInventoryAction extends ActionSupport{
 					processItemPricing(session,rm);
 					itemSubClassificationList = lookupManager.listItemByClassification(InventoryClassification.class, "classification", 
 							rm.getClassification(), session);
-					updateResult = manager.updateInventory(rm,session);
+					
+					
+					//ADDED FOR WAREHOUSE IMPLEMENTATION
+					
+					//get original warehouses list
+					RawMaterial originalRM = (RawMaterial) inventoryManager.listInventoryByParameter(RawMaterial.class, "itemCode",
+							this.getRm().getItemCode(),session).get(0);
+					
+					//get warehouse from list and set new physical count value
+					Warehouse incomingWarehouse = inventoryManager.getWarehouseBasedOnUserLocation(rm.getItemCode(),originalRM.getWarehouses());
+					incomingWarehouse.setQuantityPerPhysicalCount(rm.getWarehouse().getQuantityPerPhysicalCount());
+					
+					rm.setWarehouses(inventoryManager.populateNewWarehousesSet(originalRM.getWarehouses() , incomingWarehouse));
+					//END WAREHOUSE IMPLEMENTATION
+					
+					updateResult = inventoryManager.updateInventory(rm,session);
 					
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
@@ -141,14 +217,28 @@ public class UpdateInventoryAction extends ActionSupport{
 						if(lookupManager.addNewUOM(new UnitOfMeasurements(ti.getUnitOfMeasurement(),"GENERAL"), session)){
 							session = getSession();
 							loadLookLists();
-							
 						}
 					}
 					//Instantiate Item Pricing 
 					processItemPricing(session,ti);
 					itemSubClassificationList = lookupManager.listItemByClassification(InventoryClassification.class, "classification", 
 							ti.getClassification(), session);
-					updateResult = manager.updateInventory(ti,session);
+					
+
+					//ADDED FOR WAREHOUSE IMPLEMENTATION
+					
+					//get original warehouses list
+					TradedItem originalTi = (TradedItem) inventoryManager.listInventoryByParameter(TradedItem.class, "itemCode",
+							this.getTi().getItemCode(),session).get(0);
+					
+					//get warehouse from list and set new physical count value
+					Warehouse incomingWarehouse = inventoryManager.getWarehouseBasedOnUserLocation(ti.getItemCode(),originalTi.getWarehouses());
+					incomingWarehouse.setQuantityPerPhysicalCount(ti.getWarehouse().getQuantityPerPhysicalCount());
+					
+					ti.setWarehouses(inventoryManager.populateNewWarehousesSet(originalTi.getWarehouses() , incomingWarehouse));
+					//END WAREHOUSE IMPLEMENTATION
+					
+					updateResult = inventoryManager.updateInventory(ti,session);
 					
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
@@ -159,13 +249,79 @@ public class UpdateInventoryAction extends ActionSupport{
 				}
 				
 			return "tradedItems";
+			}else if (getSubModule().equalsIgnoreCase("unlistedItems")){
+				unl.setItemCode(this.getItemNo());
+				if (isValidateUnlistedItems()) {
+				}else {
+					if(otherUOMSelected){
+						if(lookupManager.addNewUOM(new UnitOfMeasurements(unl.getUom(),"GENERAL"), session)){
+							session = getSession();
+							loadLookLists();
+							
+						}
+					}
+					//Instantiate Item Pricing 
+					//processItemPricing(session,ti);
+					//itemSubClassificationList = lookupManager.listItemByClassification(InventoryClassification.class, "classification", 
+					//		ti.getClassification(), session);
+					updateResult = inventoryManager.updateInventory(unl,session);
+					
+					if (updateResult== true) {
+						addActionMessage(SASConstants.UPDATED);
+					}else {
+						addActionMessage(SASConstants.UPDATE_FAILED);
+					}
+					forWhat="true";
+				}
+				
+			return "unlistedItems";
+			}else if (getSubModule().equalsIgnoreCase("utensils")){
+				
+				u.setItemCode(this.getItemNo());
+				if (validateUtensils()) {
+					
+				}else {
+					if(otherUOMSelected){
+						if(lookupManager.addNewUOM(new UnitOfMeasurements(u.getUnitOfMeasurement(),"GENERAL"), session)){
+							session = getSession();
+							loadLookLists();
+						}
+					}
+					//Instantiate Item Pricing 
+					processItemPricing(session,u);
+					itemSubClassificationList = lookupManager.listItemByClassification(InventoryClassification.class, "classification", 
+							u.getClassification(), session);
+					
+					//ADDED FOR WAREHOUSE IMPLEMENTATION
+					
+					//get original warehouses list
+					Utensils originalUtensils = (Utensils) inventoryManager.listInventoryByParameter(Utensils.class, "itemCode",
+							this.getU().getItemCode(),session).get(0);
+					
+					//get warehouse from list and set new physical count value
+					Warehouse incomingWarehouse = inventoryManager.getWarehouseBasedOnUserLocation(u.getItemCode(),originalUtensils.getWarehouses());
+					incomingWarehouse.setQuantityPerPhysicalCount(u.getWarehouse().getQuantityPerPhysicalCount());
+					
+					u.setWarehouses(inventoryManager.populateNewWarehousesSet(originalUtensils.getWarehouses() , incomingWarehouse));
+					//END WAREHOUSE IMPLEMENTATION
+					
+					updateResult = inventoryManager.updateInventory(u,session);
+					
+					if (updateResult== true) {
+						addActionMessage(SASConstants.UPDATED);
+					}else {
+						addActionMessage(SASConstants.UPDATE_FAILED);
+					}
+					forWhat="true";
+				}
+				return "utensils";
+			}else if (getSubModule().equalsIgnoreCase("ofcSup")){
+				return updateOfficeSupplies();
 			}else if (getSubModule().equalsIgnoreCase("returnSlip")){
 				return updateReturnSlip();
 			}else if (getSubModule().equalsIgnoreCase("fpts")){
-				
 				return updateFPTS();
 			}else if (getSubModule().equalsIgnoreCase("rf")){
-				
 				return updateRF();
 			}
 			else {
@@ -178,7 +334,7 @@ public class UpdateInventoryAction extends ActionSupport{
 					setIngredient(false); 
 				}
 				listToSet();
-				fg.setIngredients(manager.persistsIngredients(finalIngredients,session));
+				fg.setIngredients(inventoryManager.persistsIngredients(finalIngredients,session));
 				
 				setPrices();
 				
@@ -196,7 +352,22 @@ public class UpdateInventoryAction extends ActionSupport{
 							loadLookLists();							
 						}
 					}
-					updateResult = manager.updateInventory(fg,session);
+					
+					//ADDED FOR WAREHOUSE IMPLEMENTATION
+					
+					//get original warehouses list
+					FinishedGood originalFG = (FinishedGood) inventoryManager.listInventoryByParameter(FinishedGood.class, "productCode",
+							this.getFg().getItemCode(),session).get(0);
+					
+					//get warehouse from list and set new physical count value
+					Warehouse incomingWarehouse = inventoryManager.getWarehouseBasedOnUserLocation(originalFG.getItemCode(),originalFG.getWarehouses());
+					incomingWarehouse.setQuantityPerPhysicalCount(fg.getWarehouse().getQuantityPerPhysicalCount());
+					
+					fg.setWarehouses(inventoryManager.populateNewWarehousesSet(originalFG.getWarehouses() , incomingWarehouse));
+					//END WAREHOUSE IMPLEMENTATION
+					
+					
+					updateResult = inventoryManager.updateInventory(fg,session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 					}else {
@@ -213,6 +384,10 @@ public class UpdateInventoryAction extends ActionSupport{
 				return "rawMat";
 			}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
 				return "tradedItems";
+			}else if (getSubModule().equalsIgnoreCase("utensils")) {
+				return "utensils";
+			}else if (getSubModule().equalsIgnoreCase("unlistedItems")) {
+				return "unlistedItems";
 			}else if (getSubModule().equalsIgnoreCase("fpts")) {
 				return "fpts";
 			}else if (getSubModule().equalsIgnoreCase("rf")) {
@@ -231,6 +406,47 @@ public class UpdateInventoryAction extends ActionSupport{
 		
 	}
 
+	private String updateOfficeSupplies(){
+		Session session = getSession();
+		boolean updateResult=false;
+			os.setItemCode(this.getItemNo());
+			if (validateOfficeSupplies()) {
+			}else {
+				if(otherUOMSelected){
+					if(lookupManager.addNewUOM(new UnitOfMeasurements(os.getUnitOfMeasurement(),"GENERAL"), session)){
+						session = getSession();
+						loadLookLists();
+					}
+				}
+				//Instantiate Item Pricing 
+				processItemPricing(session,os);
+				itemSubClassificationList = lookupManager.listItemByClassification(InventoryClassification.class, "classification", 
+						os.getClassification(), session);
+				
+				//ADDED FOR WAREHOUSE IMPLEMENTATION
+				
+				//get original warehouses list
+				OfficeSupplies originalOS = (OfficeSupplies) inventoryManager.listInventoryByParameter(OfficeSupplies.class, "itemCode",
+						this.getOs().getItemCode(),session).get(0);
+				
+				//get warehouse from list and set new physical count value
+				Warehouse incomingWarehouse = inventoryManager.getWarehouseBasedOnUserLocation(os.getItemCode(),originalOS.getWarehouses());
+				incomingWarehouse.setQuantityPerPhysicalCount(os.getWarehouse().getQuantityPerPhysicalCount());
+				
+				os.setWarehouses(inventoryManager.populateNewWarehousesSet(originalOS.getWarehouses() , incomingWarehouse));
+				//END WAREHOUSE IMPLEMENTATION
+				
+				updateResult = inventoryManager.updateInventory(os,session);
+				
+				if (updateResult== true) {
+					addActionMessage(SASConstants.UPDATED);
+				}else {
+					addActionMessage(SASConstants.UPDATE_FAILED);
+				}
+				forWhat="true";
+			}
+		return "ofcSup";
+	}
 	private String updateReturnSlip() {
 		//to get if disabled
 		rs.setReturnSlipNo(rsIdNo);
@@ -251,7 +467,7 @@ public class UpdateInventoryAction extends ActionSupport{
 			rs.setPurchaseOrderDetails(poDetailsHelperDraft.persistNewSetElements(session));
 			poDetailsHelperDraft.generatePODetailsListFromSet(rs.getPurchaseOrderDetails());
 			
-			manager.persistMemo(rs.getMemo(),session);
+			inventoryManager.persistMemo(rs.getMemo(),session);
 			
 			poDetailsHelperToCompare.prepareSetAndList();
 			//2014 - ITEM COLORING
@@ -270,15 +486,15 @@ public class UpdateInventoryAction extends ActionSupport{
 			 *  3rd - order type to determine if there is an addition or deduction to inventory
 			*/
 			ReturnSlip oldRs = new ReturnSlip();
-			oldRs = (ReturnSlip) manager.listInventoryByParameter(ReturnSlip .class, "returnSlipNo",
+			oldRs = (ReturnSlip) inventoryManager.listInventoryByParameter(ReturnSlip .class, "returnSlipNo",
 					rsIdNo,session).get(0);
-			PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper();
+			
 			helperOld.generatePODetailsListFromSet(oldRs.getPurchaseOrderDetails());
 			
 			PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(helperOld, poDetailsHelperDraft ,rs.getReturnSlipTo());
 			
 			try {
-				manager.updateInventoryFromOrders(inventoryUpdateRequest);
+				inventoryManager.updateInventoryFromOrders(inventoryUpdateRequest);
 				inventoryUpdateSuccess = true;
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -294,14 +510,14 @@ public class UpdateInventoryAction extends ActionSupport{
 			}
 			if(inventoryUpdateSuccess) {
 				//START - 2013 - PHASE 3 : PROJECT 1: MARK
-				transactionMananger.discontinuePreviousTransactions(rs.getReturnSlipNo(),session);
+				transactionManager.discontinuePreviousTransactions(rs.getReturnSlipNo(),session);
 				//transactionList = new ArrayList();
 				transactionList = getTransactionList();
 				updateAccountingEntries(rs.getReturnSlipNo(),session,SASConstants.INVENTORY_RETURN_SLIP_FORM);
 				this.setTransactionList(transactions);
 				rs.setTransactions(transactions);
 				//END
-				updateResult = manager.updateInventory(rs,session);
+				updateResult = inventoryManager.updateInventory(rs,session);
 			}else {
 				updateResult=false;
 			}
@@ -329,10 +545,11 @@ public class UpdateInventoryAction extends ActionSupport{
 	}
 
 	private void updateInventoryItems(PurchaseOrderDetails poDetails,Session session) throws Exception {
+			
 			if(rs.getReturnSlipTo().equalsIgnoreCase("CTOW")){
-					manager.addInventoryItem(manager.determineItemTypeFromPoDetails(poDetails),session);
-				}else {
-					manager.deductInventoryItem(manager.determineItemTypeFromPoDetails(poDetails),session);
+					inventoryManager.updateInventoryItemRecordCountFromOrder(inventoryManager.setQinAndQoutBasedOnItemType(poDetails,SASConstants.ADD),session);
+			}else {
+					inventoryManager.updateInventoryItemRecordCountFromOrder(inventoryManager.setQinAndQoutBasedOnItemType(poDetails,SASConstants.SUBTRACT),session);
 			}
 	}
 	private String updateRF() {
@@ -342,9 +559,8 @@ public class UpdateInventoryAction extends ActionSupport{
 			/*
 			 * Checking and fetching existing return slips
 			 */
-			InventoryManager invManager= new InventoryManager();
 			Session rfSession = getSession();
-			List returnSlipList = invManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", rfNo, rfSession);
+			List returnSlipList = inventoryManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", rfNo, rfSession);
 			if (validateRF()) {
 				includePoDetails();
 			}else {	
@@ -380,12 +596,11 @@ public class UpdateInventoryAction extends ActionSupport{
 					 *  3rd - order type to determine if there is an addition or deduction to inventory
 					*/
 					RequisitionForm oldRR = 
-							(RequisitionForm) manager.listInventoryByParameter(RequisitionForm.class,"requisitionNo", rfNo, session).get(0);
-					PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper();
+							(RequisitionForm) inventoryManager.listInventoryByParameter(RequisitionForm.class,"requisitionNo", rfNo, session).get(0);
 					helperOld.generatePODetailsListFromSet(oldRR.getPurchaseOrderDetailsOrdered());
 					try {
 						PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(helperOld, poDetailsHelper , SASConstants.ORDER_TYPE_ORDER_REQUISITION);
-						manager.updateInventoryFromOrders(inventoryUpdateRequest);
+						inventoryManager.updateInventoryFromOrders(inventoryUpdateRequest);
 						inventoryUpdateSuccess = true;
 					} catch (Exception e) {
 						if(poDetailsHelper.getPurchaseOrderDetailsList()!=null) {
@@ -399,18 +614,21 @@ public class UpdateInventoryAction extends ActionSupport{
 					}
 					if(inventoryUpdateSuccess) {
 						//START - 2013 - PHASE 3 : PROJECT 1: MARK
-						transactionMananger.discontinuePreviousTransactions(rf.getRequisitionNo(),session);
+						transactionManager.discontinuePreviousTransactions(rf.getRequisitionNo(),session);
 						//transactionList = new ArrayList();
 						transactionList = getTransactionList();
-						updateAccountingEntries(rf.getRequisitionNo(),session,SASConstants.INVENTORY_REQUISITION_FORM);
-						this.setTransactionList(transactions);
-						rf.setTransactions(transactions);
-						//END
-						updateResult = manager.updateInventory(rf,session);
+						if (transactionList.size()==0){
+							addActionMessage("REQUIRED: Accounting Entries Details");
+						}else{
+							updateAccountingEntries(rf.getRequisitionNo(),session,SASConstants.INVENTORY_REQUISITION_FORM);
+							this.setTransactionList(transactions);
+							rf.setTransactions(transactions);
+							//END
+						}
+						updateResult = inventoryManager.updateInventory(rf,session);
 					}else {
 						updateResult=false;
 					}
-					poDetailsHelper.flushUnRelatedOrders(session);
 					//poDetailsHelperToCompare.flushUnRelatedOrders(session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
@@ -465,12 +683,11 @@ public class UpdateInventoryAction extends ActionSupport{
 				 *  3rd - order type to determine if there is an addition or deduction to inventory
 				*/
 				
-				FPTS oldFpts = (FPTS) manager.listInventoryByParameter(FPTS.class,"fptsNo",fptsNo, session).get(0);
-				PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper();
+				FPTS oldFpts = (FPTS) inventoryManager.listInventoryByParameter(FPTS.class,"fptsNo",fptsNo, session).get(0);
 				helperOld.generatePODetailsListFromSet(oldFpts.getPurchaseOrderDetailsTransferred());
 				try {
 					PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(helperOld, poDetailsHelper , SASConstants.ORDER_TYPE_FPTS);
-					manager.updateInventoryFromOrders(inventoryUpdateRequest);
+					inventoryManager.updateInventoryFromOrders(inventoryUpdateRequest);
 					inventoryUpdateSuccess = true;
 				} catch (Exception e) {
 					if(poDetailsHelper.getPurchaseOrderDetailsList()!=null) {
@@ -487,19 +704,17 @@ public class UpdateInventoryAction extends ActionSupport{
 					poDetailsHelper.setOrderDate(fpts.getTransactionDate());
 					fpts.setPurchaseOrderDetailsTransferred(poDetailsHelper.persistNewSetElements(session));
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
-					transactionMananger.discontinuePreviousTransactions(fpts.getFptsNo(),session);
+					transactionManager.discontinuePreviousTransactions(fpts.getFptsNo(),session);
 					//transactionList = new ArrayList();
 					transactionList = getTransactionList();
 					updateAccountingEntries(fpts.getFptsNo(),session,SASConstants.INVENTORY_FPTS);
 					this.setTransactionList(transactions);
 					fpts.setTransactions(transactions);
 					//END
-					updateResult = manager.updateInventory(fpts,session);
+					updateResult = inventoryManager.updateInventory(fpts,session);
 				}else {
 					updateResult = false;
 				}
-				
-				poDetailsHelper.flushUnRelatedOrders(session);
 				//poDetailsHelperToCompare.flushUnRelatedOrders(session);
 				if (updateResult== true) {
 					addActionMessage(SASConstants.UPDATED);
@@ -518,10 +733,13 @@ public class UpdateInventoryAction extends ActionSupport{
 	
 	if(obj instanceof RawMaterial) {
 		itemPricing = invUtil.getItemPricing(session,rm.getItemCode());
+	}else if(obj instanceof Utensils) {
+		itemPricing = invUtil.getItemPricing(session,u.getItemCode());
 	}else if(obj instanceof TradedItem) {
 		itemPricing = invUtil.getItemPricing(session,ti.getItemCode());
-	}
-	else if( obj instanceof FinishedGood) {
+	}else if(obj instanceof OfficeSupplies) {
+		itemPricing = invUtil.getItemPricing(session,os.getItemCode());
+	}else if( obj instanceof FinishedGood) {
 		itemPricing = invUtil.getItemPricing(session,fg.getProductCode());
 	}
 	//else if (obj instanceof TradedItem)
@@ -530,6 +748,10 @@ public class UpdateInventoryAction extends ActionSupport{
 			newItemPricing = rm.getItemPricing();
 		}else if( obj instanceof TradedItem) {
 			newItemPricing = ti.getItemPricing();
+		}else if( obj instanceof Utensils) {
+			newItemPricing = u.getItemPricing();
+		}else if( obj instanceof OfficeSupplies) {
+			newItemPricing = os.getItemPricing();
 		}else if( obj instanceof FinishedGood) {
 			newItemPricing = fg.getItemPricing();
 		}
@@ -542,18 +764,20 @@ public class UpdateInventoryAction extends ActionSupport{
 		itemPricing.setFranchiseStandardPricePerUnit(newItemPricing.getFranchiseStandardPricePerUnit());
 		itemPricing.setFranchiseTransferPricePerUnit(newItemPricing.getFranchiseTransferPricePerUnit());
 		
-		
-		manager.updatePersistingInventoryObject(itemPricing, session);
+		inventoryManager.updatePersistingInventoryObject(itemPricing, session);
 
-	if(obj instanceof RawMaterial) {
-		rm.setItemPricing(itemPricing);
-	}else if( obj instanceof TradedItem) {
-		ti.setItemPricing(itemPricing);
-	}else if( obj instanceof FinishedGood) {
-		fg.setItemPricing(itemPricing);
-	}
+		if(obj instanceof RawMaterial) {
+			rm.setItemPricing(itemPricing);
+		}else if( obj instanceof TradedItem) {
+			ti.setItemPricing(itemPricing);
+		}else if( obj instanceof Utensils) {
+			u.setItemPricing(itemPricing);
+		}else if( obj instanceof OfficeSupplies) {
+			os.setItemPricing(itemPricing);
+		}else if( obj instanceof FinishedGood) {
+			fg.setItemPricing(itemPricing);
+		}
 	//else if (obj instanceof TradedItem)
-	
 	}
 	private void setPrices() {
 		ItemPricing itemPricing = fg.getItemPricing();
@@ -565,7 +789,6 @@ public class UpdateInventoryAction extends ActionSupport{
 		}else{
 			itemPricing.setCompanyOwnedStandardPricePerUnit(Double.valueOf(fg.getStandardTotalCost() / fg.getYields()));
 			itemPricing.setCompanyOwnedActualPricePerUnit(fg.getActualTotalCost()/fg.getYields());
-			
 			//Transfer Price Computation
 			Double markup = fg.getMarkUp()/100;
 			double partialTransferPricePerunit = Double.valueOf((fg.getActualTotalCost() / fg.getYields())*(markup==0.0?1:markup));
@@ -598,7 +821,6 @@ private void setIngredient(boolean includeNewItem) {
 	
 	try{
 	while(pcItrTk.hasMoreElements()) {
-		
 			Ingredient in = new Ingredient();
 			in.setProductCode(((String) pcItrTk.nextElement()).trim());
 			in.setQuantity(Double.valueOf(dc
@@ -606,7 +828,7 @@ private void setIngredient(boolean includeNewItem) {
 							.nextElement()).trim())));
 			in.setDescription(((String) descItrTk.nextElement()).trim());
 			in.setUnitOfMeasurement(((String) uomItrTk.nextElement()).trim());
-			in = manager.loadIngredientPrices(in,session);
+			in = inventoryManager.loadIngredientPrices(in,session);
 			ingredients.add(in);
 	}
 	}catch(Exception e){
@@ -623,11 +845,8 @@ private void setIngredient(boolean includeNewItem) {
 }
 
 List itemCodeList;
-
 List UOMList;
 
-LookupManager lookupManager = new LookupManager();
-		
 		private String requestingModule;
 		private List generateUOMStrings(List uomList){
 			List uomStringsList=new ArrayList();
@@ -638,14 +857,24 @@ LookupManager lookupManager = new LookupManager();
 			}
 			return uomStringsList;
 				}
+		
 		public String loadLookLists(){
 			Session session = getSession();
-			
 			try{
 			UOMList = generateUOMStrings(lookupManager.getLookupElements(UnitOfMeasurements.class, "GENERAL",session));
-			itemCodeList = manager.loadItemListFromRawAndFin(session);
+			itemCodeList = inventoryManager.loadItemListFromRawAndFin(session);
 			}catch(Exception e){
 				if (getSubModule().equalsIgnoreCase("rawMat")) {
+					return "rawMat";
+				}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
+					return "tradedItems";
+				}else if (getSubModule().equalsIgnoreCase("utensils")) {
+					return "utensils";
+				}else if (getSubModule().equalsIgnoreCase("ofcSup")) {
+					return "ofcSup";
+				}else if (getSubModule().equalsIgnoreCase("unlistedItems")) {
+					return "unlistedItems";
+				}else if (getSubModule().equalsIgnoreCase("rawMat")) {
 					return "rawMat";
 				}else {
 					return "finGood";
@@ -666,6 +895,14 @@ LookupManager lookupManager = new LookupManager();
 			
 			if(requestingModule!=null && requestingModule.equalsIgnoreCase("rawMaterial")){
 				return "rawMat";
+			}else if(requestingModule!=null && requestingModule.equalsIgnoreCase("tradedItems")){
+				return "tradedItems";
+			}else if(requestingModule!=null && requestingModule.equalsIgnoreCase("utensils")){
+				return "utensils";
+			}else if(requestingModule!=null && requestingModule.equalsIgnoreCase("ofcSup")){
+				return "ofcSup";
+			}else if(requestingModule!=null && requestingModule.equalsIgnoreCase("unlistedItems")){
+				return "unlistedItems";
 			}else{
 				return "finGood";
 			}
@@ -703,8 +940,6 @@ LookupManager lookupManager = new LookupManager();
 					}
 				}
 			}
-			
-		
 			return errorFound;	
 		}
 			
@@ -791,6 +1026,141 @@ LookupManager lookupManager = new LookupManager();
 			return errorFound;
 		}
 		
+		private boolean isValidateUnlistedItems() {
+			loadLookLists();
+			boolean errorFound = false;
+		/*	if ("".equals(getUnl().getItemCode())) {
+				addFieldError("unl.itemCode", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getUnl().getItemCode().length() > 45) {
+					addFieldError("unl.itemCode", "item code too long");
+					errorFound = true;
+				}
+			}*/
+			if ("".equals(getUnl().getDescription())) {
+				addFieldError("unl.description", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getUnl().getDescription().trim().length() > 200) {
+					addFieldError("unl.description",
+							"MAXIMUM LENGTH: 200 characters");
+				}
+			}
+			if (unl.getUom() == null) {
+			}
+
+			else {
+				if (unl.getUom().indexOf(", ") > -1) {
+					if ("".equals(unl.getUom().substring(
+							unl.getUom().indexOf(", ")))) {
+						addFieldError("unl.uom", "REQUIRED");
+						errorFound = true;
+					} else {
+						otherUOMSelected = true;
+						unl.setUom(unl
+								.getUom()
+								.substring(
+										unl.getUom().indexOf(", ") + 2));
+					}
+				}
+			}
+			if (unl.getUom().equalsIgnoreCase("OTHERS")) {
+				addFieldError("unl.unitOfMeasurementText", "REQUIRED");
+			}
+
+			return errorFound;
+		}
+		private boolean validateOfficeSupplies() {
+			loadLookLists();
+			boolean errorFound = false;
+			if ("".equals(getOs().getItemCode())) {
+				addFieldError("ofcSup.itemCode", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getOs().getItemCode().length() > 45) {
+					addFieldError("ofcSup.itemCode", "item code too long");
+					errorFound = true;
+				}
+			}
+			if ("".equals(getOs().getDescription())) {
+				addFieldError("ofcSup.description", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getOs().getDescription().trim().length() > 200) {
+					addFieldError("ofcSup.description",
+							"MAXIMUM LENGTH: 200 characters");
+				}
+			}
+			if (os.getUnitOfMeasurement() == null) {
+			}
+
+			else {
+				if (os.getUnitOfMeasurement().indexOf(", ") > -1) {
+					if ("".equals(os.getUnitOfMeasurement().substring(
+							os.getUnitOfMeasurement().indexOf(", ")))) {
+						addFieldError("ofcSup.unitOfMeasurement", "REQUIRED");
+						errorFound = true;
+					} else {
+						otherUOMSelected = true;
+						os.setUnitOfMeasurement(os
+								.getUnitOfMeasurement()
+								.substring(
+										os.getUnitOfMeasurement().indexOf(", ") + 2));
+					}
+				}
+			}
+			if (os.getUnitOfMeasurement().equalsIgnoreCase("OTHERS")) {
+				addFieldError("ofcSup.unitOfMeasurementText", "REQUIRED");
+			}
+			return errorFound;
+		}
+		private boolean validateUtensils() {
+			loadLookLists();
+			boolean errorFound = false;
+			if ("".equals(getU().getItemCode())) {
+				addFieldError("u.itemCode", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getU().getItemCode().length() > 45) {
+					addFieldError("u.itemCode", "item code too long");
+					errorFound = true;
+				}
+			}
+			if ("".equals(getU().getDescription())) {
+				addFieldError("u.description", "REQUIRED");
+				errorFound = true;
+			} else {
+				if (getU().getDescription().trim().length() > 200) {
+					addFieldError("u.description",
+							"MAXIMUM LENGTH: 200 characters");
+				}
+			}
+			if (u.getUnitOfMeasurement() == null) {
+			}
+
+			else {
+				if (u.getUnitOfMeasurement().indexOf(", ") > -1) {
+					if ("".equals(u.getUnitOfMeasurement().substring(
+							u.getUnitOfMeasurement().indexOf(", ")))) {
+						addFieldError("u.unitOfMeasurement", "REQUIRED");
+						errorFound = true;
+					} else {
+						otherUOMSelected = true;
+						u.setUnitOfMeasurement(u
+								.getUnitOfMeasurement()
+								.substring(
+										u.getUnitOfMeasurement().indexOf(", ") + 2));
+					}
+				}
+			}
+			if (u.getUnitOfMeasurement().equalsIgnoreCase("OTHERS")) {
+				addFieldError("u.unitOfMeasurementText", "REQUIRED");
+			}
+
+			return errorFound;
+		}
+		
 		private boolean validateFPTS() {
 			
 			boolean errorFound = false;
@@ -851,7 +1221,8 @@ private boolean validateRF() 	 {
 	if ("".equals(rf.getRequisitionBy())) {
 		addFieldError("rf.requisitionBy", "REQUIRED");
 		errorFound = true;
-	}  if ((getTransactionList().get(0).getAmount() == 0 )) {
+	} 
+	if ((getTransactionList().get(0).getAmount() == 0 )) {
 		addActionMessage("REQUIRED: Accounting Entries Details");
 		errorFound = true;
 	}
@@ -882,7 +1253,8 @@ private boolean validateReturnSlip() {
 	if ("".equals(rs.getReturnSlipReferenceOrderNo())) {
 		addFieldError("rs.returnSlipReferenceOrderNo", "REQUIRED");
 		errorFound = true;
-	}  if ((getTransactionList().get(0).getAmount() == 0 )) {
+	} 
+	if ((getTransactionList().get(0).getAmount() == 0 )) {
 		addActionMessage("REQUIRED: Accounting Entries Details");
 		errorFound = true;
 	}
@@ -919,7 +1291,7 @@ private boolean validateReturnSlip() {
 					transaction.setIsInUse(SASConstants.TRANSACTION_IN_USE);
 					transactions.add(transaction);
 				}
-				transactionMananger.addTransactionsList(transactions,session);
+				transactionManager.addTransactionsList(transactions,session);
 			}
 			//END - 2013 - PHASE 3 : PROJECT 1: MARK
 			//return transactions;
@@ -1179,5 +1551,23 @@ private boolean validateReturnSlip() {
 				this.transactions = transactions;
 			}
 			//END 2013 - PHASE 3 : PROJECT 1: MARK 
-
+			public Utensils getU() {
+				return u;
+			}
+			public void setU(Utensils u) {
+				this.u = u;
+			}
+			public UnlistedItem getUnl() {
+				return unl;
+			}
+			public void setUnl(UnlistedItem unl) {
+				this.unl = unl;
+			}
+			public OfficeSupplies getOs() {
+				return os;
+			}
+			public void setOs(OfficeSupplies os) {
+				this.os = os;
+			}
+			
 }

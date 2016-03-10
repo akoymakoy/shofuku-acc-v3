@@ -140,6 +140,15 @@
 			</div>
 			</s:if>
 				<p>
+				
+				<s:if test="%{forWhatDisplay == 'edit'}">
+					<table class="form" border="1px">
+						<tr>
+							<td><s:textfield readonly="true" label="Order Reference No:" value="%{rs.returnSlipReferenceOrderNo}" size="50" name="rs.returnSlipReferenceOrderNo"></s:textfield></td>
+						</tr>
+					</table>	
+				</s:if>
+				<s:else>
 				<table class="form">
 						<tr>
 						<th colspan="6">ORDER REFERENCE</th>
@@ -151,8 +160,10 @@
 						<td><s:textfield disabled="%{forWhat}" label="Order Reference No:" value="%{rs.returnSlipReferenceOrderNo}" size="50" name="rs.returnSlipReferenceOrderNo"></s:textfield></td>
 						<td><s:submit cssClass="myButtons" type="button" label="Get Details" action="loadOrdersByReferenceNoAction">	</s:submit></td>
 						</tr>
-					</table>
-				</p>	
+				</table>
+				</s:else>
+				</p>
+				
 				<h4 class="form" onclick="javascript:collapseSection('arrow1','div1')"><img id="arrow1" src="images/expand2.jpg"/>ITEMS ORDERED REFERENCE</h4>
 				<div id="div1" class="sectionDiv">
 				
@@ -242,7 +253,9 @@
 								<td><s:textfield size="5" name="orderDetails.quantityIn" theme="simple"></s:textfield></td>
 								<td><s:textfield size="5" name="orderDetails.quantityOut" theme="simple"></s:textfield></td>
 								<td><s:textfield size="10" readOnly="readOnly" name="orderDetails.unitOfMeasurement" theme="simple"></s:textfield></td>
-								<td><s:textfield size="10" readOnly="readOnly" name="orderDetails.unitCost" theme="simple"></s:textfield></td>
+								<td><s:textfield size="10" readOnly="readOnly" name="orderDetails.unitCost" theme="simple"></s:textfield>
+								<s:hidden name="orderDetails.quantity"		    value="%{orderDetails.quantity}"></s:hidden>
+								</td>
 							</tr>
 						</table>
 						</div>
@@ -397,6 +410,10 @@
 									<td><s:property value="amount" /></td>
 								</tr>
 							</s:iterator>
+							<tr>
+								<td colspan=5 align="right" class="totalAmount">Total Amount:</td>
+								<td align="right" class="totalAmount"><s:property value="poDetailsHelperDraft.totalAmount" /></td>
+							</tr>
 						</table>
 					</div>
 				

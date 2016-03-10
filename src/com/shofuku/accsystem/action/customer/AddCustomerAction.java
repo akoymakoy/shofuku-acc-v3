@@ -2,12 +2,14 @@ package com.shofuku.accsystem.action.customer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.struts2.components.Include;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
@@ -17,13 +19,11 @@ import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
+import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.financials.Vat;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
-import com.shofuku.accsystem.domain.suppliers.Supplier;
-import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
-import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
@@ -31,14 +31,52 @@ import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class AddCustomerAction extends ActionSupport {
-
-	/**
-	 * 
-	 */
+public class AddCustomerAction extends ActionSupport implements Preparable{
 	private static final long serialVersionUID = 1L;
-	private String subModule;
+
+	Map actionSession;
+	UserAccount user;
 	
+	InventoryUtil invUtil;
+	RecordCountHelper rch;
+
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	CustomerManager customerManager;
+	FinancialsManager financialsManager;
+	
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+		
+		invUtil = new InventoryUtil(actionSession);
+		rch = new RecordCountHelper(actionSession);
+		
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		customerManager = (CustomerManager) actionSession.get("customerManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		
+	}
+	
+	private String subModule;
 	Customer customer;
 	CustomerPurchaseOrder custpo;
 	DeliveryReceipt dr;
@@ -46,10 +84,6 @@ public class AddCustomerAction extends ActionSupport {
 	private String forWhat;
 	private String forWhatDisplay;
 	
-
-	PurchaseOrderDetailHelper poDetailsHelper;
-	PurchaseOrderDetailHelper poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
-	RecordCountHelper rch = new RecordCountHelper();
 	DateFormatHelper dfh = new DateFormatHelper();
 
 	List customerNoList;
@@ -62,14 +96,6 @@ public class AddCustomerAction extends ActionSupport {
 	List<Transaction> transactions;
 	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 
-	AccountEntryManager accountEntryManager = new AccountEntryManager();
-	TransactionManager transactionMananger = new TransactionManager();
-	InventoryManager inventoryManager = new InventoryManager();
-	
-	CustomerManager manager = new CustomerManager();
-	
-	InventoryUtil invUtil = new InventoryUtil();
-
 	public String newCustomerEntry(){
 		Session session = getSession();
 		
@@ -77,17 +103,17 @@ public class AddCustomerAction extends ActionSupport {
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);			
 			
 		if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
-			customerNoList = manager.listAllCustomerNo(session);
+			customerNoList = customerManager.listAllCustomerNo(session);
 			/*custpo=new CustomerPurchaseOrder();
 			custpo.setCustomerPurchaseOrderId(rch.getPrefix(SASConstants.CUSTOMERPO,SASConstants.CUSTOMERPO_PREFIX)); */
 			return "purchaseOrder";
 		} else if (getSubModule().equalsIgnoreCase("deliveryReceipt")) {
-			purchaseOrderNoList = manager.listAllCustomerPurchaseOrderNo(session);
+			purchaseOrderNoList = customerManager.listAllCustomerPurchaseOrderNo(session);
 			/*dr=new DeliveryReceipt();
 			dr.setDeliveryReceiptNo(rch.getPrefix(SASConstants.DELIVERYREPORT, SASConstants.DELIVERYREPORT_PREFIX)); */
 			return "deliveryReceipt";
 		} else {
-			deliveryReceiptNoList = manager.listAllCustomerDeliveryReceiptNo(session);
+			deliveryReceiptNoList = customerManager.listAllCustomerDeliveryReceiptNo(session);
 			/*invoice=new CustomerSalesInvoice();
 			invoice.setCustomerInvoiceNo(rch.getPrefix(SASConstants.CUSTOMERINVOICE, SASConstants.CUSTOMERINVOICE_PREFIX)); */
 			return "invoice";
@@ -112,6 +138,7 @@ public class AddCustomerAction extends ActionSupport {
 	}
 	public String execute() throws Exception{
 		Session session = getSession();
+		
 		try {
 			boolean addResult = false;
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);			
@@ -122,7 +149,7 @@ public class AddCustomerAction extends ActionSupport {
 					
 				} else {
 					List cusList = null;
-					cusList = manager.listByParameter(Customer.class,
+					cusList = customerManager.listByParameter(Customer.class,
 							"customerNo", getCustomer().getCustomerNo(),session);
 					if (!(cusList.isEmpty())) {
 						addActionError(SASConstants.EXISTS);
@@ -131,7 +158,7 @@ public class AddCustomerAction extends ActionSupport {
 						}else {
 						char firstLetter = customer.getCustomerName().charAt(0);
 						customer.setCustomerNo(rch.getLastCustomerByInitialLetter(firstLetter));
-						addResult = manager.addCustomerObject(customer,session);
+						addResult = customerManager.addCustomerObject(customer,session);
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
 							forWhat="true";
@@ -144,12 +171,12 @@ public class AddCustomerAction extends ActionSupport {
 				}
 				return "profileAdded";
 			} else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
-				customerNoList = manager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+				customerNoList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
 				if (validateCustomerPO()) {
 					includePoDetails();
 				} else {
 					List cusPo = null;
-					cusPo = manager.listByParameter(
+					cusPo = customerManager.listByParameter(
 							CustomerPurchaseOrder.class,
 							"customerPurchaseOrderId", getCustpo()
 									.getCustomerPurchaseOrderId(),session);
@@ -157,7 +184,7 @@ public class AddCustomerAction extends ActionSupport {
 						addActionError(SASConstants.EXISTS);
 					} else {
 						List cusPo2 = null;
-						cusPo2 = manager.listByParameter(Customer.class,
+						cusPo2 = customerManager.listByParameter(Customer.class,
 								"customerNo", this.getCustpo().getCustomer()
 										.getCustomerNo(),session);
 						includePoDetails();
@@ -183,15 +210,23 @@ public class AddCustomerAction extends ActionSupport {
 									addActionError(SASConstants.EMPTY_ORDER_DETAILS);
 								}else {
 									custpo.setCustomerPurchaseOrderId(rch.getPrefix(SASConstants.CUSTOMERPO,SASConstants.CUSTOMERPO_PREFIX)); 
-									addResult = manager.addCustomerObject(custpo,session);
-									if (addResult == true) {
+									List customerPO = null;
+									customerPO = customerManager.listByParameter(CustomerPurchaseOrder.class,
+											"customerPurchaseOrderId", custpo.getCustomerPurchaseOrderId(),session);
+									if (customerPO.size()==0){
+										addResult = customerManager.addCustomerObject(custpo,session);
+									}else{
+										addActionError("CUSTOMER PO NO.: "
+												+ SASConstants.EXISTS);
+									}
+								if (addResult == true) {
 										rch.updateCount(SASConstants.CUSTOMERPO, "add");
 										addActionMessage(SASConstants.ADD_SUCCESS);
 										forWhat="true";
 										forWhatDisplay ="edit";
-									} else {
+								} else {
 										addActionError(SASConstants.FAILED);
-									}
+										}
 								}
 							}
 						}
@@ -200,13 +235,13 @@ public class AddCustomerAction extends ActionSupport {
 				return "purchaseOrderAdded";
 
 			} else if (getSubModule().equalsIgnoreCase("deliveryReceipt")) {
-				purchaseOrderNoList = manager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
+				purchaseOrderNoList = customerManager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
 				
 				if (validateCustomerDR()) {
 					includePoDetails();
 				} else {
 					List cusDr = null;
-					cusDr = manager
+					cusDr = customerManager
 							.listByParameter(DeliveryReceipt.class,
 									"deliveryReceiptNo", getDr()
 											.getDeliveryReceiptNo(),session);
@@ -214,15 +249,16 @@ public class AddCustomerAction extends ActionSupport {
 						addActionError(SASConstants.EXISTS);
 					} else {
 						List cusDr2 = null;
-						cusDr2 = manager.listByParameter(CustomerPurchaseOrder.class,"customerPurchaseOrderId", this.getDr().getCustomerPurchaseOrder().getCustomerPurchaseOrderId(),session);
+						cusDr2 = customerManager.listByParameter(CustomerPurchaseOrder.class,"customerPurchaseOrderId", this.getDr().getCustomerPurchaseOrder().getCustomerPurchaseOrderId(),session);
 						if (cusDr2.isEmpty()) {
 							addActionError("PURCHASE ORDER NO: "+ SASConstants.NON_EXISTS);
 							includePoDetails();
 						} else {
 							dr.setCustomerPurchaseOrder((CustomerPurchaseOrder) cusDr2.get(0));
+							dr.setDueDate(dr.getCustomerPurchaseOrder().getPaymentDate());
 
 							if(null==poDetailsHelperToCompare) {
-								poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+								poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 							}
 							poDetailsHelperToCompare.generatePODetailsListFromSet(dr.getCustomerPurchaseOrder().getPurchaseOrderDetails());
 							poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -253,7 +289,7 @@ public class AddCustomerAction extends ActionSupport {
 							 *  2nd - incoming order
 							 *  3rd - order type to determine if there is an addition or deduction to inventory
 							*/
-							PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(new PurchaseOrderDetailHelper(), poDetailsHelper , SASConstants.ORDER_TYPE_DR);
+							PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(new PurchaseOrderDetailHelper(actionSession), poDetailsHelper , SASConstants.ORDER_TYPE_DR);
 							
 						
 							try {
@@ -264,7 +300,6 @@ public class AddCustomerAction extends ActionSupport {
 								addActionError(e.getMessage());
 								inventoryUpdateSuccess=false;
 							}
-							dr.setDueDate(dr.getCustomerPurchaseOrder().getPaymentDate());
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							transactionList = new ArrayList();
 							Transaction transaction = new Transaction();
@@ -273,7 +308,7 @@ public class AddCustomerAction extends ActionSupport {
 							dr.setDeliveryReceiptNo(rch.getPrefix(SASConstants.DELIVERYREPORT, SASConstants.DELIVERYREPORT_PREFIX));
 							
 							if(inventoryUpdateSuccess) {
-								addResult = manager.addCustomerObject(dr,session);
+								addResult = customerManager.addCustomerObject(dr,session);
 							}else {
 								addResult=false;
 							}
@@ -290,7 +325,7 @@ public class AddCustomerAction extends ActionSupport {
 				}
 				return "deliveryReceiptAdded";
 			} else {
-				deliveryReceiptNoList = manager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
+				deliveryReceiptNoList = customerManager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
 				
 				if (validateCustomerInv()) {
 					includePoDetails();
@@ -298,7 +333,7 @@ public class AddCustomerAction extends ActionSupport {
 					
 					//checking if invoice no already exist
 					List cusInv = new ArrayList();
-					cusInv = manager.listByParameter(
+					cusInv = customerManager.listByParameter(
 							CustomerSalesInvoice.class, "customerInvoiceNo",
 							this.getInvoice().getCustomerInvoiceNo(),session);
 					
@@ -308,14 +343,14 @@ public class AddCustomerAction extends ActionSupport {
 					} else {
 						//query for checking if DR exists
 						List cusInv2 = new ArrayList();
-						cusInv2 = manager.listByParameter(
+						cusInv2 = customerManager.listByParameter(
 								DeliveryReceipt.class, "deliveryReceiptNo",
 								this.getInvoice().getDeliveryReceipt()
 										.getDeliveryReceiptNo(),session);
 						
 						//query for checking if Invoice with DR no already exists
 						List cusInvWithExistingDRList = new ArrayList();
-						cusInvWithExistingDRList = manager.listByParameter(
+						cusInvWithExistingDRList = customerManager.listByParameter(
 								CustomerSalesInvoice.class, "deliveryReceipt.deliveryReceiptNo",
 								this.getInvoice().getDeliveryReceipt().getDeliveryReceiptNo(),session);
 						//condition for existing/not existing DR
@@ -333,7 +368,7 @@ public class AddCustomerAction extends ActionSupport {
 							invoice.setDeliveryReceipt((DeliveryReceipt) cusInv2.get(0));
 							
 							if(null==poDetailsHelperToCompare) {
-								poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+								poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 							}
 							poDetailsHelperToCompare.generatePODetailsListFromSet(invoice.getDeliveryReceipt().getPurchaseOrderDetails());
 							poDetailsHelperToCompare.generateCommaDelimitedValues();
@@ -357,6 +392,9 @@ public class AddCustomerAction extends ActionSupport {
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							transactionList = new ArrayList();
 							Transaction transaction = new Transaction();
+							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
+							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerNo().toString());
+							transaction.setAccountEntry(accountEntryProfile);
 							transactionList.add(transaction);
 							//END - 2013 - PHASE 3 : PROJECT 1: MARK
 							
@@ -366,18 +404,19 @@ public class AddCustomerAction extends ActionSupport {
 							Vat vatDetails = new Vat();
 							vatDetails.setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
 							//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
-							vatDetails.setTinNumber("000-000-000-001");
+							vatDetails.setTinNumber(invoice.getTin());
+							vatDetails.setAmount(poDetailsHelper.getTotalAmount());
 							vatDetails.setVatAmount(poDetailsHelper.getTotalVatAmount());
 							vatDetails.setVattableAmount(poDetailsHelper.getTotalVattableAmount());
 							vatDetails.setVatReferenceNo(invoice.getCustomerInvoiceNo());
 							vatDetails.setOrNo(invoice.getVatDetails().getOrNo());
 							vatDetails.setOrDate(invoice.getCustomerInvoiceDate());
 							invoice.setVatDetails(vatDetails);
-							FinancialsManager financialsManager = new FinancialsManager();
+							
 							financialsManager.insertVatDetails(vatDetails, session);							
 							
 							//END: 2013 - PHASE 3 : PROJECT 4: MARK
-							addResult = manager.addCustomerObject(invoice,session);
+							addResult = customerManager.addCustomerObject(invoice,session);
 							if (addResult == true) {
 								addActionMessage(SASConstants.ADD_SUCCESS);
 								rch.updateCount(SASConstants.CUSTOMERINVOICE, "add");

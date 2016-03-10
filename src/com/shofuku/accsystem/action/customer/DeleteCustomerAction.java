@@ -1,40 +1,82 @@
 package com.shofuku.accsystem.action.customer;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
-import com.shofuku.accsystem.controllers.SupplierManager;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
-import com.shofuku.accsystem.domain.suppliers.Supplier;
-import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
-import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class DeleteCustomerAction extends ActionSupport {
+public class DeleteCustomerAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
 
-	CustomerManager manager = new CustomerManager();
-	InventoryManager inventoryManager = new InventoryManager();
+	Map actionSession;
+	UserAccount user;
 
-	RecordCountHelper rch = new RecordCountHelper();
+	InventoryUtil inventoryUtil;
+	RecordCountHelper rch;
+	
+	CustomerManager customerManager;
+	InventoryManager inventoryManager; 
 
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsGrouped;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+
+	// add other managers for other modules Manager()
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryUtil = new InventoryUtil(actionSession);
+		rch = new RecordCountHelper(actionSession);
+		
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		inventoryManager 		= (InventoryManager) 	actionSession.get("inventoryManager"); 
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(poDetailsGrouped==null) {
+			poDetailsGrouped = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsGrouped.setActionSession(actionSession);
+		}
+		
+	}
+	
 	private String subModule;
-
 	private String custpoid;
-
 	private String invId;
 	private String cusId;
 	private String drId;
@@ -52,20 +94,22 @@ public class DeleteCustomerAction extends ActionSupport {
 		boolean deleteResult;
 		try {
 			if (getSubModule().equalsIgnoreCase("profile")) {
-				deleteResult = manager.deleteCustomerByParameter(getCusId(),
+				deleteResult = customerManager.deleteCustomerByParameter(getCusId(),
 						Customer.class,session);
 				if (deleteResult == true) {
 //					rch.updateCount(SASConstants.CUSTOMER, "delete");
+					customer = new Customer();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "profileDeleted";
 			} else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
-				deleteResult = manager.deleteCustomerByParameter(getCustpoid(),
+				deleteResult = customerManager.deleteCustomerByParameter(getCustpoid(),
 						CustomerPurchaseOrder.class,session);
 				if (deleteResult == true) {
 //					rch.updateCount(SASConstants.CUSTOMERPO, "delete");
+					custpo = new CustomerPurchaseOrder();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
@@ -85,12 +129,12 @@ public class DeleteCustomerAction extends ActionSupport {
 				 *  2nd - incoming order
 				 *  3rd - order type to determine if there is an addition or deduction to inventory
 				*/
-				InventoryUtil invUtil = new InventoryUtil();
+				InventoryUtil invUtil = new InventoryUtil(actionSession);
 				
-				DeliveryReceipt orderToDelete = (DeliveryReceipt) manager.listByParameter(
+				DeliveryReceipt orderToDelete = (DeliveryReceipt) customerManager.listByParameter(
 						DeliveryReceipt.class, "deliveryReceiptNo",drId,session).get(0);
 				
-				PurchaseOrderDetailHelper helperItemsToDelete = new PurchaseOrderDetailHelper();
+				PurchaseOrderDetailHelper helperItemsToDelete = new PurchaseOrderDetailHelper(actionSession);
 				helperItemsToDelete.generatePODetailsListFromSet(orderToDelete.getPurchaseOrderDetails());
 				
 				String orderType =SASConstants.ORDER_TYPE_DR; 
@@ -102,20 +146,22 @@ public class DeleteCustomerAction extends ActionSupport {
 					addActionError("FAILED TO UPDATE INVENTORY AFTER DELETE");
 				}
 				
-				deleteResult = manager.deleteCustomerByParameter(getDrId(),
+				deleteResult = customerManager.deleteCustomerByParameter(getDrId(),
 						DeliveryReceipt.class,session);
 				if (deleteResult == true) {
 //					rch.updateCount(SASConstants.DELIVERYREPORT, "delete");
+					dr = new DeliveryReceipt();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "drDeleted";
 			} else {
-				deleteResult = manager.deleteCustomerByParameter(getInvId(),
+				deleteResult = customerManager.deleteCustomerByParameter(getInvId(),
 						CustomerSalesInvoice.class,session);
 				if (deleteResult == true) {
 //					rch.updateCount(SASConstants.CUSTOMERINVOICE, "delete");
+					invoice = new CustomerSalesInvoice();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);

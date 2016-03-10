@@ -111,8 +111,4 @@ public class ItemPricing {
 		this.companyOwnedTransferPricePerUnit = companyOwnedTransferPricePerUnit;
 	}
 	
-	
-
-	
-	
 }

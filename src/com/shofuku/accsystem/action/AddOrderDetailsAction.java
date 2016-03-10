@@ -7,13 +7,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
 import ognl.enhance.OrderedReturn;
-
 import org.hibernate.Session;
-
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
@@ -26,17 +26,18 @@ import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.disbursements.CheckPayments;
-import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
-//import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.inventory.FPTS;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Item;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
@@ -49,12 +50,8 @@ import com.shofuku.accsystem.utils.POIUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
-//import com.shofuku.accsystem.utils.TransactionUtil;
 
-public class AddOrderDetailsAction extends ActionSupport {
-
-	private static final long serialVersionUID = 1L;
-
+public class AddOrderDetailsAction extends ActionSupport implements Preparable {
 	/*
 	 * To checklist:
 	 * 
@@ -88,19 +85,69 @@ public class AddOrderDetailsAction extends ActionSupport {
 	 * list ready for table iteration
 	 */
 
-	// add other managers for other modules
-	SupplierManager supplierManager = new SupplierManager();
-	CustomerManager customerManager = new CustomerManager();
+	private static final long serialVersionUID = 1L;
+	
+	Map actionSession;
+	UserAccount user;
+
+	InventoryUtil inventoryUtil;
+	AccountEntryProfileUtil accountEntryUtil;
+	
+	SupplierManager supplierManager;
+	CustomerManager customerManager;
+	InventoryManager inventoryManager; 
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	LookupManager lookupManager;
+	DisbursementManager disbursementManager;
 
 	PurchaseOrderDetails orderDetails;
-
 	PurchaseOrderDetailHelper poDetailsHelperToCompare;
 	PurchaseOrderDetailHelper poDetailsGrouped;
 	PurchaseOrderDetailHelper poDetailsHelper;
 	PurchaseOrderDetailHelper poDetailsHelperDraft;
+
+	// add other managers for other modules Manager()
 	
-	InventoryUtil inventoryUtil = new InventoryUtil();
-	AccountEntryProfileUtil accountEntryUtil = new AccountEntryProfileUtil();
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryUtil = new InventoryUtil(actionSession);
+		accountEntryUtil = new AccountEntryProfileUtil(actionSession);
+		
+		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		inventoryManager 		= (InventoryManager) 	actionSession.get("inventoryManager"); 
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
+		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(poDetailsGrouped==null) {
+			poDetailsGrouped = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsGrouped.setActionSession(actionSession);
+		}
+		
+	}
+	
 	//TransactionUtil transactionUtil = new TransactionUtil();
 
 	private String forWhat;
@@ -113,7 +160,6 @@ public class AddOrderDetailsAction extends ActionSupport {
 	private String fptsId;
 	private String rfId;
 	String rsIdNo;
-	
 	String returnSlipToValue;
 
 	private String custpoid;
@@ -147,16 +193,11 @@ public class AddOrderDetailsAction extends ActionSupport {
 	List UOMList;
 
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
-			List accountProfileCodeList;
-			List<Transaction> transactionList;
-			List<Transaction> transactions;
-			Iterator itr;
-			AccountEntryManager accountEntryManager = new AccountEntryManager();
-			TransactionManager transactionMananger = new TransactionManager();
-			
-			//END 2013 - PHASE 3 : PROJECT 1: MARK 
-	LookupManager lookupManager = new LookupManager();
-	DisbursementManager disbursementManager = new DisbursementManager();
+	List accountProfileCodeList;
+	List<Transaction> transactionList;
+	List<Transaction> transactions;
+	Iterator itr;
+	//END 2013 - PHASE 3 : PROJECT 1: MARK 
 	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -164,10 +205,9 @@ public class AddOrderDetailsAction extends ActionSupport {
 
 	public String loadLookLists() {
 		Session session = getSession();
-		InventoryManager invManager = new InventoryManager();
 		
 		try {
-			itemCodeList = invManager.loadItemListFromRawAndFin(session);
+			itemCodeList = inventoryManager.loadItemListFromRawAndFin(session);
 			return "finGood";
 		} catch (Exception e) {
 			return SUCCESS;
@@ -179,8 +219,6 @@ public class AddOrderDetailsAction extends ActionSupport {
 		}
 	}
 
-	InventoryManager invMgr = new InventoryManager();
-
 	public String loadOrdersByReferenceNo() throws Exception{
 		Session session = getSession();
 		accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);
@@ -188,9 +226,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 		if(rs==null) {
 			addActionError("NO RS");
 		}else {
-			SupplierManager supplierManager = new SupplierManager();
-			CustomerManager customerManager = new CustomerManager();
-			InventoryManager inventoryManager = new InventoryManager();
+			
 			try {
 				
 			ReceivingReport rr = (ReceivingReport)supplierManager.listSuppliersByParameter(
@@ -198,7 +234,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 					"receivingReportNo",
 					rs.getReturnSlipReferenceOrderNo(),session).get(0);
 			if(null==poDetailsHelperToCompare) {
-				poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+				poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 				poDetailsHelperToCompare.generatePODetailsListFromSet(rr.getPurchaseOrderDetails());
 				poDetailsHelperToCompare.generateCommaDelimitedValues();
 				
@@ -212,7 +248,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 				DeliveryReceipt dr =  (DeliveryReceipt)customerManager.listByParameter(DeliveryReceipt.class, "deliveryReceiptNo", 
 						rs.getReturnSlipReferenceOrderNo(),session).get(0);
 				if(null==poDetailsHelperToCompare) {
-					poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+					poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 					poDetailsHelperToCompare.generatePODetailsListFromSet(dr.getPurchaseOrderDetails());
 					poDetailsHelperToCompare.generateCommaDelimitedValues();
 				}else {
@@ -225,7 +261,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 					RequisitionForm rf =  (RequisitionForm)
 							inventoryManager.listInventoryByParameter(RequisitionForm.class,"requisitionNo", rs.getReturnSlipReferenceOrderNo(), session).get(0);
 					if(null==poDetailsHelperToCompare) {
-						poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+						poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 						poDetailsHelperToCompare.generatePODetailsListFromSet(rf.getPurchaseOrderDetailsOrdered());
 						poDetailsHelperToCompare.generateCommaDelimitedValues();
 					}else {
@@ -239,7 +275,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 							FPTS fpts =  (FPTS)
 									inventoryManager.listInventoryByParameter(FPTS.class,"fptsNo", rs.getReturnSlipReferenceOrderNo(), session).get(0);
 							if(null==poDetailsHelperToCompare) {
-								poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+								poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 								poDetailsHelperToCompare.generatePODetailsListFromSet(fpts.getPurchaseOrderDetailsTransferred());
 								poDetailsHelperToCompare.generateCommaDelimitedValues();
 							}else {
@@ -277,10 +313,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 		if(rs==null) {
 			addActionError("NO RS");
 		}else {
-			
-			SupplierManager supplierManager = new SupplierManager();
-			CustomerManager customerManager = new CustomerManager();
-			InventoryManager inventoryManager = new InventoryManager();
+						
 			try {
 			ReceivingReport rr = (ReceivingReport)supplierManager.listSuppliersByParameter(
 					ReceivingReport.class,
@@ -416,8 +449,10 @@ public class AddOrderDetailsAction extends ActionSupport {
 			
 			return "returnSlip";
 		}else {
-			List list = invMgr.listInventoryByParameter(RawMaterial.class, "itemCode", orderDetails.getItemCode(),session);
-			List tradedItemlist = invMgr.listInventoryByParameter(TradedItem.class, "itemCode", orderDetails.getItemCode(),session);
+			List list = inventoryManager.listInventoryByParameter(RawMaterial.class, "itemCode", orderDetails.getItemCode(),session);
+			List tradedItemlist = inventoryManager.listInventoryByParameter(TradedItem.class, "itemCode", orderDetails.getItemCode(),session);
+			List utensilsList = inventoryManager.listInventoryByParameter(Utensils.class, "itemCode", orderDetails.getItemCode(),session);
+			List officeSuppliesList = inventoryManager.listInventoryByParameter(OfficeSupplies.class, "itemCode", orderDetails.getItemCode(),session);
 			
 			if(list.size()>0) {
 				RawMaterial tempItem = (RawMaterial)list.get(0);
@@ -428,10 +463,16 @@ public class AddOrderDetailsAction extends ActionSupport {
 				 if (tradedItemlist.size()>0){
 						TradedItem tempItem = (TradedItem)tradedItemlist.get(0);
 						orderDetails= new PurchaseOrderDetails(tempItem.getItemCode(), tempItem.getDescription(), 0, tempItem.getUnitOfMeasurement(), inventoryUtil.getItemPricingByCustomerTypeAndParameter(tempItem.getItemPricing(), customerType, priceType), 0,tempItem.getIsVattable(),0,0);
+				 }else if (utensilsList.size()>0){
+					 Utensils tempItem = (Utensils)utensilsList.get(0);
+						orderDetails= new PurchaseOrderDetails(tempItem.getItemCode(), tempItem.getDescription(), 0, tempItem.getUnitOfMeasurement(), inventoryUtil.getItemPricingByCustomerTypeAndParameter(tempItem.getItemPricing(), customerType, priceType), 0,tempItem.getIsVattable(),0,0);
+				 }else if (officeSuppliesList.size()>0){
+					 OfficeSupplies tempItem = (OfficeSupplies)officeSuppliesList.get(0);
+						orderDetails= new PurchaseOrderDetails(tempItem.getItemCode(), tempItem.getDescription(), 0, tempItem.getUnitOfMeasurement(), inventoryUtil.getItemPricingByCustomerTypeAndParameter(tempItem.getItemPricing(), customerType, priceType), 0,tempItem.getIsVattable(),0,0);
 				 }else{
-				list = invMgr.listInventoryByParameter(FinishedGood.class, "productCode", orderDetails.getItemCode(),session);
-				FinishedGood tempItem2 = (FinishedGood)list.get(0);
-				orderDetails= new PurchaseOrderDetails(tempItem2.getProductCode(), tempItem2.getDescription(), 0, tempItem2.getUnitOfMeasurement(), inventoryUtil.getItemPricingByCustomerTypeAndParameter(tempItem2.getItemPricing(), customerType, priceType), 0,tempItem2.getIsVattable(),0,0);
+					list = inventoryManager.listInventoryByParameter(FinishedGood.class, "productCode", orderDetails.getItemCode(),session);
+					FinishedGood tempItem2 = (FinishedGood)list.get(0);
+					orderDetails= new PurchaseOrderDetails(tempItem2.getProductCode(), tempItem2.getDescription(), 0, tempItem2.getUnitOfMeasurement(), inventoryUtil.getItemPricingByCustomerTypeAndParameter(tempItem2.getItemPricing(), customerType, priceType), 0,tempItem2.getIsVattable(),0,0);
 				 }
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 		}
@@ -457,7 +498,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 	if(	parentPage.equalsIgnoreCase("InventoryFPTS")){
 		if(manageFPTSOrderDetailIdentifier.equalsIgnoreCase("T")) {
 			if (null == poDetailsHelper) {
-				poDetailsHelper = new PurchaseOrderDetailHelper();
+				poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
 			} else {
 				poDetailsHelper.prepareSetAndList();
 				addOrderDetailToList(poDetailsHelper);
@@ -509,7 +550,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 	}else if(parentPage.equalsIgnoreCase("returnSlip")) {
 		
 		if (null == poDetailsHelperDraft) {
-			poDetailsHelperDraft = new PurchaseOrderDetailHelper();
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
 		} else {
 			//to get if disabled
 			rs.setReturnSlipNo(rsIdNo);
@@ -590,11 +631,13 @@ public class AddOrderDetailsAction extends ActionSupport {
 	public String supplierPOOrderingFormImport() {
 		Session session = getSession();
 		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}
+		
 		supplierNoList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
 		
 		//2013 - PHASE 3 : PROJECT 4: MARK
-		
-		InventoryManager inventoryManager=new InventoryManager();
 		
 		List<Item> allItemList = new ArrayList<Item>();
 		allItemList = inventoryManager.getAllItemList(session);
@@ -607,7 +650,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 			if (null == fileUpload) {
 			} else {
 				
-				POIUtil poiUtilHelper = new POIUtil();
+				POIUtil poiUtilHelper = new POIUtil(actionSession);
 				orderUpload = poiUtilHelper.readOrderingForm("C","standard",fileUpload, "",
 						session);
 
@@ -659,10 +702,12 @@ public class AddOrderDetailsAction extends ActionSupport {
 	}
 	public String customerPOOrderingFormImport() {
 		Session session = getSession();
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}
+		
 		customerNoList = customerManager.listAllCustomerNo(session);
 		//2013 - PHASE 3 : PROJECT 4: MARK
-		
-		InventoryManager inventoryManager=new InventoryManager();
 		
 		List<Item> allItemList = new ArrayList<Item>();
 		allItemList = inventoryManager.getAllItemList(session);
@@ -679,7 +724,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 					custpo = new CustomerPurchaseOrder();
 				}
 				if (null == custpoid) {
-					RecordCountHelper rch = new RecordCountHelper();
+					RecordCountHelper rch = new RecordCountHelper(actionSession);
 					custpo.setCustomerPurchaseOrderId(rch.getPrefix(
 							SASConstants.CUSTOMERPO,
 							SASConstants.CUSTOMERPO_PREFIX));
@@ -700,7 +745,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 					}
 				}
 				
-				POIUtil poiUtilHelper = new POIUtil();
+				POIUtil poiUtilHelper = new POIUtil(actionSession);
 				if(custpo.getCustomer().getCustomerType().equalsIgnoreCase("CC")) {
 					orderUpload = poiUtilHelper.readOrderingForm(custpo.getCustomer().getCustomerType(),"standard",fileUpload, "",
 							session);
@@ -718,21 +763,6 @@ public class AddOrderDetailsAction extends ActionSupport {
 				while (itr.hasNext()) {
 					PurchaseOrderDetails poDetails = itr.next();
 
-					// PurchaseOrderDetails groupEntry = new
-					// PurchaseOrderDetails();
-					// groupEntry.setItemCode(poDetails.getGroup());
-					// groupEntry.setDescription(poDetails.getGroup());
-
-					// if(groups.containsKey(poDetails.getGroup())) {
-					// groupEntry.setAmount(groups.get(poDetails.getGroup()).getAmount()
-					// + poDetails.getAmount());
-					// groups.put(poDetails.getGroup(), groupEntry);
-					// poDetailsGrouped.addPurchaseOrderDetail(groupEntry);
-					// }else {
-					// groupEntry.setAmount(poDetails.getAmount());
-					// groups.put(poDetails.getGroup(), groupEntry);
-					// poDetailsGrouped.addPurchaseOrderDetail(groupEntry);
-					// }
 					
 					//START: 2013 - PHASE 3 : PROJECT 4: MARK
 					for(Item item: allItemList){
@@ -742,7 +772,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 						}
 					}
 					//END : 2013 - PHASE 3 : PROJECT 4: MARK
-
+// YOU LEFT HERE PROBLEM: PODETAILS CANT SHOW FOR SAME ITEM CODES WHICH IS BLANK FOR UNLISTED ITEMS
 					if (poDetails.isInFinishedGoods()) {
 						poDetailsHelper.modifyPurchaseOrderDetail(poDetails);
 						if (null == custpo) {
@@ -841,7 +871,6 @@ public class AddOrderDetailsAction extends ActionSupport {
 			double totalAmountToCompareTo = 0;
 			totalAmount = computerForTotalAmount(poDetailsHelper);
 			//2013 - PHASE 3 : PROJECT 4: MARK
-			InventoryManager inventoryManager=new InventoryManager();
 			List<Item> allItemList = new ArrayList<Item>();
 			allItemList = inventoryManager.getAllItemList(session);
 			
@@ -891,7 +920,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 				//20131226 - PHASE 3 : PROJECT 1: MARK
 				DecimalFormat df = new DecimalFormat("#.##");
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", invoice.getSupplierInvoiceNo(), session);
 				if (tempList.size() == 0) {
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
 					transactionList = new ArrayList();
@@ -948,7 +977,7 @@ public class AddOrderDetailsAction extends ActionSupport {
 				//COLOR CODING
 				poDetailsHelper.generateItemTypesForExistingItems(session);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", dr.getDeliveryReceiptNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", dr.getDeliveryReceiptNo(), session);
 				if (tempList.size() == 0) {
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
 					transactionList = new ArrayList();
@@ -974,11 +1003,11 @@ public class AddOrderDetailsAction extends ActionSupport {
 				return "customerDR";
 				
 			}else if (parentPage.equalsIgnoreCase("InventoryFPTS")) {
-				fpts = (FPTS) invMgr.listInventoryByParameter(FPTS.class,"fptsNo", fptsId,session).get(0);
+				fpts = (FPTS) inventoryManager.listInventoryByParameter(FPTS.class,"fptsNo", fptsId,session).get(0);
 				//poDetailsHelper.prepareSetAndList(); <--double display
 				poDetailsHelperToCompare.prepareSetAndList();
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", fpts.getFptsNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", fpts.getFptsNo(), session);
 				if (tempList.size() == 0) {
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
 					transactionList = new ArrayList();
@@ -1003,10 +1032,10 @@ public class AddOrderDetailsAction extends ActionSupport {
 				forWhat="false";
 				return "fpts";
 			}else if (parentPage.equalsIgnoreCase("InventoryOrderRequisition")) {
-				rf = (RequisitionForm) invMgr.listInventoryByParameter(RequisitionForm.class,"requisitionNo", rfId,session).get(0);
+				rf = (RequisitionForm) inventoryManager.listInventoryByParameter(RequisitionForm.class,"requisitionNo", rfId,session).get(0);
 				//poDetailsHelper.prepareSetAndList(); <--double display
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", rf.getRequisitionNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", rf.getRequisitionNo(), session);
 				if (tempList.size() == 0) {
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
 					transactionList = new ArrayList();
@@ -1029,14 +1058,16 @@ public class AddOrderDetailsAction extends ActionSupport {
 				//END Phase 3 - Azhee
 				forWhat="false";
 				return "rf";
-			}else {
-				// add more conditions if parent is invoice + customers
-				return INPUT;
 			}
+			return "input";
+			/*else {
+				// add more conditions if parent is invoice + customers
+				
+			}*/
 		
 		} catch (Exception e) {
 			e.printStackTrace();
-			return INPUT;
+			return "input";
 		} finally {
 			if(session.isOpen()){
 				session.close();

@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Map;
 
-import org.apache.poi.util.LongField;
 import org.apache.struts2.util.StrutsTypeConverter;
 
 public class DoubleConverter extends StrutsTypeConverter {
@@ -34,7 +33,8 @@ public class DoubleConverter extends StrutsTypeConverter {
 		DecimalFormat df = new DecimalFormat("000,000,000.00");
 		
 		try {
-			value = (Double) df.parse(String.valueOf(value));
+			value = df.parse(String.valueOf(value)).doubleValue();
+			
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}

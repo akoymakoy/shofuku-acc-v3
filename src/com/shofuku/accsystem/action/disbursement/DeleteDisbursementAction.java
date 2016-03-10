@@ -1,25 +1,38 @@
 package com.shofuku.accsystem.action.disbursement;
 
+import java.util.Map;
+
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.DisbursementManager;
-import com.shofuku.accsystem.dao.impl.DisbursementDaoImpl;
 import com.shofuku.accsystem.domain.disbursements.CashPayment;
 import com.shofuku.accsystem.domain.disbursements.CheckPayments;
 import com.shofuku.accsystem.domain.disbursements.PettyCash;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class DeleteDisbursementAction extends ActionSupport{
+public class DeleteDisbursementAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-
-	DisbursementManager manager = new DisbursementManager();
 	
+
+	Map actionSession;
+	UserAccount user;
+
+	DisbursementManager disbursementManager;
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		
+	}
 	private String subModule;
 	private String pcNo;
 	private String cpNo;
@@ -38,7 +51,7 @@ public class DeleteDisbursementAction extends ActionSupport{
 		boolean deleteResult;
 
 		if (getSubModule().equalsIgnoreCase("pettyCash")) {
-			deleteResult = manager.deleteDisbursementByParameter(getPcNo(),
+			deleteResult = disbursementManager.deleteDisbursementByParameter(getPcNo(),
 					PettyCash.class,session);
 			if (deleteResult == true) {
 				pc = new PettyCash();
@@ -48,7 +61,7 @@ public class DeleteDisbursementAction extends ActionSupport{
 			}
 			return "pettyCashDeleted";
 		} else if (getSubModule().equalsIgnoreCase("cashPayment")) {
-			deleteResult = manager.deleteDisbursementByParameter(getCpNo(),
+			deleteResult = disbursementManager.deleteDisbursementByParameter(getCpNo(),
 					CashPayment.class,session);
 			if (deleteResult == true) {
 				cp = new CashPayment();
@@ -58,7 +71,7 @@ public class DeleteDisbursementAction extends ActionSupport{
 			}
 			return "cashPaymentDeleted";
 		}  else if (getSubModule().equalsIgnoreCase("checkPayment"))  {
-			deleteResult = manager.deleteDisbursementByParameter(getChpNo(), 
+			deleteResult = disbursementManager.deleteDisbursementByParameter(getChpNo(), 
 					CheckPayments.class,session);
 			if (deleteResult == true) {
 				addActionMessage(SASConstants.DELETED);
@@ -67,7 +80,7 @@ public class DeleteDisbursementAction extends ActionSupport{
 			}
 		return "checkPaymentDeleted";
 		}else  {
-			deleteResult = manager.deleteDisbursementByParameter(getChpNo(), 
+			deleteResult = disbursementManager.deleteDisbursementByParameter(getChpNo(), 
 					CheckPayments.class,session);
 			if (deleteResult == true) {
 				addActionMessage(SASConstants.DELETED);

@@ -5,12 +5,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+
+
 
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
@@ -24,6 +30,7 @@ import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.financials.Vat;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
@@ -33,13 +40,63 @@ import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class UpdateSupplierAction extends ActionSupport{
+public class UpdateSupplierAction extends ActionSupport implements Preparable{
 
 	/**
 	 * 
 	 */
+	
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	FinancialsManager financialsManager;	
+	RecordCountHelper rch;
+	InventoryUtil invUtil;
+	AccountEntryProfileUtil apeUtil;
+
+	DisbursementManager disbursementManager;
+	
+	
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager = (SupplierManager) actionSession.get("supplierManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		disbursementManager = (DisbursementManager) actionSession.get("disbursementManager");
+		
+		rch = new RecordCountHelper(actionSession);
+		invUtil = new InventoryUtil(actionSession);
+		apeUtil = new AccountEntryProfileUtil(actionSession);
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		
+	}
+	
+	
 	private static final long serialVersionUID = 1L;
 	private String subModule;
 	Supplier supplier;
@@ -50,7 +107,6 @@ public class UpdateSupplierAction extends ActionSupport{
 	private String forWhatDisplay;
 	private double tempTotal;
 	
-	SupplierManager manager = new SupplierManager();
 	private String supId;
 	private String poId;
 	private String rrId;
@@ -65,21 +121,9 @@ public class UpdateSupplierAction extends ActionSupport{
 	List accountProfileCodeList;
 	List<Transaction> transactionList;
 	List<Transaction> transactions;
-	AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil();
-	AccountEntryManager accountEntryManager = new AccountEntryManager();
-	TransactionManager transactionMananger = new TransactionManager();
-	FinancialsManager financialsManager = new FinancialsManager();
+
 	Vat vatDetails;
-	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 	
-	PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-	PurchaseOrderDetailHelper poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
-	
-	InventoryManager inventoryManager = new InventoryManager();
-	DisbursementManager disbursementManager = new DisbursementManager();
-	
-	
-	InventoryUtil invUtil = new InventoryUtil();
 	DateFormatHelper df = new DateFormatHelper();
 	
 	private Session getSession(){
@@ -96,7 +140,7 @@ public class UpdateSupplierAction extends ActionSupport{
 				supplier.setSupplierId(supId);
 				if (validateSupplierProfile()) {
 				}else {
-				updateResult = manager.updateSupplier(supplier,session);
+				updateResult = supplierManager.updateSupplier(supplier,session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";	
@@ -109,8 +153,8 @@ public class UpdateSupplierAction extends ActionSupport{
 			return "profileUpdated";
 			}else if (getSubModule().equalsIgnoreCase("purchaseOrder")){
 				List supPo2=null;
-				supplierNoList = manager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
-				supPo2 = manager.listSuppliersByParameter(Supplier.class, "supplierId" , getPo().getSupplier().getSupplierId(),session);
+				supplierNoList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
+				supPo2 = supplierManager.listSuppliersByParameter(Supplier.class, "supplierId" , getPo().getSupplier().getSupplierId(),session);
 					if (supPo2.isEmpty()){
 						addActionMessage("Supplier ID: " + SASConstants.NON_EXISTS);
 						po.setSupplierPurchaseOrderId(poId);
@@ -139,9 +183,7 @@ public class UpdateSupplierAction extends ActionSupport{
 							if (po.getPurchaseOrderDetails().size()==0) {
 								addActionError(SASConstants.EMPTY_ORDER_DETAILS);
 							}else {
-								updateResult = manager.updateSupplier(po,session);
-								
-								poDetailsHelper.flushUnRelatedOrders(session);
+								updateResult = supplierManager.updateSupplier(po,session);
 								if (updateResult== true) {
 									addActionMessage(SASConstants.UPDATED);
 									forWhat="true";
@@ -156,9 +198,9 @@ public class UpdateSupplierAction extends ActionSupport{
 				return "poUpdated";
 			}else if (getSubModule().equalsIgnoreCase("receivingReport")){
 				List supRr2 = null;
-				purchaseOrderNoList = manager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);
+				purchaseOrderNoList = supplierManager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);
 				
-				supRr2 = manager.listSuppliersByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", getRr().getSupplierPurchaseOrder().getSupplierPurchaseOrderId(),session);
+				supRr2 = supplierManager.listSuppliersByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", getRr().getSupplierPurchaseOrder().getSupplierPurchaseOrderId(),session);
 				boolean inventoryUpdateSuccess= false;
 					if (supRr2.isEmpty()){
 						addActionError("Puchase Order No.: " + SASConstants.NON_EXISTS);
@@ -172,9 +214,8 @@ public class UpdateSupplierAction extends ActionSupport{
 						 * Checking and fetching existing return slips
 						 */
 						
-						InventoryManager invManager= new InventoryManager();
 						Session rsSession = getSession();
-						List returnSlipList = invManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", rr.getReceivingReportNo(), rsSession);
+						List returnSlipList = inventoryManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", rr.getReceivingReportNo(), rsSession);
 						
 						if(returnSlipList.size()>0) {
 							rr.setReturnSlipList(returnSlipList);
@@ -183,7 +224,7 @@ public class UpdateSupplierAction extends ActionSupport{
 						}
 						
 						if(null==poDetailsHelperToCompare) {
-							poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+							poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 						}
 							poDetailsHelperToCompare.generatePODetailsListFromSet(rr.getSupplierPurchaseOrder().getPurchaseOrderDetails());
 							
@@ -209,9 +250,9 @@ public class UpdateSupplierAction extends ActionSupport{
 						 *  3rd - order type to determine if there is an addition or deduction to inventory
 						*/
 						ReceivingReport oldRR = 
-								(ReceivingReport) manager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", 
+								(ReceivingReport) supplierManager.listSuppliersByParameter(rr.getClass(), "receivingReportNo", 
 										rrId,getSession()).get(0);
-						PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper();
+						PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper(actionSession);
 						helperOld.generatePODetailsListFromSet(oldRR.getPurchaseOrderDetails());
 						PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(helperOld, poDetailsHelper , SASConstants.ORDER_TYPE_RR);
 						
@@ -230,7 +271,7 @@ public class UpdateSupplierAction extends ActionSupport{
 						rr.setReceivingReportPaymentDate(dfh.getPaymentDateByTerm(dfh.parseStringToTimestamp(tryTS), rr.getSupplierPurchaseOrder().getSupplier().getPaymentTerm()));
 						rr.setTotalAmount(poDetailsHelper.getTotalAmount());
 						//START - 2013 - PHASE 3 : PROJECT 1: MARK
-						transactionMananger.discontinuePreviousTransactions(rr.getReceivingReportNo(),session);
+						transactionManager.discontinuePreviousTransactions(rr.getReceivingReportNo(),session);
 						//transactionList = new ArrayList();
 						transactionList = getTransactionList();
 						updateAccountingEntries(rr.getReceivingReportNo(),session,SASConstants.RECEIVINGREPORT);
@@ -247,13 +288,10 @@ public class UpdateSupplierAction extends ActionSupport{
 								if(inventoryUpdateSuccess) {
 									
 									//computation of payment date in rr
-									updateResult = manager.updateSupplier(rr,session);
+									updateResult = supplierManager.updateSupplier(rr,session);
 								}else {
 									updateResult=false;
 								}
-								
-								poDetailsHelper.flushUnRelatedOrders(session);
-								
 								
 								if (updateResult== true) {
 									addActionMessage(SASConstants.UPDATED);
@@ -268,8 +306,8 @@ public class UpdateSupplierAction extends ActionSupport{
 					return "rrUpdated";
 			}else {
 				List supInv2 = null;
-				receivingReportNoList = manager.listAlphabeticalAscByParameter(ReceivingReport.class, "receivingReportNo", session);
-				supInv2 =  manager.listSuppliersByParameter(ReceivingReport.class, "receivingReportNo", getInvoice().getReceivingReport().getReceivingReportNo(),session);
+				receivingReportNoList = supplierManager.listAlphabeticalAscByParameter(ReceivingReport.class, "receivingReportNo", session);
+				supInv2 =  supplierManager.listSuppliersByParameter(ReceivingReport.class, "receivingReportNo", getInvoice().getReceivingReport().getReceivingReportNo(),session);
 
 				
 				if (supInv2.isEmpty()){
@@ -285,7 +323,7 @@ public class UpdateSupplierAction extends ActionSupport{
 							invoice.setReceivingReport((ReceivingReport) supInv2.get(0));
 						
 						if(null==poDetailsHelperToCompare) {
-							poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+							poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 						}
 							poDetailsHelperToCompare.generatePODetailsListFromSet(invoice.getReceivingReport().getPurchaseOrderDetails());
 						
@@ -321,7 +359,7 @@ public class UpdateSupplierAction extends ActionSupport{
 //								invoice.setRemainingBalance(checkForReturnedItems(session));
 								
 								//START - 2013 - PHASE 3 : PROJECT 1: MARK
-								transactionMananger.discontinuePreviousTransactions(invoice.getSupplierInvoiceNo(),session);
+								transactionManager.discontinuePreviousTransactions(invoice.getSupplierInvoiceNo(),session);
 								transactionList = getTransactionList();
 								updateAccountingEntries(invoice.getSupplierInvoiceNo(),session,SASConstants.SUPPLIERINVOICE);
 								this.setTransactionList(transactions);
@@ -331,6 +369,7 @@ public class UpdateSupplierAction extends ActionSupport{
 								//START: 2013 - PHASE 3 : PROJECT 4: MARK
 								Vat vatDetails = invoice.getVatDetails();
 								vatDetails.setVatReferenceNo(invId);
+								vatDetails.setAmount(invoice.getDebit1Amount());
 								vatDetails.setPayee(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierName());
 								vatDetails.setOrDate(invoice.getSupplierInvoiceDate());
 								vatDetails.setAddress(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getCompanyAddress());
@@ -338,8 +377,7 @@ public class UpdateSupplierAction extends ActionSupport{
 								financialsManager.updateVatDetails(vatDetails, session);							
 								//END: 2013 - PHASE 3 : PROJECT 4: MARK
 								
-								updateResult = manager.updateSupplier(invoice,session);
-								poDetailsHelper.flushUnRelatedOrders(session);
+								updateResult = supplierManager.updateSupplier(invoice,session);
 								
 								if (updateResult== true) {
 									addActionMessage(SASConstants.UPDATED);
@@ -399,7 +437,7 @@ public class UpdateSupplierAction extends ActionSupport{
 				transaction.setIsInUse(SASConstants.TRANSACTION_IN_USE);
 				transactions.add(transaction);
 			}
-			transactionMananger.addTransactionsList(transactions,session);
+			transactionManager.addTransactionsList(transactions,session);
 		}
 		//return transactions;
 	}

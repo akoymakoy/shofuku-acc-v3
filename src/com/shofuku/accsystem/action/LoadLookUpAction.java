@@ -1,27 +1,44 @@
 package com.shofuku.accsystem.action;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.LookupManager;
 import com.shofuku.accsystem.domain.lookups.ExpenseClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentClassification;
 import com.shofuku.accsystem.domain.lookups.PaymentTerms;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 
-public class LoadLookUpAction extends ActionSupport {
+public class LoadLookUpAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
+	
 	private static final long serialVersionUID = 1L;
+
+	Map actionSession;
+	UserAccount user;
+
+	LookupManager lookupManager;
+
+	// add other managers for other modules Manager()
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
+		
+	}
+	
 	private String whatLookUp;
-
 	List classifList;
-	LookupManager manager = new LookupManager();
-
+	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
 	}
@@ -31,16 +48,16 @@ public class LoadLookUpAction extends ActionSupport {
 		try {
 			if (getWhatLookUp().equals("pettyCash")) {
 
-				classifList = manager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						ExpenseClassification.class, "PETTYCASH",session);
 				return "pettyCash";
 			} else if (getWhatLookUp().equals("cashPayment")) {
 
-				classifList = manager.getLookupElements(
+				classifList = lookupManager.getLookupElements(
 						PaymentClassification.class, "CASHPAYMENT",session);
 				return "cashPayment";
 			} else {
-				classifList = manager.getLookupElements(PaymentTerms.class,
+				classifList = lookupManager.getLookupElements(PaymentTerms.class,
 						"CHECKPAYMENT",session);
 			}
 			return "checkPayment";

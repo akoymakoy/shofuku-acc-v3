@@ -1,15 +1,7 @@
 package com.shofuku.accsystem.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.Serializable;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -19,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,35 +18,27 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.StyledEditorKit.BoldAction;
 
 import org.apache.poi.hssf.usermodel.HSSFBorderFormatting;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFPalette;
-import org.apache.poi.hssf.usermodel.HSSFRichTextString;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.hssf.util.CellRangeAddress;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Row;
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.BaseController;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
-import com.shofuku.accsystem.dao.impl.BaseHibernateDaoImpl;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
@@ -68,13 +51,13 @@ import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.inventory.FPTS;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Ingredient;
-import com.shofuku.accsystem.domain.inventory.Item;
-import com.shofuku.accsystem.domain.inventory.PurchaseOrder;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.Utensils;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
@@ -89,32 +72,43 @@ import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
 @SuppressWarnings({ "deprecation", "unused", "rawtypes", "unchecked" })
 public class POIUtil {
 	protected final Logger logger = LoggerFactory.getLogger(POIUtil.class);
+	
+	Map<String,Object> actionSession;
+	BaseController manager;
+	private void initializeController() {
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+	}
 
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	
+	PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper(actionSession);
 	DateFormatHelper dfh = new DateFormatHelper();
+	
+	
 	HSSFCellStyle itemStyle;
 	HSSFCellStyle lastItemStyle;
 	HSSFCellStyle itemSoldTotalAmountStyle;
 	
-	AccountEntryManager manager = new AccountEntryManager();
-
 	String maxDate;
 	String minDate;
 	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
-			AccountEntryManager accountEntryManager = new AccountEntryManager();
-			TransactionManager transactionMananger = new TransactionManager();
-			
-			
-		//	List<Transaction> transactionList;
-		//	List<Transaction> transactions;
-			Iterator itr;
-		//END 2013 - PHASE 3 : PROJECT 1: MARK  
+	
+	//END 2013 - PHASE 3 : PROJECT 1: MARK  
+	
 	Session session = getSession();
 	private Session getSession() {
 				return HibernateUtil.getSessionFactory().getCurrentSession();
 	}
 		
 			
+	public POIUtil(Map<String, Object> actionSession) {
+		this.actionSession = actionSession;
+	}
+
+
 	private HSSFWorkbook getWorkbook(String fileName) throws Exception {
 		FileInputStream fileInputStream = new FileInputStream(fileName);
 		POIFSFileSystem fsFileSystem = new POIFSFileSystem(fileInputStream);
@@ -193,33 +187,48 @@ public class POIUtil {
 		return tx;
 	}
 
-	InventoryManager inventoryManager = new InventoryManager();
 
 	private void populateOrderDetail(String customerType,String priceType,
 			Set<PurchaseOrderDetails> orderDetailList, HSSFSheet hssfSheet,
 			int itemSectionIndex, int column, Session session) throws Exception {
 
+		initializeController();
 		HSSFRow hssfRow = hssfSheet.getRow(itemSectionIndex);
 		String group = "";
 		
 		//retrieve max rows as defined in record count table
-		RecordCountHelper rch = new RecordCountHelper();
+		RecordCountHelper rch = new RecordCountHelper(actionSession);
 		int maxRows = rch.getOrderingTemplateMaxRows();
 		
 		while (itemSectionIndex < maxRows) {
-			if (!(null == hssfRow.getCell(column + 0, Row.CREATE_NULL_AS_BLANK))
-					&& ("CODE".equalsIgnoreCase(hssfRow.getCell(column + 0,
-							Row.CREATE_NULL_AS_BLANK).getStringCellValue()))) {
-				group = (hssfRow.getCell(1 + column + 0,
-						Row.CREATE_NULL_AS_BLANK).getStringCellValue());
+			try {
+				if (!(null == hssfRow.getCell(column + 0, Row.CREATE_NULL_AS_BLANK))
+						&& ("CODE".equalsIgnoreCase(hssfRow.getCell(column + 0,
+								Row.CREATE_NULL_AS_BLANK).getStringCellValue()))) {
+					group = (hssfRow.getCell(1 + column + 0,
+							Row.CREATE_NULL_AS_BLANK).getStringCellValue());
+				}
+			}catch(NullPointerException npe) {
+				logger.debug("POIUtil populateOrderDetail() : " + npe.toString());
+				break;
 			}
 			try {
 				while (!(null == hssfRow.getCell(column + 0,
 						Row.CREATE_NULL_AS_BLANK))
-						&& !("CODE".equalsIgnoreCase(hssfRow.getCell(column + 0,
-								Row.CREATE_NULL_AS_BLANK).getStringCellValue()))
-						&& !("".equalsIgnoreCase(hssfRow.getCell(column + 0,
-								Row.CREATE_NULL_AS_BLANK).getStringCellValue()))) {
+						&& !("CODE".equalsIgnoreCase(hssfRow.getCell(column + 0,Row.CREATE_NULL_AS_BLANK).getStringCellValue()))
+						
+						&& (
+							(!("".equalsIgnoreCase(hssfRow.getCell(column + 0,Row.CREATE_NULL_AS_BLANK).getStringCellValue())))
+							|| (
+								("".equalsIgnoreCase(hssfRow.getCell(column + 0,Row.CREATE_NULL_AS_BLANK).getStringCellValue())) 
+								&& SASConstants.UNLISTED_ITEMS.equalsIgnoreCase(group)
+							   )
+						   )
+						
+						
+						) 
+				
+					{
 					PurchaseOrderDetails purchaseOrderDetails = new PurchaseOrderDetails();
 					String itemCode = hssfRow.getCell(column + 0,
 							Row.CREATE_NULL_AS_BLANK).getStringCellValue();
@@ -229,7 +238,7 @@ public class POIUtil {
 							Row.CREATE_NULL_AS_BLANK).getStringCellValue();
 					double quantity = 0.0;
 					try {
-					quantity = hssfRow.getCell(column + 4,
+					quantity = hssfRow.getCell(column + 5,
 							Row.CREATE_NULL_AS_BLANK).getNumericCellValue();
 					}catch(IllegalStateException ise) {
 						quantity = 0.0;
@@ -243,22 +252,23 @@ public class POIUtil {
 						purchaseOrderDetails.setUnitOfMeasurement(uom == null ? ""
 								: uom);
 						purchaseOrderDetails.setQuantity(quantity);
+						if(group.equalsIgnoreCase(SASConstants.UNLISTED_ITEMS)){
+							purchaseOrderDetails
+							.setInFinishedGoods(true);
+							purchaseOrderDetails
+							.setAmount(0.0);
+						}else {
+							purchaseOrderDetails.setUnitCost(inventoryManager
+									.getItemPricingByItemCodeAndParameter(session,
+											itemCode, customerType, priceType));
+							purchaseOrderDetails
+							.setInFinishedGoods(purchaseOrderDetails
+									.getUnitCost() > 0 ? true : false);
+							purchaseOrderDetails
+							.setAmount(purchaseOrderDetails.getQuantity()
+									* purchaseOrderDetails.getUnitCost());
+						}
 	
-						purchaseOrderDetails.setUnitCost(inventoryManager
-								.getItemPricingByItemCodeAndParameter(session,
-										itemCode, customerType, priceType));
-						// purchaseOrderDetails.setInFinishedGoods(purchaseOrderDetails.getUnitCost()>0?true:false);
-						//
-						// if(!purchaseOrderDetails.isInFinishedGoods()){
-						// purchaseOrderDetails.setUnitCost(getAmountFromRawMaterials(session,itemCode));
-						// }
-	
-						purchaseOrderDetails
-								.setInFinishedGoods(purchaseOrderDetails
-										.getUnitCost() > 0 ? true : false);
-						purchaseOrderDetails
-								.setAmount(purchaseOrderDetails.getQuantity()
-										* purchaseOrderDetails.getUnitCost());
 						purchaseOrderDetails.setGroup(group);
 						orderDetailList.add(purchaseOrderDetails);
 					}
@@ -298,7 +308,7 @@ public class POIUtil {
 		
 		
 		//retrieve max rows as defined in record count table
-		RecordCountHelper rch = new RecordCountHelper();
+		RecordCountHelper rch = new RecordCountHelper(actionSession);
 		int maxRows = rch.getCustomerStockLevelTemplateMaxRows();
 		
 		while (itemSectionIndex < maxRows) {
@@ -576,7 +586,7 @@ public class POIUtil {
 		}else if (subModule.equals("ItemPurchasedFromSupplier")) {
 			setSummaryHeaders(
 					wb,
-					SASConstants.SUMMARY_TEMPLATE_HEADER_ITEMS_SOLD_TO_CUSTOMERS,
+					SASConstants.SUMMARY_TEMPLATE_HEADER_ITEMS_PURCHASED_FROM_SUPPLIER,
 					SASConstants.SUMMARY_TEMPLATE_FIRST_COL);
 			populateSummaryForSupplier(wb, list, subModule);
 		}else if (subModule.equals("StatementOfAccount")) {
@@ -628,6 +638,18 @@ public class POIUtil {
 		} else if (subModule.equals("TradedItems")) {
 			setSummaryHeaders(wb,
 					SASConstants.SUMMARY_TEMPLATE_HEADER_TRADED_ITEMS,
+					SASConstants.SUMMARY_TEMPLATE_FIRST_COL);
+			populateSummaryForInventory(wb, list, subModule);
+
+		}else if (subModule.equals("Utensils")) {
+			setSummaryHeaders(wb,
+					SASConstants.SUMMARY_TEMPLATE_HEADER_UTENSILS,
+					SASConstants.SUMMARY_TEMPLATE_FIRST_COL);
+			populateSummaryForInventory(wb, list, subModule);
+
+		}else if (subModule.equals("OfficeSupplies")) {
+			setSummaryHeaders(wb,
+					SASConstants.SUMMARY_TEMPLATE_HEADER_OFFICE_SUPPLIES,
 					SASConstants.SUMMARY_TEMPLATE_FIRST_COL);
 			populateSummaryForInventory(wb, list, subModule);
 
@@ -1056,7 +1078,7 @@ public class POIUtil {
 
 	private void putDeliveryReceiptValues(HSSFSheet sheet, HSSFRow row,
 			DeliveryReceipt deliveryReceipt) {
-		PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper();
+		PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper(actionSession);
 		podetailHelper.generatePODetailsListFromSet(deliveryReceipt.getPurchaseOrderDetails());
 		podetailHelper.generateCommaDelimitedValues();
 		int col = SASConstants.SUMMARY_TEMPLATE_CUSTOMER_DELIVERY_COL_START;
@@ -1112,7 +1134,6 @@ public class POIUtil {
 
 	private void putCustomerSalesInvoiceValues(HSSFSheet sheet, HSSFRow row,
 			CustomerSalesInvoice customerSalesInvoice) {
-		PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper();
 		podetailHelper.generatePODetailsListFromSet(customerSalesInvoice.getPurchaseOrderDetails());
 		podetailHelper.generateCommaDelimitedValues();
 		int col = SASConstants.SUMMARY_TEMPLATE_CUSTOMER_INVOICE_COL_START;
@@ -1300,6 +1321,14 @@ public class POIUtil {
 				} else if (subModule.equals("TradedItems")) {
 					TradedItem tradedItems = (TradedItem) list.get(counter);
 					putTradedItemValues(sheet, row, tradedItems);
+					maxRow += 1;
+				} else if (subModule.equals("Utensils")) {
+					Utensils utensils = (Utensils) list.get(counter);
+					putUtensilsValues(sheet, row, utensils);
+					maxRow += 1;
+				} else if (subModule.equals("OfficeSupplies")) {
+					OfficeSupplies officeSupplies= (OfficeSupplies) list.get(counter);
+					putOfficeSuppliesValues(sheet, row, officeSupplies);
 					maxRow += 1;
 				} else if (subModule.equals("FinishedGoods")) {
 					FinishedGood finishedGood = (FinishedGood) list
@@ -1557,9 +1586,9 @@ public class POIUtil {
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 		cell.setCellValue(parseNullDouble(finishedGood.getQuantityOut()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(finishedGood.getQuantityPerRecord()));
+		cell.setCellValue(parseNullDouble(finishedGood.getWarehouse().getQuantityPerRecord()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(finishedGood.getQuantityPerCount()));
+		cell.setCellValue(parseNullDouble(finishedGood.getWarehouse().getQuantityPerPhysicalCount()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 
 		putIngredients(
@@ -1622,9 +1651,9 @@ public class POIUtil {
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 		cell.setCellValue(parseNullDouble(rawMat.getQuantityOut()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(rawMat.getQuantityPerRecord()));
+		cell.setCellValue(parseNullDouble(rawMat.getWarehouse().getQuantityPerRecord()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(rawMat.getQuantityPerPhysicalCount()));
+		cell.setCellValue(parseNullDouble(rawMat.getWarehouse().getQuantityPerPhysicalCount()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 
 	}
@@ -1683,9 +1712,105 @@ public class POIUtil {
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 		cell.setCellValue(parseNullDouble(tradedItems.getQuantityOut()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(tradedItems.getQuantityPerRecord()));
+		cell.setCellValue(parseNullDouble(tradedItems.getWarehouse().getQuantityPerRecord()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
-		cell.setCellValue(parseNullDouble(tradedItems
+		cell.setCellValue(parseNullDouble(tradedItems.getWarehouse()
+				.getQuantityPerPhysicalCount()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+
+	}
+	
+	private void putUtensilsValues(HSSFSheet sheet, HSSFRow row,
+			Utensils utensils) {
+		int col = SASConstants.SUMMARY_TEMPLATE_FIRST_COL;
+		HSSFCell cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+
+		cell.setCellValue(parseNullString(utensils.getItemCode()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullString(utensils.getDescription()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullString(utensils.getUnitOfMeasurement()));
+
+		// TODO: remove this after prices have been inserted
+		if (utensils.getItemPricing() == null) {
+			col += 6;
+		} else {
+			// Additional price type
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getCompanyOwnedStandardPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getCompanyOwnedActualPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getCompanyOwnedTransferPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getFranchiseStandardPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getFranchiseActualPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(utensils.getItemPricing()
+					.getFranchiseTransferPricePerUnit()));
+		}
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(utensils.getQuantityIn()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(utensils.getQuantityOut()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(utensils.getWarehouse().getQuantityPerRecord()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(utensils.getWarehouse()
+				.getQuantityPerPhysicalCount()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+	}
+	
+	private void putOfficeSuppliesValues(HSSFSheet sheet, HSSFRow row,
+			OfficeSupplies officeSupplies) {
+		int col = SASConstants.SUMMARY_TEMPLATE_FIRST_COL;
+
+		HSSFCell cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullString(officeSupplies.getItemCode()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullString(officeSupplies.getDescription()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullString(officeSupplies.getUnitOfMeasurement()));
+
+		// TODO: remove this after prices have been inserted
+		if (officeSupplies.getItemPricing() == null) {
+			col += 6;
+		} else {
+			// Additional price type
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getCompanyOwnedStandardPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getCompanyOwnedActualPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getCompanyOwnedTransferPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getFranchiseStandardPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getFranchiseActualPricePerUnit()));
+			cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+			cell.setCellValue(parseNullDouble(officeSupplies.getItemPricing()
+					.getFranchiseTransferPricePerUnit()));
+		}
+		
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(officeSupplies.getQuantityIn()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(officeSupplies.getQuantityOut()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(officeSupplies.getWarehouse().getQuantityPerRecord()));
+		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
+		cell.setCellValue(parseNullDouble(officeSupplies.getWarehouse()
 				.getQuantityPerPhysicalCount()));
 		cell = row.getCell(col++, Row.CREATE_NULL_AS_BLANK);
 
@@ -2192,7 +2317,6 @@ public class POIUtil {
 	private void putReceivingReportValues(HSSFSheet sheet, HSSFRow row,
 			ReceivingReport receivingReport) {
 
-		PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper();
 		podetailHelper.generatePODetailsListFromSet(receivingReport.getPurchaseOrderDetails());
 		podetailHelper.generateCommaDelimitedValues();
 		int col = SASConstants.SUMMARY_TEMPLATE_SUPPLIER_RECEIVING_COL_START;
@@ -2243,7 +2367,6 @@ public class POIUtil {
 
 	private void putSupplierSalesInvoiceValues(HSSFSheet sheet, HSSFRow row,
 			SupplierInvoice supplierInvoice) {
-		PurchaseOrderDetailHelper podetailHelper = new PurchaseOrderDetailHelper();
 		podetailHelper.generatePODetailsListFromSet(supplierInvoice.getPurchaseOrderDetails());
 		podetailHelper.generateCommaDelimitedValues();
 		int col = SASConstants.SUMMARY_TEMPLATE_SUPPLIER_INVOICE_COL_START;
@@ -2286,10 +2409,16 @@ public class POIUtil {
 		Iterator itr = set.iterator();
 		Map<String, PurchaseOrderDetails> tempMap = new HashMap();
 		try {
+			int nullCtr= 0;
 			while (itr.hasNext()) {
 				PurchaseOrderDetails podetails = (PurchaseOrderDetails) itr
 						.next();
-				tempMap.put(podetails.getItemCode(), podetails);
+				String nullFiller = "Unlisted Item -";
+				
+				if(null==podetails.getItemCode() || "".equalsIgnoreCase(podetails.getItemCode()) || " ".equalsIgnoreCase(podetails.getItemCode())) {
+					nullFiller=nullFiller+nullCtr++;
+				}
+				tempMap.put(nullFiller+podetails.getItemCode(), podetails);
 			}
 
 		} catch (Exception e) {
@@ -2587,6 +2716,9 @@ public class POIUtil {
 
 	private void printCheckVoucher(HSSFWorkbook wb, CheckPayments chp,
 			String subModule) {
+		
+		initializeController();
+		
 		HSSFSheet sheet = wb.getSheetAt(1);
 		int currentRow = 0;
 
@@ -2828,7 +2960,7 @@ public class POIUtil {
 		
 		// START: replacement of values for accounting entries title	
 			//START Phase 3 - Azhee
-			List tempList = transactionMananger.listTransactionByParameterLike(com.shofuku.accsystem.domain.financials.Transaction.class,
+			List tempList = transactionManager.listTransactionByParameterLike(com.shofuku.accsystem.domain.financials.Transaction.class,
 					"transactionReferenceNumber", chp.getCheckVoucherNumber(), session);
 			Iterator itrTempList = tempList.iterator();
 			List transactionList = new ArrayList<com.shofuku.accsystem.domain.financials.Transaction>(); 
@@ -3033,14 +3165,13 @@ public class POIUtil {
 		
 		//
 		// Sorting PODetails using podetailsHelper
-		PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-		poDetailsHelper.setPurchaseOrderDetailsSet(csi
+		podetailHelper.setPurchaseOrderDetailsSet(csi
 				.getPurchaseOrderDetails());
-		sortListsAlphabetically(poDetailsHelper);
+		sortListsAlphabetically(podetailHelper);
 		// getting PODetails as sorted list
 		List sortedPurchaseOrderDetails = new ArrayList();
-		sortedPurchaseOrderDetails = poDetailsHelper
-				.generatePODetailsListFromSet(poDetailsHelper
+		sortedPurchaseOrderDetails = podetailHelper
+				.generatePODetailsListFromSet(podetailHelper
 						.getPurchaseOrderDetailsSet());
 		HSSFCellStyle style2 = wb.createCellStyle();
 		style2.setBorderBottom(HSSFCellStyle.BORDER_DOTTED);
@@ -3252,14 +3383,25 @@ public class POIUtil {
 		HashMap<String, PurchaseOrderDetails> map = new HashMap<String, PurchaseOrderDetails>();
 		Set<PurchaseOrderDetails> sortedMap = new HashSet<PurchaseOrderDetails>();
 		List itemCodeList = new ArrayList();
+		List unlistedItemsList= new ArrayList();
+		HashMap<String,PurchaseOrderDetails> unlistedItemsMap = new HashMap<String,PurchaseOrderDetails>();
+		
+		
 		try {
 			Iterator<PurchaseOrderDetails> itr = purchaseOrderDetailsList
 					.iterator();
 			while (itr.hasNext()) {
 				PurchaseOrderDetails podetails = (PurchaseOrderDetails) itr
 						.next();
-				map.put(podetails.getItemCode(), podetails);
-				itemCodeList.add(podetails.getItemCode());
+				if(podetails.getItemCode().trim().equalsIgnoreCase("")) {
+					unlistedItemsMap.put(SASConstants.NOT_APPLICABLE,podetails);
+					// YOU LEFT HERE PROBLEM: PODETAILS CANT SHOW FOR SAME ITEM CODES WHICH IS BLANK FOR UNLISTED ITEMS
+					unlistedItemsList.add(podetails);
+					
+				}else {
+					map.put(podetails.getItemCode(),podetails);
+					itemCodeList.add(podetails.getItemCode());
+				}
 			}
 
 			Collections.sort(itemCodeList);
@@ -3270,6 +3412,17 @@ public class POIUtil {
 				sortedPurchaseOrderDetailsList.add(map.get(code));
 				sortedMap.add(map.get(code));
 			}
+			
+			//include unlisted items
+			Iterator unlistedItemsMapItr = unlistedItemsList.iterator();
+			while(unlistedItemsMapItr.hasNext()) {
+				PurchaseOrderDetails podetails = (PurchaseOrderDetails)unlistedItemsMapItr.next();
+				sortedMap.add(podetails);
+			}
+			sortedPurchaseOrderDetailsList.addAll(unlistedItemsList);
+			//end include unlisted items
+
+			
 			poDetailsHelper.setPurchaseOrderDetailsSet(sortedMap);
 			poDetailsHelper
 					.setPurchaseOrderDetailsList(sortedPurchaseOrderDetailsList);
@@ -3374,14 +3527,13 @@ public class POIUtil {
 		}
 
 		// Sorting PODetails using podetailsHelper
-		PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-		poDetailsHelper.setPurchaseOrderDetailsSet(spo
+		podetailHelper.setPurchaseOrderDetailsSet(spo
 				.getPurchaseOrderDetails());
-		sortListsAlphabetically(poDetailsHelper);
+		sortListsAlphabetically(podetailHelper);
 		// getting PODetails as sorted list
 		List sortedPurchaseOrderDetails = new ArrayList();
-		sortedPurchaseOrderDetails = poDetailsHelper
-				.generatePODetailsListFromSet(poDetailsHelper
+		sortedPurchaseOrderDetails = podetailHelper
+				.generatePODetailsListFromSet(podetailHelper
 						.getPurchaseOrderDetailsSet());
 
 		Iterator itr = sortedPurchaseOrderDetails.iterator();

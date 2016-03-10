@@ -12,9 +12,7 @@ import com.shofuku.accsystem.dao.impl.TransactionsDaoImpl;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class TransactionManager {
-	
-	TransactionsDaoImpl transactionsDao = new TransactionsDaoImpl();
+public class TransactionManager extends BaseController {
 	
 	
 /*	public Transaction loadTransaction(String referenceId) {

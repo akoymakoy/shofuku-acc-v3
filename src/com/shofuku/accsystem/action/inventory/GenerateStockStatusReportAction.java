@@ -26,33 +26,58 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
+import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.CustomerManager;
+import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
+import com.shofuku.accsystem.controllers.LookupManager;
+import com.shofuku.accsystem.controllers.SupplierManager;
+import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Ingredient;
 import com.shofuku.accsystem.domain.inventory.ItemPricing;
-import com.shofuku.accsystem.domain.inventory.PurchaseOrder;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.StockStatus;
 import com.shofuku.accsystem.domain.inventory.StockStatusReport;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.InventoryUtil;
+import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 import com.shofuku.accsystem.utils.StockStatusReportPoiUtil;
 import com.thoughtworks.xstream.XStream;
 
-public class GenerateStockStatusReportAction extends ActionSupport {
+public class GenerateStockStatusReportAction extends ActionSupport implements Preparable {
 
 	private static final long serialVersionUID = 1L;
 
 	protected final Logger logger = LoggerFactory.getLogger(getClass());
-
 	
-	HibernateSessionWatcher watcher = new HibernateSessionWatcher();
+	Map actionSession;
+	UserAccount user;
+
+	InventoryManager inventoryManager;
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		
+	}
+	
 	
 	@SuppressWarnings("rawtypes")
 	List stockStatusList;
@@ -69,7 +94,6 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 	@SuppressWarnings("rawtypes")
 	List stockStatusParameterFields;
 	
-	InventoryManager manager=new InventoryManager();
 	InputStream xmlStreamOut;
 	
 	//summary report vars
@@ -195,7 +219,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					Map<String,Object> hashMapStarting = null;
 					//+1 since calendar MONTH starts from 0 , batch job starts with 1
 					hashMapStarting = populateParameterMap("", Integer.valueOf(startMonth)+1, Integer.valueOf(startYear));
-					List stockStatusListBeginning = manager.listInventoryByParametersLike(StockStatus.class, hashMapStarting,parameterFields,"itemCode" ,session);
+					List stockStatusListBeginning = inventoryManager.listInventoryByParametersLike(StockStatus.class, hashMapStarting,parameterFields,"itemCode" ,session);
 					stockStatusListBeginning= generateStockStatusListByDate(stockStatusListBeginning,startDay);
 					
 					Timestamp timestampFrom = dfh.parseStringToTimestamp(dateFrom);
@@ -218,7 +242,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 						
 						Map<String,Object> hashMapEnding = null;
 						hashMapEnding = populateParameterMap("", Integer.valueOf(endMonth)+1, Integer.valueOf(endYear));
-						List stockStatusListEnding = manager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
+						List stockStatusListEnding = inventoryManager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
 						stockStatusListEnding = generateStockStatusListByDate(stockStatusListEnding,endDay);
 						
 						stockStatusListBeginning = joinStockStausBeginningToMiddle(stockStatusListBeginning,stockStatusListEnding);
@@ -235,7 +259,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					
 					Map<String,Object> hashMapEnding = null;
 					hashMapEnding = populateParameterMap("", Integer.valueOf(endMonth)+1, Integer.valueOf(endYear));
-					List stockStatusListEnding = manager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
+					List stockStatusListEnding = inventoryManager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
 					stockStatusListEnding = generateStockStatusListByDate(stockStatusListEnding,endDay);
 					
 					stockStatusListBeginning = joinStockStausBeginningToMiddle(stockStatusListBeginning,stockStatusListEnding);
@@ -248,7 +272,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					
 					hashMapEnding = populateParameterMap("", Integer.valueOf(endMonth)+1, Integer.valueOf(endYear));
 					stockStatusListEnding = stockStatusListBeginning;
-					stockStatusListBeginning =	manager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
+					stockStatusListBeginning =	inventoryManager.listInventoryByParametersLike(StockStatus.class, hashMapEnding,parameterFields,"itemCode" ,session);
 					stockStatusListBeginning = generateStockStatusListByDate(stockStatusListBeginning,endDay);
 					
 					list = joinStockStausBeginningToEnding(stockStatusListBeginning, stockStatusListEnding);
@@ -353,7 +377,8 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 		return finalCombinedList;
 	}
 	
-
+	
+	
 	//treats every list as a beginning balance. use it either as a beginngin list or ending list on joinStockStausBeginningAndEnding()
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private List generateStockStatusListByDate(List stockStatusList,
@@ -374,7 +399,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					if(rm.getStockStatusDay().equals(endDay)) {
 							String itemCode = rm.getItemCode();
 							ssReport = new StockStatusReport(rm.getItemCode(),rm.getDescription(),rm.getUnitOfMeasurement(),
-									rm.getItemPricing().getCompanyOwnedStandardPricePerUnit(),rm.getQuantityPerRecord(),rm.getQuantityPerRecord()*rm.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,rm.getClassification(),rm.getSubClassification(),SASConstants.RAW_MATERIAL_ABBR);
+									rm.getItemPricing().getCompanyOwnedStandardPricePerUnit(),inventoryManager.getWarehouseBasedOnUserLocation(rm.getItemCode(), rm.getWarehouses()).getQuantityPerRecord(),inventoryManager.getWarehouseBasedOnUserLocation(rm.getItemCode(), rm.getWarehouses()).getQuantityPerRecord()*rm.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,rm.getClassification(),rm.getSubClassification(),SASConstants.RAW_MATERIAL_ABBR);
 					}else {
 						continue;
 					}
@@ -383,7 +408,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					if(fg.getStockStatusDay().equals(endDay)) {
 							String itemCode = fg.getProductCode();
 							ssReport = new StockStatusReport(fg.getProductCode(),fg.getDescription(),fg.getUnitOfMeasurement(),
-									fg.getItemPricing().getCompanyOwnedStandardPricePerUnit(),fg.getQuantityPerRecord(),fg.getQuantityPerRecord()*fg.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,fg.getClassification(),fg.getSubClassification(),SASConstants.FINISHED_GOOD_ABBR);
+									fg.getItemPricing().getCompanyOwnedStandardPricePerUnit(),inventoryManager.getWarehouseBasedOnUserLocation(fg.getProductCode(), fg.getWarehouses()).getQuantityPerRecord(),inventoryManager.getWarehouseBasedOnUserLocation(fg.getProductCode(), fg.getWarehouses()).getQuantityPerRecord()*fg.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,fg.getClassification(),fg.getSubClassification(),SASConstants.FINISHED_GOOD_ABBR);
 					}else {
 						continue;
 					}
@@ -392,7 +417,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					if(ti.getStockStatusDay().equals(endDay)) {
 							String itemCode = ti.getItemCode();
 							ssReport = new StockStatusReport(ti.getItemCode(),ti.getDescription(),ti.getUnitOfMeasurement(),
-									ti.getItemPricing().getCompanyOwnedStandardPricePerUnit(),ti.getQuantityPerRecord(),ti.getQuantityPerRecord()*ti.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,ti.getClassification(),ti.getSubClassification(),SASConstants.TRADED_ITEM_ABBR);
+									ti.getItemPricing().getCompanyOwnedStandardPricePerUnit(),inventoryManager.getWarehouseBasedOnUserLocation(ti.getItemCode(), ti.getWarehouses()).getQuantityPerRecord(),inventoryManager.getWarehouseBasedOnUserLocation(ti.getItemCode(), ti.getWarehouses()).getQuantityPerRecord()*ti.getItemPricing().getCompanyOwnedStandardPricePerUnit(),0.0,0.0,0.0,0.0,0.0,0.0,ti.getClassification(),ti.getSubClassification(),SASConstants.TRADED_ITEM_ABBR);
 					}else {
 						continue;
 					}
@@ -522,7 +547,7 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 					
 					ReturnSlip rs = new ReturnSlip();
 					
-					rs = (ReturnSlip) manager.listInventoryByParameter(ReturnSlip .class, "returnSlipNo",
+					rs = (ReturnSlip) inventoryManager.listInventoryByParameter(ReturnSlip .class, "returnSlipNo",
 							orders.get(String.valueOf(poDetails.getId())),getSession()).get(0);
 					if(rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_CUSTOMER_TO_WAREHOUSE) || rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_PRODUCTION_TO_WAREHOUSE)){
 						tempReceiptsQty = tempReceiptsQty+poDetails.getQuantity();
@@ -547,11 +572,11 @@ public class GenerateStockStatusReportAction extends ActionSupport {
 
 	
 	private List<PurchaseOrderDetails> getRelatedOrders(String itemCode,List<String> ordersRelated){
-		return manager.getRelatedOrders(itemCode,ordersRelated);
+		return inventoryManager.getRelatedOrders(itemCode,ordersRelated);
 	}
 	
 	private Map<String, String> getRelatedReturnSlipIds(String itemCode,List<String> ordersRelated){
-		return manager.getRelatedReturnSlipIds(itemCode,ordersRelated);
+		return inventoryManager.getRelatedReturnSlipIds(itemCode,ordersRelated);
 	}
 
 	public InputStream getXmlStreamOut() {

@@ -13,7 +13,9 @@ import javax.servlet.ServletContext;
 import org.apache.struts2.ServletActionContext;
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.ReportAndSummaryManager;
 import com.shofuku.accsystem.domain.disbursements.CashPayment;
@@ -22,12 +24,30 @@ import com.shofuku.accsystem.domain.disbursements.PettyCash;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class PrintDisbursementAction  extends ActionSupport{
-private static final long serialVersionUID = 1L;
+public class PrintDisbursementAction  extends ActionSupport implements Preparable{
+
+	private static final long serialVersionUID = 1L;
+
+	Map actionSession;
+	UserAccount user;
+
+	DisbursementManager disbursementManager;
+	ReportAndSummaryManager reportAndSummaryManager;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
+		reportAndSummaryManager = (ReportAndSummaryManager) actionSession.get("reportAndSummaryManager");
+		
+	}
 	
 	private String pcNo;
 	private String cpNo;
@@ -40,8 +60,6 @@ private static final long serialVersionUID = 1L;
 	private String amount;
 	private String amountInWords;
 	List<PurchaseOrderDetails> orderDetails;
-	DisbursementManager manager = new DisbursementManager();
-	
 	PettyCash pc;
 	CashPayment cp;
 	CheckPayments chp;
@@ -61,7 +79,7 @@ private static final long serialVersionUID = 1L;
 		if (getSubModule().equals("pettyCash")){
 			
 			PettyCash pc = new PettyCash();
-			pc = (PettyCash) manager.listDisbursementsByParameter(
+			pc = (PettyCash) disbursementManager.listDisbursementsByParameter(
 					PettyCash.class, "pcVoucherNumber",
 					this.getPcNo(),session).get(0);
 			setPc(pc);
@@ -69,7 +87,7 @@ private static final long serialVersionUID = 1L;
 			return "pettyCash";
 		}else if (getSubModule().equals("cashPayment")){
 			CashPayment cp = new CashPayment();
-			cp = (CashPayment) manager.listDisbursementsByParameter(
+			cp = (CashPayment) disbursementManager.listDisbursementsByParameter(
 					CashPayment.class, "cashVoucherNumber",
 					this.getCpNo(),session).get(0);
 			this.setCp(cp);
@@ -77,7 +95,7 @@ private static final long serialVersionUID = 1L;
 			return "cashPayment";
 		}else if (getSubModule().equals("checkPayment")){
 			CheckPayments chp = new CheckPayments();
-			chp = (CheckPayments) manager.listDisbursementsByParameter(
+			chp = (CheckPayments) disbursementManager.listDisbursementsByParameter(
 					CheckPayments.class, "checkVoucherNumber",
 					this.getChpNo(),session).get(0);
 			this.setChp(chp);
@@ -85,7 +103,7 @@ private static final long serialVersionUID = 1L;
 			return "checkPayment";
 		}else {
 			CheckPayments chp = new CheckPayments();
-			chp = (CheckPayments) manager.listDisbursementsByParameter(
+			chp = (CheckPayments) disbursementManager.listDisbursementsByParameter(
 					CheckPayments.class, "checkVoucherNumber",
 					this.getChpNo(),session).get(0);
 			orderDetails = new ArrayList<PurchaseOrderDetails>();
@@ -125,14 +143,14 @@ private static final long serialVersionUID = 1L;
 		try {
 			ServletContext servletContext = ServletActionContext
 					.getServletContext();
-			ReportAndSummaryManager reportSummaryMgr = new ReportAndSummaryManager();
+			
 			
 				CheckPayments chp = new CheckPayments();
-				chp = (CheckPayments) manager.listDisbursementsByParameter(
+				chp = (CheckPayments) disbursementManager.listDisbursementsByParameter(
 						CheckPayments.class, "checkVoucherNumber",
 						this.getChpNo(),session).get(0);
 
-			excelStream = reportSummaryMgr.printCheckPayments(chp,subModule,servletContext);
+			excelStream = reportAndSummaryManager.printCheckPayments(chp,subModule,servletContext);
 			forWhat="print";
 			contentDisposition = "filename=\"checkpayments.xls\"";
 			return SUCCESS;

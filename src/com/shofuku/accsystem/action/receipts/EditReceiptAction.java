@@ -4,30 +4,47 @@ package com.shofuku.accsystem.action.receipts;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
-import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.ReceiptsManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
-import com.shofuku.accsystem.domain.disbursements.CashPayment;
-import com.shofuku.accsystem.domain.disbursements.CheckPayments;
-import com.shofuku.accsystem.domain.disbursements.PettyCash;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class EditReceiptAction extends ActionSupport {
+public class EditReceiptAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	
+	Map actionSession;
+	UserAccount user;
+
+	ReceiptsManager receiptsManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		receiptsManager = (ReceiptsManager) actionSession.get("receiptsManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+	}
+	
+	
 	private String receiptModule;
 	private String forWhat;
 	private String forWhatDisplay;
@@ -36,17 +53,16 @@ public class EditReceiptAction extends ActionSupport {
 	ORSales orSales;
 	OROthers orOthers;
 	CashCheckReceipts ccReceipts;
+	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 			List accountProfileCodeList;
 			List<Transaction> transactionList;
 			List<Transaction> transactions;
 			Iterator itr;
-			
-			AccountEntryManager accountEntryManager = new AccountEntryManager();
-			TransactionManager transactionMananger = new TransactionManager();
+	//END 2013 - PHASE 3 : PROJECT 1: MARK  
+	
+	
 
-			//END 2013 - PHASE 3 : PROJECT 1: MARK  
-	ReceiptsManager manager = new ReceiptsManager();
 
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -60,11 +76,11 @@ public class EditReceiptAction extends ActionSupport {
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);
 			if (getReceiptModule().equalsIgnoreCase("orSales")) {
 				ORSales orSales = new ORSales();
-				orSales = (ORSales) manager.listReceiptsByParameter(
+				orSales = (ORSales) receiptsManager.listReceiptsByParameter(
 						ORSales.class, "orNumber",
 						this.getOrSales().getOrNumber(),session).get(0);
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", orSales.getOrNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", orSales.getOrNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -85,12 +101,12 @@ public class EditReceiptAction extends ActionSupport {
 				return "orSales";
 			} else if (getReceiptModule().equalsIgnoreCase("orOthers")) {
 				OROthers orOthers= new OROthers();
-				orOthers = (OROthers) manager.listReceiptsByParameter(
+				orOthers = (OROthers) receiptsManager.listReceiptsByParameter(
 						OROthers.class, "orNumber",
 						this.getOrOthers().getOrNumber(),session).get(0);
 				
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", orOthers.getOrNumber(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", orOthers.getOrNumber(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 
@@ -111,12 +127,12 @@ public class EditReceiptAction extends ActionSupport {
 				return "orOthers";
 			} else {
 				CashCheckReceipts cashCheckReceipts = new CashCheckReceipts();
-				cashCheckReceipts = (CashCheckReceipts) manager.listReceiptsByParameter(
+				cashCheckReceipts = (CashCheckReceipts) receiptsManager.listReceiptsByParameter(
 						CashCheckReceipts.class, "cashReceiptNo",
 						this.getCcReceipts().getCashReceiptNo(),session).get(0);
 				
 				//START Phase 3 - Azhee
-				List tempList = transactionMananger.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", ccReceipts.getCashReceiptNo(), session);
+				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", ccReceipts.getCashReceiptNo(), session);
 				if(tempList.size()>0) {
 					itr = tempList.iterator();
 					transactionList = new ArrayList<Transaction>(); 

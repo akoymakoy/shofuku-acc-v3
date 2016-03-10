@@ -13,6 +13,7 @@ import org.hibernate.Session;
 
 import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
@@ -21,6 +22,7 @@ import com.shofuku.accsystem.controllers.SupplierManager;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.ExportSearchResultsHelper;
@@ -28,20 +30,40 @@ import com.shofuku.accsystem.utils.FinancialReportsPoiHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class GenerateFinancialReportsAction extends ActionSupport {
+public class GenerateFinancialReportsAction extends ActionSupport implements Preparable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -5015769544134286832L;
+	
+
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	CustomerManager customerManager;
+	AccountEntryManager accountEntryManager;
+	ReportAndSummaryManager reportAndSummaryManager;
+	FinancialsManager financialsManager;
+	
+	FinancialReportsPoiHelper poiHelper;
+
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		reportAndSummaryManager = (ReportAndSummaryManager) actionSession.get("reportAndSummaryManager");
+		financialsManager 		= (FinancialsManager) 	actionSession.get("financialsManager");
+		
+		poiHelper = new FinancialReportsPoiHelper(actionSession);
+		
+	}
 
 	private static final Logger logger = Logger
 			.getLogger(ExportSearchResultsHelper.class);
 	
-	//Controllers
-	FinancialsManager financialsMgr = new FinancialsManager();
-	AccountEntryManager aepMgr = new AccountEntryManager();
-
 	//General Variables
 	InputStream excelStream;
 	String contentDisposition;
@@ -58,8 +80,6 @@ public class GenerateFinancialReportsAction extends ActionSupport {
 	List supplierList;
 	List customerList;
 	
-	
-	
 	/*LEGEND:
 	 * 	01-	Ledger account
 		02-	Trial balance
@@ -71,15 +91,17 @@ public class GenerateFinancialReportsAction extends ActionSupport {
 		08-	Journal Entries  --> General Journal
 		09-	VAT Report
 		10-	Check Encashment
+		11- Aging of Account Payable
+		12 Aging of Account Receivable
 		
 	 * */
 	public String execute() throws Exception{
 		Session session = getSession();
-		FinancialReportsPoiHelper poiHelper = new FinancialReportsPoiHelper();
+
 		DateFormatHelper dfh= new DateFormatHelper();
 		ServletContext servletContext = ServletActionContext
 				.getServletContext();
-		ReportAndSummaryManager reportSummaryMgr = new ReportAndSummaryManager();
+		
 		try {
 			
 			
@@ -88,10 +110,11 @@ public class GenerateFinancialReportsAction extends ActionSupport {
 				
 				// TODO: APPLY THIS LOGIC FOR LOGIN 
 				// get the data from session
-				Map actionSession = ActionContext.getContext().getSession();
-				Object data = (Object) actionSession.get("logined");
-				Object data2 = (Object) actionSession.get("context");
 				
+				//Map sess = ActionContext.getContext().getSession();
+				//sess.put("user",user.getUserName());
+				//sess.put("role",user.getRole());
+
 				poiHelper.setReportType(reportType);
 				excelStream = poiHelper.generateLedgerAccountsReport(dateFrom,dateTo,supplierList,customerList, session);
 				filename= SASConstants.LEDGER_REPORTS_FILENAME + dfh.getDateToday();
@@ -143,11 +166,10 @@ public class GenerateFinancialReportsAction extends ActionSupport {
 				//TODO: remove hardocded "accountProfileEntry" put it in constants
 				filename= SASConstants.CHART_OF_ACCOUNT_FILENAME + dfh.getDateToday();
 				String subModule = "AccountEntryProfile";
-				excelStream = reportSummaryMgr.generateSummary(servletContext,
+				excelStream = reportAndSummaryManager.generateSummary(servletContext,
 						dateFrom, dateTo, subModule,session);
 			}else {
 				 preloadLists(session);
-				 Map actionSession = ActionContext.getContext().getSession();
 				 actionSession.put("logined","true");
 				 actionSession.put("context", new Date());
 				return INPUT;
@@ -169,11 +191,9 @@ public class GenerateFinancialReportsAction extends ActionSupport {
 	
 	private void preloadLists(Session session) {
 		// Pre-load all lists needed 
-		SupplierManager supMgr = new SupplierManager();
-		supplierList = supMgr.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
 		
-		CustomerManager cusMgr = new CustomerManager();
-		customerList = cusMgr.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+		supplierList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
+		customerList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
 	}
 	
 

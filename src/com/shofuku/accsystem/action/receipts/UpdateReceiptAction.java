@@ -3,10 +3,13 @@ package com.shofuku.accsystem.action.receipts;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.ReceiptsManager;
@@ -17,15 +20,36 @@ import com.shofuku.accsystem.domain.financials.Vat;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class UpdateReceiptAction extends ActionSupport{
+public class UpdateReceiptAction extends ActionSupport implements Preparable{
 
 	
 	private static final long serialVersionUID = 1L;
+
+	Map actionSession;
+	UserAccount user;
+
+	ReceiptsManager receiptsManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	FinancialsManager financialsManager;	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		receiptsManager = (ReceiptsManager) actionSession.get("receiptsManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+	}
 	
 
 	private String forWhat;
@@ -45,12 +69,8 @@ public class UpdateReceiptAction extends ActionSupport{
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
-		AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil();
-		AccountEntryManager accountEntryManager = new AccountEntryManager();
-		TransactionManager transactionMananger = new TransactionManager();
-		FinancialsManager financialsManager = new FinancialsManager();
-		//END 2013 - PHASE 3 : PROJECT 1: MARK  
-	ReceiptsManager manager = new ReceiptsManager();
+		AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil(actionSession);
+	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 	
 	
 	private Session getSession() {
@@ -69,7 +89,7 @@ public class UpdateReceiptAction extends ActionSupport{
 				
 				orSales.setOrNumber(orSNo);
 				//START - 2013 - PHASE 3 : PROJECT 1: MARK
-				transactionMananger.discontinuePreviousTransactions(orSales.getOrNumber(),session);
+				transactionManager.discontinuePreviousTransactions(orSales.getOrNumber(),session);
 				transactionList = getTransactionList();
 				updateAccountingEntries(orSales.getOrNumber(),session,SASConstants.ORSALES);
 				this.setTransactionList(transactions);
@@ -85,7 +105,7 @@ public class UpdateReceiptAction extends ActionSupport{
 				if (validateORSales()) {
 				
 				}else {
-					updateResult = manager.updateReceipts(orSales,session);
+					updateResult = receiptsManager.updateReceipts(orSales,session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
@@ -97,7 +117,7 @@ public class UpdateReceiptAction extends ActionSupport{
 			}else if (getSubModule().equalsIgnoreCase("orOthers")){
 				orOthers.setOrNumber(orONo);
 				//START - 2013 - PHASE 3 : PROJECT 1: MARK
-				transactionMananger.discontinuePreviousTransactions(orOthers.getOrNumber(),session);
+				transactionManager.discontinuePreviousTransactions(orOthers.getOrNumber(),session);
 				//transactionList = new ArrayList();
 				transactionList = getTransactionList();
 				updateAccountingEntries(orOthers.getOrNumber(),session,SASConstants.OROTHERS);
@@ -114,7 +134,7 @@ public class UpdateReceiptAction extends ActionSupport{
 				if (validateOROther()) {
 					
 				}else {
-					updateResult = manager.updateReceipts(orOthers,session);
+					updateResult = receiptsManager.updateReceipts(orOthers,session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
@@ -126,7 +146,7 @@ public class UpdateReceiptAction extends ActionSupport{
 			}else {
 				ccReceipts.setCashReceiptNo(crNo);
 				//START - 2013 - PHASE 3 : PROJECT 1: MARK
-				transactionMananger.discontinuePreviousTransactions(ccReceipts.getCashReceiptNo(),session);
+				transactionManager.discontinuePreviousTransactions(ccReceipts.getCashReceiptNo(),session);
 				//transactionList = new ArrayList();
 				transactionList = getTransactionList();
 				updateAccountingEntries(ccReceipts.getCashReceiptNo(),session,SASConstants.CASHCHECKRECEIPTS);
@@ -143,7 +163,7 @@ public class UpdateReceiptAction extends ActionSupport{
 				if (validateCashCheckReceipt()) {
 					
 				}else {
-					updateResult = manager.updateReceipts(ccReceipts,session);
+					updateResult = receiptsManager.updateReceipts(ccReceipts,session);
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
@@ -197,7 +217,7 @@ if(transactionList!=null) {
 		transaction.setIsInUse(SASConstants.TRANSACTION_IN_USE);
 		transactions.add(transaction);
 	}
-	transactionMananger.addTransactionsList(transactions,session);
+	transactionManager.addTransactionsList(transactions,session);
 }
 //END - 2013 - PHASE 3 : PROJECT 1: MARK
 //return transactions;

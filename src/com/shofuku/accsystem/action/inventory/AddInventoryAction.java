@@ -5,15 +5,18 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.StringTokenizer;
 
 import org.hibernate.Session;
-import org.hibernate.engine.loading.internal.LoadContexts;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
+import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.controllers.LookupManager;
 import com.shofuku.accsystem.controllers.SupplierManager;
@@ -25,18 +28,19 @@ import com.shofuku.accsystem.domain.inventory.FinishedGood;
 import com.shofuku.accsystem.domain.inventory.Ingredient;
 import com.shofuku.accsystem.domain.inventory.Item;
 import com.shofuku.accsystem.domain.inventory.ItemPricing;
+import com.shofuku.accsystem.domain.inventory.OfficeSupplies;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.RawMaterial;
 import com.shofuku.accsystem.domain.inventory.RequisitionForm;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.inventory.TradedItem;
+import com.shofuku.accsystem.domain.inventory.UnlistedItem;
 import com.shofuku.accsystem.domain.inventory.Utensils;
+import com.shofuku.accsystem.domain.inventory.Warehouse;
 import com.shofuku.accsystem.domain.lookups.InventoryClassification;
 import com.shofuku.accsystem.domain.lookups.UnitOfMeasurements;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.Supplier;
-import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
-import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.DoubleConverter;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
@@ -44,9 +48,63 @@ import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class AddInventoryAction extends ActionSupport {
+public class AddInventoryAction extends ActionSupport implements Preparable{
 
 	private static final long serialVersionUID = 1L;
+	
+	Map actionSession;
+	UserAccount user;
+
+	SupplierManager supplierManager;
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	InventoryManager inventoryManager;
+	FinancialsManager financialsManager;	
+	LookupManager lookupManager;
+	CustomerManager customerManager;
+	
+	RecordCountHelper rch;
+	InventoryUtil invUtil;
+	
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		supplierManager = (SupplierManager) actionSession.get("supplierManager");
+		customerManager = (CustomerManager) actionSession.get("customerManager");
+		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager = (TransactionManager) actionSession.get("transactionManager");
+		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
+		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		lookupManager = (LookupManager) actionSession.get("lookupManager");
+		
+		rch = new RecordCountHelper(actionSession);
+		invUtil = new InventoryUtil(actionSession);
+		
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		
+	}
+	
+	
 
 	private String subModule;
 	private String forWhat;
@@ -59,6 +117,8 @@ public class AddInventoryAction extends ActionSupport {
 	RequisitionForm rf;
 	ReturnSlip rs;
 	Utensils u;
+	UnlistedItem unl;
+	OfficeSupplies os;
 
 	String returnSlipToValue;
 	
@@ -68,9 +128,6 @@ public class AddInventoryAction extends ActionSupport {
 	private String productNo;
 	private String itemNo;
 	
-	
-	InventoryManager manager = new InventoryManager();
-	InventoryUtil invUtil = new InventoryUtil();
 
 	Ingredient sangkap;
 	Ingredient returnSlipSearchItem;
@@ -92,18 +149,10 @@ public class AddInventoryAction extends ActionSupport {
 
 	private boolean otherUOMSelected;
 	
-	PurchaseOrderDetailHelper poDetailsHelper;
-	PurchaseOrderDetailHelper poDetailsHelperToCompare;	
-	PurchaseOrderDetailHelper poDetailsHelperDraft;
-	RecordCountHelper rch = new RecordCountHelper();
-	
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
-		AccountEntryManager accountEntryManager = new AccountEntryManager();
-		TransactionManager transactionMananger = new TransactionManager();
-		
 		//END 2013 - PHASE 3 : PROJECT 1: MARK 
 
 	private Session getSession() {
@@ -114,11 +163,8 @@ public class AddInventoryAction extends ActionSupport {
 		
 		Session session = getSession();
 		try {
-			
-			
 		if (getSubModule().equalsIgnoreCase("fpts")) {
-			
-			rfNoList = manager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo", session);
+			rfNoList = inventoryManager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo", session);
 		/*	fpts = new FPTS();
 			fpts.setFptsNo(rch.getPrefix(
 					SASConstants.INVENTORY_FPTS, SASConstants.INVENTORY_FPTS_PREFIX)); */
@@ -138,7 +184,6 @@ public class AddInventoryAction extends ActionSupport {
 		}else {
 			return INPUT;
 		}
-		
 		
 		}catch (Exception e) {
 			e.printStackTrace();
@@ -168,13 +213,6 @@ public class AddInventoryAction extends ActionSupport {
 
 				if (validateRawMat()) {
 				} else {
-					//getListOfAllItems(getSubModule());
-//					List itemsList = new ArrayList();
-//					List<RawMaterial> rawMatList = null;
-//					rawMatList = manager.listInventoryByParameter(
-//							RawMaterial.class, "itemCode", getRm()
-//									.getItemCode(), session);
-//				
 					if (isExistingInAllItems(getRm().getItemCode())) {
 						addActionMessage(SASConstants.EXISTS);
 					} else {
@@ -186,7 +224,14 @@ public class AddInventoryAction extends ActionSupport {
 								loadLookLists();
 							}
 						processItemPricing(session, rm);
-						addResult = manager.addInventoryObject(rm, session);
+						
+						//ADDED FOR WAREHOUSE IMPLEMENTATION
+						rm.getWarehouse().setItemCode(rm.getItemCode());
+						rm.getWarehouse().setLocationCode(inventoryManager.getUser().getLocation());
+						rm.setWarehouses(inventoryManager.populateNewWarehousesSet(new HashSet<Warehouse>(0) , rm.getWarehouse()));
+						//END WAREHOUSE IMPLEMENTATION
+						
+						addResult = inventoryManager.addInventoryObject(rm, session);
 
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -202,10 +247,6 @@ public class AddInventoryAction extends ActionSupport {
 				
 				if (validateTradedItems()) {
 				} else {
-//					List<TradedItem> tradedItemsList = null;
-//					tradedItemsList = manager.listInventoryByParameter(
-//							TradedItem.class, "itemCode", getTi()
-//									.getItemCode(), session);
 					if (isExistingInAllItems(getTi()
 							.getItemCode())) {
 						addActionMessage(SASConstants.EXISTS);
@@ -218,7 +259,7 @@ public class AddInventoryAction extends ActionSupport {
 								loadLookLists();
 							}
 						processItemPricing(session, ti);
-						addResult = manager.addInventoryObject(ti, session);
+						addResult = inventoryManager.addInventoryObject(ti, session);
 
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -247,7 +288,7 @@ public class AddInventoryAction extends ActionSupport {
 								loadLookLists();
 							}
 						processItemPricing(session, u);
-						addResult = manager.addInventoryObject(u, session);
+						addResult = inventoryManager.addInventoryObject(u, session);
 
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -259,6 +300,38 @@ public class AddInventoryAction extends ActionSupport {
 					}
 				}
 				return "utensils";
+			} else if (getSubModule().equalsIgnoreCase("unlistedItems")) {
+				
+				if (isValidateUnlistedItems()) {
+				} else {
+				
+					if (isExistingInAllItems(getUnl()
+							.getItemCode())) {
+						addActionMessage(SASConstants.EXISTS);
+					} else {
+						if (otherUOMSelected)
+							if (lookupManager.addNewUOM(new UnitOfMeasurements(
+									unl.getUom(), "GENERAL"),
+									session)) {
+								session = getSession();
+								loadLookLists();
+							}
+						//processItemPricing(session, u);
+						addResult = inventoryManager.addInventoryObject(unl, session);
+
+						if (addResult == true) {
+							addActionMessage(SASConstants.ADD_SUCCESS);
+							forWhat = "true";
+							forWhatDisplay = "edit";
+						} else {
+							addActionError(SASConstants.FAILED);
+						}
+					}
+				}
+				return "unlistedItems";
+			}else if (getSubModule().equalsIgnoreCase("ofcSup")) {
+				return addOfficeSupplies();
+						
 			}else if (getSubModule().equalsIgnoreCase("returnSlip")) {
 				return addReturnSlip();
 						
@@ -273,7 +346,7 @@ public class AddInventoryAction extends ActionSupport {
 					setIngredientListFromArray(false);
 				} else {
 					List<FinishedGood> finGoodList = null;
-					finGoodList = manager.listInventoryByParameter(
+					finGoodList = inventoryManager.listInventoryByParameter(
 							FinishedGood.class, "productCode", getFg()
 									.getProductCode(), session);
 					if (isExistingInAllItems(getFg()
@@ -292,7 +365,7 @@ public class AddInventoryAction extends ActionSupport {
 						processItemPricing(session, fg);
 
 						listToSet();
-						fg.setIngredients(manager.persistsIngredients(
+						fg.setIngredients(inventoryManager.persistsIngredients(
 								finalIngredients, session));
 						if (otherUOMSelected) {
 							if (lookupManager.addNewUOM(new UnitOfMeasurements(
@@ -302,7 +375,8 @@ public class AddInventoryAction extends ActionSupport {
 								loadLookLists();
 							}
 						}
-						addResult = manager.addInventoryObject(fg, session);
+						fg.setClassification(classification);
+						addResult = inventoryManager.addInventoryObject(fg, session);
 						if (addResult == true) {
 							addActionMessage(SASConstants.ADD_SUCCESS);
 							forWhat = "true";
@@ -323,6 +397,10 @@ public class AddInventoryAction extends ActionSupport {
 				return "tradedItems";
 			}else if (getSubModule().equalsIgnoreCase("utensils")) {
 				return "utensils";
+			}else if (getSubModule().equalsIgnoreCase("ofcSup")) {
+				return "ofcSup";
+			}else if (getSubModule().equalsIgnoreCase("unlistedItems")) {
+				return "unlistedItems";
 			}else if (getSubModule().equalsIgnoreCase("fpts")) {
 				return "fpts";
 			}else if (getSubModule().equalsIgnoreCase("rf")) {
@@ -339,7 +417,6 @@ public class AddInventoryAction extends ActionSupport {
 				session.getSessionFactory().close();
 			}
 		}
-
 	}
 	
 	private boolean isExistingInAllItems(String itemCode) {
@@ -359,9 +436,11 @@ public class AddInventoryAction extends ActionSupport {
 	private ArrayList<Item> getAllItemList(Session session) {
 		Iterator iterator = null;
 		
-		List<RawMaterial> rawMatList =manager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
-		List<TradedItem> tradedItemList =manager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
-		List<FinishedGood> finList = manager.listAlphabeticalAscByParameter(FinishedGood.class, "subClassification", session);
+		List<RawMaterial> rawMatList =inventoryManager.listAlphabeticalAscByParameter(RawMaterial.class, "subClassification",session);
+		List<TradedItem> tradedItemList =inventoryManager.listAlphabeticalAscByParameter(TradedItem.class, "subClassification",session);
+		List<Utensils> utensilsList =inventoryManager.listAlphabeticalAscByParameter(Utensils.class, "subClassification",session);
+		List<OfficeSupplies> ofcSupList =inventoryManager.listAlphabeticalAscByParameter(OfficeSupplies.class, "subClassification",session);
+		List<FinishedGood> finList = inventoryManager.listAlphabeticalAscByParameter(FinishedGood.class, "subClassification", session);
 		
 		HashMap<String,ArrayList<Item>> subClassMap = new HashMap<String,ArrayList<Item>>();
 		
@@ -371,7 +450,8 @@ public class AddInventoryAction extends ActionSupport {
 		while(iterator.hasNext()) {
 			RawMaterial rawMaterial = (RawMaterial) iterator.next();
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				Item item = new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable());
+				Item item = new Item(rawMaterial.getItemCode(), rawMaterial.getDescription(), rawMaterial.getUnitOfMeasurement(),
+						rawMaterial.getClassification(), rawMaterial.getSubClassification(),rawMaterial.getIsVattable());
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				item.setItemType("rawMat");
 				tempList.add(item);
@@ -382,23 +462,74 @@ public class AddInventoryAction extends ActionSupport {
 		while(iterator.hasNext()) {
 			TradedItem tradedItem = (TradedItem) iterator.next();
 				//START: 2013 - PHASE 3 : PROJECT 4: MARK
-				Item item = new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable());
+				Item item = new Item(tradedItem.getItemCode(), tradedItem.getDescription(), tradedItem.getUnitOfMeasurement(),
+						tradedItem.getClassification(), tradedItem.getSubClassification(),tradedItem.getIsVattable());
 				//END: 2013 - PHASE 3 : PROJECT 4: MARK
 				item.setItemType("tradedItems");
 				tempList.add(item);
 		}
-		
-		
+		iterator = utensilsList.iterator();
+		while(iterator.hasNext()) {
+			Utensils utensils = (Utensils) iterator.next();
+				//START: 2013 - PHASE 3 : PROJECT 4: AZ
+				Item item = new Item(utensils.getItemCode(), utensils.getDescription(), utensils.getUnitOfMeasurement()
+						,utensils.getClassification(), utensils.getSubClassification(),utensils.getIsVattable());
+				//END: 2013 - PHASE 3 : PROJECT 4: AZ
+				item.setItemType("utensils");
+				tempList.add(item);
+		}
+		iterator = ofcSupList.iterator();
+		while(iterator.hasNext()) {
+			OfficeSupplies ofcSup = (OfficeSupplies) iterator.next();
+				//START: 2013 - PHASE 3 : PROJECT 4: AZ
+				Item item = new Item(ofcSup.getItemCode(), ofcSup.getDescription(), ofcSup.getUnitOfMeasurement()
+						,ofcSup.getClassification(), ofcSup.getSubClassification(),ofcSup.getIsVattable());
+				//END: 2013 - PHASE 3 : PROJECT 4: AZ
+				item.setItemType("ofcSup");
+				tempList.add(item);
+		}
 		iterator = finList.iterator();
 		while(iterator.hasNext()){
 			FinishedGood finGood = (FinishedGood) iterator.next();
-				Item item = new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable());
+				Item item = new Item(finGood.getProductCode(), finGood.getDescription(), finGood.getUnitOfMeasurement(),
+						finGood.getClassification(),finGood.getSubClassification(),finGood.getIsVattable());
 				item.setItemType("finGood");
 				tempList.add(item);
 		}
-		
 		return tempList;
 	}
+
+	private String addOfficeSupplies(){
+		Session session = getSession();
+		boolean addResult = false;
+		if (validateOfficeSupplies()) {
+		} else {
+			if (isExistingInAllItems(getOs()
+					.getItemCode())) {
+				addActionMessage(SASConstants.EXISTS);
+			} else {
+				if (otherUOMSelected)
+					if (lookupManager.addNewUOM(new UnitOfMeasurements(
+							os.getUnitOfMeasurement(), "GENERAL"),
+							session)) {
+						session = getSession();
+						loadLookLists();
+					}
+				processItemPricing(session, os);
+				addResult = inventoryManager.addInventoryObject(os, session);
+
+				if (addResult == true) {
+					addActionMessage(SASConstants.ADD_SUCCESS);
+					forWhat = "true";
+					forWhatDisplay = "edit";
+				} else {
+					addActionError(SASConstants.FAILED);
+				}
+			}
+		}
+		return "ofcSup";
+	}
+	
 
 	private String addRequisitionForm() {
 		Session session = getSession();
@@ -412,7 +543,7 @@ public class AddInventoryAction extends ActionSupport {
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			rf.setRequisitionNo(rch.getPrefix(
 					SASConstants.INVENTORY_REQUISITION_FORM, SASConstants.INVENTORY_RF_PREFIX));
-			addResult = manager.addInventoryObject(rf,session);
+			addResult = inventoryManager.addInventoryObject(rf,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.RF, "add");
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -427,7 +558,6 @@ public class AddInventoryAction extends ActionSupport {
 
 	private boolean validateRF() 
 		 {
-			
 			boolean errorFound = false;
 			
 			/*if ("".equals(rf.getRequisitionNo())) {
@@ -442,7 +572,6 @@ public class AddInventoryAction extends ActionSupport {
 			if (null == (rf.getRequisitionDate())) {
 				 addActionMessage("REQUIRED: Transaction Date");
 				errorFound = true;
-			
 			}
 			if ("".equals(rf.getRequisitionType())) {
 				addFieldError("rf.requisitionType", "REQUIRED");
@@ -462,16 +591,15 @@ public class AddInventoryAction extends ActionSupport {
 	private String addFPTS() {
 		Session session = getSession();
 		boolean addResult = false;
-		rfNoList = manager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo", session);
+		
+		rfNoList = inventoryManager.listAlphabeticalAscByParameter(RequisitionForm.class, "requisitionNo", session);
 		if (validateFPTS()) {
 		} else {
 			List rfList = null;
-			rfList = manager.listInventoryByParameter(RequisitionForm.class, "requisitionNo", getFpts().getRequisitionForm().getRequisitionNo(), session);
+			rfList = inventoryManager.listInventoryByParameter(RequisitionForm.class, "requisitionNo", getFpts().getRequisitionForm().getRequisitionNo(), session);
 			fpts.setRequisitionForm((RequisitionForm) rfList.get(0));
 			fpts.setPurchaseOrderDetailsReceived(fpts.getRequisitionForm().getPurchaseOrderDetailsOrdered());
-			if (null == poDetailsHelperToCompare) {
-				poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
-			}
+
 			poDetailsHelperToCompare.generatePODetailsListFromSet(fpts.getRequisitionForm().getPurchaseOrderDetailsOrdered());
 			poDetailsHelperToCompare.generateCommaDelimitedValues();
 			poDetailsHelperToCompare.setOrderDate(fpts.getTransactionDate());
@@ -485,7 +613,7 @@ public class AddInventoryAction extends ActionSupport {
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			fpts.setFptsNo(rch.getPrefix(
 					SASConstants.INVENTORY_FPTS, SASConstants.INVENTORY_FPTS_PREFIX));
-			addResult = manager.addInventoryObject(fpts,session);
+			addResult = inventoryManager.addInventoryObject(fpts,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.FPTS, "add");
 							addActionMessage(SASConstants.ADD_SUCCESS);
@@ -505,13 +633,14 @@ public class AddInventoryAction extends ActionSupport {
 		}else {
 			boolean addResult = false;
 			Session session = getSession();
+			
 			poDetailsHelperToCompare.prepareSetAndList();
 			//2014 - ITEM COLORING
 			poDetailsHelperToCompare.generateItemTypesForExistingItems(session);
 			poDetailsHelperDraft.setOrderDate(rs.getReturnDate());
 			rs.setPurchaseOrderDetails(poDetailsHelperDraft.persistNewSetElements(session));
 			poDetailsHelperDraft.generatePODetailsListFromSet(rs.getPurchaseOrderDetails());
-			manager.persistMemo(rs.getMemo(),session);
+			inventoryManager.persistMemo(rs.getMemo(),session);
 			//update inventory record count
 			updateInventory(rs.getPurchaseOrderDetails());
 			
@@ -522,7 +651,7 @@ public class AddInventoryAction extends ActionSupport {
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			rs.setReturnSlipNo(rch.getPrefix(
 					SASConstants.INVENTORY_RETURN_SLIP_FORM, SASConstants.INVENTORY_RETURN_SLIP_PREFIX));
-			addResult = manager.addInventoryObject(rs,session);
+			addResult = inventoryManager.addInventoryObject(rs,session);
 			if (addResult == true) {
 				rch.updateCount(SASConstants.RETURNSLIP,"add");
 				addActionMessage(SASConstants.ADD_SUCCESS);
@@ -584,11 +713,11 @@ public class AddInventoryAction extends ActionSupport {
 
 	private void updateInventoryItems(PurchaseOrderDetails poDetails,Session session) {
 			if(rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_CUSTOMER_TO_WAREHOUSE) || rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_PRODUCTION_TO_WAREHOUSE)){
-					manager.addInventoryItem(manager.determineItemTypeFromPoDetails(poDetails),session);
-					manager.commitChanges(session);
+					inventoryManager.updateInventoryItemRecordCountFromOrder(inventoryManager.setQinAndQoutBasedOnItemType(poDetails,SASConstants.ADD),session);
+					inventoryManager.commitChanges(session);
 			}else if(rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_WAREHOUSE_TO_SUPPLIER)||rs.getReturnSlipTo().equalsIgnoreCase(SASConstants.RS_WAREHOUSE_TO_PRODUCTION)) {
-					manager.deductInventoryItem(manager.determineItemTypeFromPoDetails(poDetails),session);
-					manager.commitChanges(session);
+					inventoryManager.updateInventoryItemRecordCountFromOrder(inventoryManager.setQinAndQoutBasedOnItemType(poDetails,SASConstants.SUBTRACT),session);
+					inventoryManager.commitChanges(session);
 			}else {
 			}
 			
@@ -619,7 +748,7 @@ public class AddInventoryAction extends ActionSupport {
 	@Deprecated
 	private boolean isFromCustomer(String id) {
 		CustomerManager customerManager = new CustomerManager();
-		Customer customer = customerManager.loadSupplier(id);
+		Customer customer = customerManager.loadCustomer(id);
 		if(customer==null) {
 			return false;
 		}else {
@@ -632,27 +761,24 @@ public class AddInventoryAction extends ActionSupport {
 		ItemPricing itemPricing = new ItemPricing();
 		String itemCode = "";
 		String itemType = "";
+
 		if (obj instanceof RawMaterial) {
-			itemPricing = invUtil.getItemPricing(session, rm.getItemCode());
 			itemCode = rm.getItemCode();
 			itemType = SASConstants.RAW_MATERIAL_ABBR;
 		} else if (obj instanceof FinishedGood) {
-			itemPricing = invUtil.getItemPricing(session, fg.getProductCode());
 			itemCode = fg.getProductCode();
 			itemType = SASConstants.FINISHED_GOOD_ABBR;
 		} else if (obj instanceof TradedItem) {
-			itemPricing = invUtil.getItemPricing(session, ti.getItemCode());
 			itemCode = ti.getItemCode();
 			itemType = SASConstants.TRADED_ITEM_ABBR;
 		}else if (obj instanceof Utensils) {
-			itemPricing = invUtil.getItemPricing(session, u.getItemCode());
 			itemCode = u.getItemCode();
 			itemType = SASConstants.UTENSILS_ABBR;
+		}else if (obj instanceof OfficeSupplies) {
+			itemCode = os.getItemCode();
+			itemType = SASConstants.OFFICE_SUPPLIES_ABBR;
 		}
-		// else if (obj instanceof TradedItem)
-
-		if (itemPricing == null) {
-			itemPricing = new ItemPricing();
+	
 			if (obj instanceof RawMaterial) {
 				itemPricing = rm.getItemPricing();
 			} else if (obj instanceof FinishedGood) {
@@ -661,26 +787,25 @@ public class AddInventoryAction extends ActionSupport {
 				itemPricing = ti.getItemPricing();
 			}else if (obj instanceof Utensils) {
 				itemPricing = u.getItemPricing();
+			}else if (obj instanceof OfficeSupplies) {
+				itemPricing = os.getItemPricing();
 			}
 			
 			itemPricing.setItemCode(itemCode);
 			itemPricing.setItemType(itemType);
-			manager.addPersistingInventoryObject(itemPricing, session);
-			itemPricing = invUtil.getItemPricing(session, itemCode);
-		} else {
-			itemPricing = invUtil.getItemPricing(session, itemCode);
-		}
+			inventoryManager.addPersistingInventoryObject(itemPricing, session);
+
 		if (obj instanceof RawMaterial) {
 			rm.setItemPricing(itemPricing);
-		} else if (obj instanceof FinishedGood) {
+		}else if (obj instanceof FinishedGood) {
 			fg.setItemPricing(itemPricing);
-		} else if (obj instanceof TradedItem) {
+		}else if (obj instanceof TradedItem) {
 			ti.setItemPricing(itemPricing);
 		}else if (obj instanceof Utensils) {
 			u.setItemPricing(itemPricing);
+		}else if (obj instanceof OfficeSupplies) {
+			os.setItemPricing(itemPricing);
 		}
-		// else if (obj instanceof TradedItem)
-
 	}
 
 	private void setFGCompanyOwnedPrice() {
@@ -710,7 +835,6 @@ public class AddInventoryAction extends ActionSupport {
 								+ (fg.getActualTotalCost() / fg.getYields())));
 			}
 		}
-
 	}
 
 	private Set finalIngredients;
@@ -762,7 +886,7 @@ public class AddInventoryAction extends ActionSupport {
 				in.setDescription(((String) descItrTk.nextElement()).trim());
 				in.setUnitOfMeasurement(((String) uomItrTk.nextElement())
 						.trim());
-				in = manager.loadIngredientPrices(in, session);
+				in = inventoryManager.loadIngredientPrices(in, session);
 				ingredients.add(in);
 			}
 			if(forFinGood) {
@@ -806,7 +930,7 @@ public class AddInventoryAction extends ActionSupport {
 				in.setDescription(((String) descItrTk.nextElement()).trim());
 				in.setUnitOfMeasurement(((String) uomItrTk.nextElement())
 						.trim());
-				in = manager.loadIngredientPrices(in, session);
+				in = inventoryManager.loadIngredientPrices(in, session);
 				returnSlipItems.add(in);
 			}
 				if (includeNewItem) {
@@ -843,8 +967,6 @@ public class AddInventoryAction extends ActionSupport {
 	
 	List supplierAndCustomerList;
 
-	LookupManager lookupManager = new LookupManager();
-
 	private List generateUOMStrings(List uomList) {
 		List uomStringsList = new ArrayList();
 		Iterator iterator = uomList.iterator();
@@ -863,6 +985,8 @@ public class AddInventoryAction extends ActionSupport {
 		Session session = getSession();
 		UOMList = generateUOMStrings(lookupManager.getLookupElements(
 				UnitOfMeasurements.class, "GENERAL", session));
+		rm = new RawMaterial();
+		forWhatDisplay = "new";
 		return "rawMat";
 	}
 	
@@ -872,6 +996,8 @@ public class AddInventoryAction extends ActionSupport {
 	
 		UOMList = generateUOMStrings(lookupManager.getLookupElements(
 				UnitOfMeasurements.class, "GENERAL", session));
+		ti = new TradedItem();
+		forWhatDisplay = "new";
 		return "tradedItems";
 	}
 	public String loadLookListsInUtensils() {
@@ -880,7 +1006,26 @@ public class AddInventoryAction extends ActionSupport {
 	
 		UOMList = generateUOMStrings(lookupManager.getLookupElements(
 				UnitOfMeasurements.class, "GENERAL", session));
+		u = new Utensils();
+		forWhatDisplay = "new";
 		return "utensils";
+	}
+	public String loadLookListsInOfficeSupplies() {
+		Session session = getSession();
+			UOMList = generateUOMStrings(lookupManager.getLookupElements(
+					UnitOfMeasurements.class, "GENERAL", session));
+			os = new OfficeSupplies();
+			forWhatDisplay = "new";
+		return "ofcSup";
+	}
+	public String loadLookListsInUnlistedItems() {
+		Session session = getSession();
+		
+		UOMList = generateUOMStrings(lookupManager.getLookupElements(
+				UnitOfMeasurements.class, "GENERAL", session));
+		unl = new UnlistedItem();
+		forWhatDisplay = "new";
+		return "unlistedItems";
 	}
 	
 
@@ -894,8 +1039,7 @@ public class AddInventoryAction extends ActionSupport {
 			if(requestingModule.equalsIgnoreCase("returnSlip")) {
 				
 			}else {
-				itemCodeList = manager.loadItemListFromRawAndFin(session);
-				
+				itemCodeList = inventoryManager.loadItemListFromRawAndFin(session);
 			}
 			
 		} catch (Exception e) {
@@ -905,6 +1049,10 @@ public class AddInventoryAction extends ActionSupport {
 					return "tradedItems";
 			}else if (getSubModule().equalsIgnoreCase("utensils") || getRequestingModule().equalsIgnoreCase("utensils")) {
 				return "utensils";
+			}else if (getSubModule().equalsIgnoreCase("ofcSup") || getRequestingModule().equalsIgnoreCase("ofcSup")) {
+				return "ofcSup";
+			}else if (getSubModule().equalsIgnoreCase("unlistedItems") || getRequestingModule().equalsIgnoreCase("unlistedItems")) {
+					return "unlistedItems";
 			}else if (getSubModule().equalsIgnoreCase("returnSlip") || getRequestingModule().equalsIgnoreCase("returnSlip")) {
 				return "returnSlip";
 			}else if (getSubModule().equalsIgnoreCase("finishedGood") || getRequestingModule().equalsIgnoreCase("finishedGood")){
@@ -937,6 +1085,12 @@ public class AddInventoryAction extends ActionSupport {
 		}else if (requestingModule != null
 				&& requestingModule.equalsIgnoreCase("utensils")) {
 			return "utensils";
+		}else if (requestingModule != null
+				&& requestingModule.equalsIgnoreCase("ofcSup")) {
+			return "ofcSup";
+		} else if (requestingModule != null
+				&& requestingModule.equalsIgnoreCase("unlistedItems")) {
+			return "unlistedItems";
 		} else if (requestingModule != null
 				&& requestingModule.equalsIgnoreCase("returnSlip")) {
 			return "returnSlip";
@@ -974,6 +1128,24 @@ public class AddInventoryAction extends ActionSupport {
 				u.setItemCode(u.getItemCode());
 			}
 			return "utensils";
+		}else if (getSubModule().equals("ofcSup")) {
+			setItemNo(itemNo);
+			
+			if (!itemNo.equals("")){
+				os.setItemCode(itemNo);
+			}else{
+				os.setItemCode(os.getItemCode());
+			}
+			return "ofcSup";
+		}else if (getSubModule().equals("unlistedItems")) {
+			setItemNo(itemNo);
+			
+			if (!itemNo.equals("")){
+				unl.setItemCode(itemNo);
+			}else{
+				unl.setItemCode(unl.getItemCode());
+			}
+			return "unlistedItems";
 		}else if (getSubModule().equals("rawMat")) {
 			setItemNo(itemNo);
 			
@@ -1004,11 +1176,10 @@ public class AddInventoryAction extends ActionSupport {
 	}
 	private List generateCustomerAndSupplierList(Session session) {
 
-		SupplierManager supManager = new SupplierManager();
-		CustomerManager cusManager = new CustomerManager();
+		
 
-		List supplierNoList = supManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
-		List customerNoList = cusManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+		List supplierNoList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
+		List customerNoList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
 		List masterList = new ArrayList<String>();
 		Iterator<Supplier> supItr = supplierNoList.iterator();
 		while(supItr.hasNext()) {
@@ -1025,13 +1196,15 @@ public class AddInventoryAction extends ActionSupport {
 
 	public String newFinishedGood() throws Exception {
 		loadLookLists();
-		RecordCountHelper rch = new RecordCountHelper();
+		
 		if (getSubModule().equalsIgnoreCase("rawMat")) {
 			return "rawMat";
 		}else if (getSubModule().equalsIgnoreCase("tradedItems")) {
 			return "tradedItems";
 		}else if (getSubModule().equalsIgnoreCase("utensils")) {
 			return "utensils";
+		}else if (getSubModule().equalsIgnoreCase("ofcSup")) {
+			return "ofcSup";
 		}else {
 			return "finGood";
 		}
@@ -1055,7 +1228,7 @@ public class AddInventoryAction extends ActionSupport {
 		try {
 			//fg.setProductCode(productNo);
 			try {
-			RawMaterial item = (RawMaterial) (manager.listInventoryByParameter(
+			RawMaterial item = (RawMaterial) (inventoryManager.listInventoryByParameter(
 					RawMaterial.class, "itemCode", sangkap.getProductCode(),
 					session).get(0));
 			sangkap = new Ingredient(item.getItemCode(), item.getDescription(),
@@ -1066,7 +1239,7 @@ public class AddInventoryAction extends ActionSupport {
 							.getItemPricing()
 							.getCompanyOwnedTransferPricePerUnit());
 			}catch(IndexOutOfBoundsException exception) {
-				TradedItem item = (TradedItem) (manager.listInventoryByParameter(
+				TradedItem item = (TradedItem) (inventoryManager.listInventoryByParameter(
 						TradedItem.class, "itemCode", sangkap.getProductCode(),
 						session).get(0)); 
 				sangkap = new Ingredient(item.getItemCode(), item.getDescription(),
@@ -1078,7 +1251,7 @@ public class AddInventoryAction extends ActionSupport {
 								.getCompanyOwnedTransferPricePerUnit());
 			}
 		} catch (IndexOutOfBoundsException iobe) {
-			FinishedGood itemFinGood = (FinishedGood) (manager
+			FinishedGood itemFinGood = (FinishedGood) (inventoryManager
 					.listInventoryByParameter(FinishedGood.class,
 							"productCode", sangkap.getProductCode(), session)
 					.get(0));
@@ -1169,7 +1342,7 @@ public class AddInventoryAction extends ActionSupport {
 				in.setDescription(((String) descItrTk.nextElement()).trim());
 				in.setUnitOfMeasurement(((String) uomItrTk.nextElement())
 						.trim());
-				in = manager.loadIngredientPrices(in, session);
+				in = inventoryManager.loadIngredientPrices(in, session);
 
 				if (productCode.equalsIgnoreCase(toEval)) {
 
@@ -1387,6 +1560,96 @@ public class AddInventoryAction extends ActionSupport {
 		return errorFound;
 	}
 	
+	private boolean validateOfficeSupplies() {
+		loadLookLists();
+		boolean errorFound = false;
+		if ("".equals(getOs().getItemCode())) {
+			addFieldError("ofcSup.itemCode", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getOs().getItemCode().length() > 45) {
+				addFieldError("ofcSup.itemCode", "item code too long");
+				errorFound = true;
+			}
+		}
+		if ("".equals(getOs().getDescription())) {
+			addFieldError("ofcSup.description", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getOs().getDescription().trim().length() > 200) {
+				addFieldError("ofcSup.description",
+						"MAXIMUM LENGTH: 200 characters");
+			}
+		}
+		if (os.getUnitOfMeasurement() == null) {
+		}
+
+		else {
+			if (os.getUnitOfMeasurement().indexOf(", ") > -1) {
+				if ("".equals(os.getUnitOfMeasurement().substring(
+						os.getUnitOfMeasurement().indexOf(", ")))) {
+					addFieldError("ofcSup.unitOfMeasurement", "REQUIRED");
+					errorFound = true;
+				} else {
+					otherUOMSelected = true;
+					os.setUnitOfMeasurement(os
+							.getUnitOfMeasurement()
+							.substring(
+									os.getUnitOfMeasurement().indexOf(", ") + 2));
+				}
+			}
+		}
+		if (os.getUnitOfMeasurement().equalsIgnoreCase("OTHERS")) {
+			addFieldError("os.unitOfMeasurementText", "REQUIRED");
+		}
+		return errorFound;
+	}
+	private boolean isValidateUnlistedItems() {
+		loadLookLists();
+		boolean errorFound = false;
+		/*if ("".equals(getUnl().getItemCode())) {
+			addFieldError("unl.itemCode", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getUnl().getItemCode().length() > 45) {
+				addFieldError("unl.itemCode", "item code too long");
+				errorFound = true;
+			}
+		}*/
+		if ("".equals(getUnl().getDescription())) {
+			addFieldError("unl.description", "REQUIRED");
+			errorFound = true;
+		} else {
+			if (getUnl().getDescription().trim().length() > 200) {
+				addFieldError("unl.description",
+						"MAXIMUM LENGTH: 200 characters");
+			}
+		}
+		if (unl.getUom() == null) {
+		}
+
+		else {
+			if (unl.getUom().indexOf(", ") > -1) {
+				if ("".equals(unl.getUom().substring(
+						unl.getUom().indexOf(", ")))) {
+					addFieldError("unl.uom", "REQUIRED");
+					errorFound = true;
+				} else {
+					otherUOMSelected = true;
+					unl.setUom(unl
+							.getUom()
+							.substring(
+									unl.getUom().indexOf(", ") + 2));
+				}
+			}
+		}
+		if (unl.getUom().equalsIgnoreCase("OTHERS")) {
+			addFieldError("unl.unitOfMeasurementText", "REQUIRED");
+		}
+
+		return errorFound;
+	}
+	
 	private boolean validateFPTS() {
 		
 	boolean errorFound = false;
@@ -1428,7 +1691,7 @@ public class AddInventoryAction extends ActionSupport {
 		rs.setReturnSlipTo(returnSlipToValue);
 		
 		try {
-			RawMaterial item = (RawMaterial) (manager.listInventoryByParameter(
+			RawMaterial item = (RawMaterial) (inventoryManager.listInventoryByParameter(
 					RawMaterial.class, "itemCode", returnSlipSearchItem.getProductCode(),
 					session).get(0));
 			returnSlipSearchItem = new Ingredient(item.getItemCode(), item.getDescription(),
@@ -1440,7 +1703,7 @@ public class AddInventoryAction extends ActionSupport {
 							.getCompanyOwnedTransferPricePerUnit());
 		} catch (IndexOutOfBoundsException iobe) {
 			try{
-				FinishedGood itemFinGood = (FinishedGood) (manager
+				FinishedGood itemFinGood = (FinishedGood) (inventoryManager
 					.listInventoryByParameter(FinishedGood.class,
 							"productCode", returnSlipSearchItem.getProductCode(), session)
 					.get(0));
@@ -1455,7 +1718,7 @@ public class AddInventoryAction extends ActionSupport {
 							.getCompanyOwnedTransferPricePerUnit());
 			} catch (IndexOutOfBoundsException iobe2) {
 				try{
-					TradedItem tradedItem = (TradedItem) manager.listInventoryByParameter(TradedItem.class, "itemCode",
+					TradedItem tradedItem = (TradedItem) inventoryManager.listInventoryByParameter(TradedItem.class, "itemCode",
 							returnSlipSearchItem.getProductCode(),session).get(0);
 					
 					returnSlipSearchItem = new Ingredient(tradedItem.getItemCode(), tradedItem.getDescription(),
@@ -1810,5 +2073,22 @@ public class AddInventoryAction extends ActionSupport {
 		public void setU(Utensils u) {
 			this.u = u;
 		}
+
+		public UnlistedItem getUnl() {
+			return unl;
+		}
+
+		public void setUnl(UnlistedItem unl) {
+			this.unl = unl;
+		}
+
+		public OfficeSupplies getOs() {
+			return os;
+		}
+
+		public void setOs(OfficeSupplies os) {
+			this.os = os;
+		}
+		
 		
 }

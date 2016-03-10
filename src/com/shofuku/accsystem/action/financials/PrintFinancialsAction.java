@@ -1,18 +1,37 @@
 package com.shofuku.accsystem.action.financials;
 
 
+import java.util.Map;
+
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
-
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 
-public class PrintFinancialsAction extends ActionSupport{
+public class PrintFinancialsAction extends ActionSupport implements Preparable{
 
 private static final long serialVersionUID = 1L;
+
+
+	Map actionSession;
+	UserAccount user;
+	
+	AccountEntryManager accountEntryManager;
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+	
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		
+	}
 	
 	private String accId;
 	private String subModule;
@@ -21,8 +40,6 @@ private static final long serialVersionUID = 1L;
 	
 	AccountEntryProfile aep;
 	JournalEntryProfile jep;
-	
-	AccountEntryManager manager = new AccountEntryManager();
 	
 	
 	private Session getSession() {
@@ -33,11 +50,11 @@ private static final long serialVersionUID = 1L;
 	
 	try {
 		if (subModule.equals("accountEntryProfile")){
-			this.setAep(manager.loadAccountEntryProfile(getAep().getAccountCode()));
+			this.setAep(accountEntryManager.loadAccountEntryProfile(getAep().getAccountCode()));
 			forWhat= "true";
 		return "accountEntryProfile";
 		}else {
-			jep = (JournalEntryProfile) manager.listByParameter(JournalEntryProfile.class, "entryNo", this.jep.getEntryNo(), session).get(0);
+			jep = (JournalEntryProfile) accountEntryManager.listByParameter(JournalEntryProfile.class, "entryNo", this.jep.getEntryNo(), session).get(0);
 			this.setJep(jep);
 			forWhat= "print";
 			return "journalEntryProfile";

@@ -93,6 +93,7 @@
 						</tr>
 						<tr>
 							<td><s:textfield label="Is Vatable? :" name="ti.isVattable"/></td>
+							<td><s:textfield label="Is Active? :" name="ti.isActive"/></td>
 						</tr>
 					</table>
 				</s:if>
@@ -111,6 +112,8 @@
 							<td>
 								<s:select disabled="%{forWhat}" label="Is Vatable? :" name="ti.isVattable" list="#{'N':'NO','Y':'YES'}" headerKey="-1"></s:select>
 							</td>
+							<td><s:select disabled="%{forWhat}" label="Is Active? :" name="ti.isActive" value="%{ti.isActive}" 
+										list="#{'Y':'YES','N':'NO'}" ></s:select></td>
 						</tr>
 					</table>
 				</s:else>
@@ -149,8 +152,8 @@
 					</tr>
 					 -->
 					<tr>
-						<td><s:textfield readOnly="readOnly" label="Quantity Per Record:" name="ti.quantityPerRecord"/></td>
-						<td><s:textfield disabled="%{forWhat}" label="Quantity Per Count:" name="ti.quantityPerPhysicalCount"/></td>
+						<td><s:textfield readOnly="readOnly" label="Quantity Per Record:" name="ti.warehouse.quantityPerRecord"/></td>
+						<td><s:textfield disabled="%{forWhat}" label="Quantity Per Count:" name="ti.warehouse.quantityPerPhysicalCount"/></td>
 					</tr>
 					
 					</table>

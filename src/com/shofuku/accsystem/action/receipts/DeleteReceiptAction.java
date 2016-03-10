@@ -1,22 +1,40 @@
 package com.shofuku.accsystem.action.receipts;
 
+import java.util.Map;
+
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.ReceiptsManager;
-import com.shofuku.accsystem.domain.disbursements.CashPayment;
-import com.shofuku.accsystem.domain.disbursements.CheckPayments;
-import com.shofuku.accsystem.domain.disbursements.PettyCash;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class DeleteReceiptAction extends ActionSupport{
+public class DeleteReceiptAction extends ActionSupport implements Preparable{
 
-	ReceiptsManager manager = new ReceiptsManager();
 	private static final long serialVersionUID = 1L;
+	
+	Map actionSession;
+	UserAccount user;
+
+	ReceiptsManager receiptsManager;
+	
+	
+	@Override
+	public void prepare() throws Exception {
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		receiptsManager = (ReceiptsManager) actionSession.get("receiptsManager");
+		
+	}
+	
+	
 	ORSales orSales;
 	OROthers orOthers;
 	CashCheckReceipts ccReceipts;
@@ -24,6 +42,7 @@ public class DeleteReceiptAction extends ActionSupport{
 	private String orONo;
 	private String crNo;
 	private String subModule;
+	
 	
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -35,25 +54,28 @@ public class DeleteReceiptAction extends ActionSupport{
 			boolean deleteResult;
 
 			if (getSubModule().equalsIgnoreCase("orSales")) {
-				deleteResult = manager.deleteReceiptsByParameter(getOrSNo(), ORSales.class,session);
+				deleteResult = receiptsManager.deleteReceiptsByParameter(getOrSNo(), ORSales.class,session);
 				if (deleteResult == true) {
+					orSales = new ORSales();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "orSalesDeleted";
 			} else if (getSubModule().equalsIgnoreCase("orOthers")) {
-				deleteResult = manager.deleteReceiptsByParameter(getOrONo(),
+				deleteResult = receiptsManager.deleteReceiptsByParameter(getOrONo(),
 						OROthers.class,session);
 				if (deleteResult == true) {
+					orOthers = new OROthers();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);
 				}
 				return "orOthersDeleted";
 			} else  {
-				deleteResult = manager.deleteReceiptsByParameter(getCrNo(), CashCheckReceipts.class,session);
+				deleteResult = receiptsManager.deleteReceiptsByParameter(getCrNo(), CashCheckReceipts.class,session);
 				if (deleteResult == true) {
+					ccReceipts = new CashCheckReceipts();
 					addActionMessage(SASConstants.DELETED);
 				} else {
 					addActionError(SASConstants.NON_DELETED);

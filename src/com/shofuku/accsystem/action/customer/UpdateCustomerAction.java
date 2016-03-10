@@ -3,12 +3,14 @@ package com.shofuku.accsystem.action.customer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hibernate.Session;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
-
+import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
@@ -17,14 +19,13 @@ import com.shofuku.accsystem.controllers.TransactionManager;
 import com.shofuku.accsystem.domain.customers.Customer;
 import com.shofuku.accsystem.domain.customers.CustomerPurchaseOrder;
 import com.shofuku.accsystem.domain.customers.CustomerSalesInvoice;
+import com.shofuku.accsystem.domain.customers.CustomerStockLevel;
 import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
-import com.shofuku.accsystem.domain.financials.Vat;
 import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
-import com.shofuku.accsystem.domain.suppliers.ReceivingReport;
-import com.shofuku.accsystem.domain.suppliers.Supplier;
+import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.HibernateUtil;
@@ -32,13 +33,68 @@ import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
-public class UpdateCustomerAction extends ActionSupport {
+public class UpdateCustomerAction extends ActionSupport implements Preparable{
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-	private String subModule;
+	
+
+	Map actionSession;
+	UserAccount user;
+
+	InventoryUtil inventoryUtil;
+	AccountEntryProfileUtil accountEntryUtil;
+	
+	CustomerManager customerManager;
+	InventoryManager inventoryManager; 
+	AccountEntryManager accountEntryManager;
+	TransactionManager transactionManager;
+	FinancialsManager financialsManager;
+
+	PurchaseOrderDetails orderDetails;
+	PurchaseOrderDetailHelper poDetailsHelperToCompare;
+	PurchaseOrderDetailHelper poDetailsGrouped;
+	PurchaseOrderDetailHelper poDetailsHelper;
+	PurchaseOrderDetailHelper poDetailsHelperDraft;
+
+	// add other managers for other modules Manager()
+	
+	public void prepare() throws Exception {
+		
+		actionSession = ActionContext.getContext().getSession();
+		user = (UserAccount) actionSession.get("user");
+
+		inventoryUtil = new InventoryUtil(actionSession);
+		accountEntryUtil = new AccountEntryProfileUtil(actionSession);
+		
+		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
+		inventoryManager 		= (InventoryManager) 	actionSession.get("inventoryManager"); 
+		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
+		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
+		financialsManager 		= (FinancialsManager)	actionSession.get("financialsManager");
+
+		if(poDetailsHelper==null) {
+			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelper.setActionSession(actionSession);
+		}
+		if(poDetailsHelperToCompare==null) {
+			poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperToCompare.setActionSession(actionSession);
+		}
+		if(poDetailsHelperDraft==null) {
+			poDetailsHelperDraft = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsHelperDraft.setActionSession(actionSession);
+		}
+		if(poDetailsGrouped==null) {
+			poDetailsGrouped = new PurchaseOrderDetailHelper(actionSession);
+		}else {
+			poDetailsGrouped.setActionSession(actionSession);
+		}
+		
+	}
+ 	private String subModule;
 	private String cusId;
 	private String custpoid;
 	private String drId;
@@ -50,7 +106,6 @@ public class UpdateCustomerAction extends ActionSupport {
 	CustomerPurchaseOrder custpo;
 	DeliveryReceipt dr;
 	CustomerSalesInvoice invoice;
-	CustomerManager manager = new CustomerManager();
 	
 	List customerNoList;
 	List purchaseOrderNoList;
@@ -60,19 +115,8 @@ public class UpdateCustomerAction extends ActionSupport {
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
-		AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil();
 	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 		
-	PurchaseOrderDetailHelper poDetailsHelper = new PurchaseOrderDetailHelper();
-	InventoryManager inventoryManager = new InventoryManager();
-	AccountEntryManager accountEntryManager = new AccountEntryManager();
-	TransactionManager transactionMananger = new TransactionManager();
-	FinancialsManager financialsManager = new FinancialsManager();
-	
-	
-	InventoryUtil invUtil = new InventoryUtil();
-
-	PurchaseOrderDetailHelper poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
 	DateFormatHelper df = new DateFormatHelper();
 
 	private Session getSession() {
@@ -80,9 +124,8 @@ public class UpdateCustomerAction extends ActionSupport {
 	}
 	public String execute() throws Exception{
 		Session session = getSession();
+
 		try {
-			
-			forWhatDisplay="edit";
 			boolean updateResult = false;
 			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);	
 			
@@ -92,10 +135,15 @@ public class UpdateCustomerAction extends ActionSupport {
 				if (validateCustomer()) {
 					
 				}else {
-					updateResult = manager.updateCustomer(customer,session);
+					if(null==ActionContext.getContext().getSession().get(customer.getCustomerNo()+"stockLevel")) {
+					}else {
+						customer.setCustomerStockLevelMap((Map) ActionContext.getContext().getSession().get(customer.getCustomerNo()+"stockLevel"));
+					}
+					updateResult = customerManager.updateCustomer(customer,session);
 					if (updateResult == true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat = "true";
+						forWhatDisplay = "edit";
 					} else {
 						addActionMessage(SASConstants.UPDATE_FAILED);
 					}
@@ -103,9 +151,9 @@ public class UpdateCustomerAction extends ActionSupport {
 				return "profileUpdated";
 			} else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
 				List cusPo = null;
-				customerNoList = manager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+				customerNoList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
 				
-				cusPo = manager.listByParameter(Customer.class, "customerNo",
+				cusPo = customerManager.listByParameter(Customer.class, "customerNo",
 						getCustpo().getCustomer().getCustomerNo(),session);
 				if (cusPo.isEmpty()) {
 					addActionMessage("Customer No: " + SASConstants.NON_EXISTS);
@@ -134,12 +182,12 @@ public class UpdateCustomerAction extends ActionSupport {
 						if (custpo.getPurchaseOrderDetails().size()==0) {
 							addActionError(SASConstants.EMPTY_ORDER_DETAILS);
 						}else {
-							updateResult = manager.updateCustomer(custpo,session);
-							poDetailsHelper.flushUnRelatedOrders(session);
+							updateResult = customerManager.updateCustomer(custpo,session);
 							
 							if (updateResult == true) {
 								addActionMessage(SASConstants.UPDATED);
 								forWhat = "true";
+								forWhatDisplay = "edit";
 							} else {
 								addActionMessage(SASConstants.UPDATE_FAILED);
 							}
@@ -150,9 +198,9 @@ public class UpdateCustomerAction extends ActionSupport {
 				return "poUpdated";
 			} else if (getSubModule().equalsIgnoreCase("deliveryReceipt")) {
 				List cusDr = null;
-				purchaseOrderNoList = manager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
+				purchaseOrderNoList = customerManager.listAlphabeticalAscByParameter(CustomerPurchaseOrder.class, "customerPurchaseOrderId", session);
 				
-				cusDr = manager.listByParameter(CustomerPurchaseOrder.class,
+				cusDr = customerManager.listByParameter(CustomerPurchaseOrder.class,
 						"customerPurchaseOrderId", getDr()
 								.getCustomerPurchaseOrder()
 								.getCustomerPurchaseOrderId(),session);
@@ -165,14 +213,14 @@ public class UpdateCustomerAction extends ActionSupport {
 					dr.setDeliveryReceiptNo(drId);
 					dr.setCustomerPurchaseOrder((CustomerPurchaseOrder) cusDr
 							.get(0));
-					
+					dr.setDueDate(dr.getCustomerPurchaseOrder().getPaymentDate());
 					/*
 					 * Checking and fetching existing return slips
 					 */
 					
-					InventoryManager invManager= new InventoryManager();
+					
 					Session drSession = getSession();
-					List returnSlipList = invManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", dr.getDeliveryReceiptNo(), drSession);
+					List returnSlipList = inventoryManager.listInventoryByParameter(ReturnSlip.class, "returnSlipReferenceOrderNo", dr.getDeliveryReceiptNo(), drSession);
 					
 					if(returnSlipList.size()>0) {
 						dr.setReturnSlipList(returnSlipList);
@@ -181,7 +229,7 @@ public class UpdateCustomerAction extends ActionSupport {
 					}
 					
 					if(null==poDetailsHelperToCompare) {
-						poDetailsHelperToCompare = new PurchaseOrderDetailHelper();
+						poDetailsHelperToCompare = new PurchaseOrderDetailHelper(actionSession);
 					}
 						poDetailsHelperToCompare.generatePODetailsListFromSet(dr.getCustomerPurchaseOrder().getPurchaseOrderDetails());
 					
@@ -208,11 +256,11 @@ public class UpdateCustomerAction extends ActionSupport {
 						 *  2nd - incoming order
 						 *  3rd - order type to determine if there is an addition or deduction to inventory
 						*/
-						DeliveryReceipt oldCustDr = (DeliveryReceipt) manager.listByParameter(
+						DeliveryReceipt oldCustDr = (DeliveryReceipt) customerManager.listByParameter(
 								DeliveryReceipt.class, "deliveryReceiptNo",drId,session).get(0);
-						PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper();
+						PurchaseOrderDetailHelper helperOld = new PurchaseOrderDetailHelper(actionSession);
 						helperOld.generatePODetailsListFromSet(oldCustDr.getPurchaseOrderDetails());
-						PurchaseOrderDetailHelper inventoryUpdateRequest = invUtil.getChangeInOrder(helperOld, poDetailsHelper , SASConstants.ORDER_TYPE_DR);
+						PurchaseOrderDetailHelper inventoryUpdateRequest = inventoryUtil.getChangeInOrder(helperOld, poDetailsHelper , SASConstants.ORDER_TYPE_DR);
 						
 						try {
 							inventoryManager.updateInventoryFromOrders(inventoryUpdateRequest);
@@ -224,7 +272,6 @@ public class UpdateCustomerAction extends ActionSupport {
 						}
 						
 					}
-					dr.setDueDate(dr.getCustomerPurchaseOrder().getPaymentDate());
 					dr.setTotalAmount(poDetailsHelper.getTotalAmount());
 					if (validateCustomerDR()) {
 						//includePoDetails();
@@ -234,35 +281,36 @@ public class UpdateCustomerAction extends ActionSupport {
 						}else {
 							if(inventoryUpdateSuccess) {
 								//START - 2013 - PHASE 3 : PROJECT 1: MARK
-								transactionMananger.discontinuePreviousTransactions(dr.getDeliveryReceiptNo(),session);
+								transactionManager.discontinuePreviousTransactions(dr.getDeliveryReceiptNo(),session);
 								transactionList = getTransactionList();
-								updateAccountingEntries(dr.getDeliveryReceiptNo(),session,SASConstants.DELIVERYREPORT);
-								this.setTransactionList(transactions);
-								dr.setTransactions(transactions);
-								//END
-								
-								updateResult = manager.updateCustomer(dr,session);
+								if (transactionList.size()==0){
+									addActionMessage("REQUIRED: Accounting Entries Details");
+								}else{
+									updateAccountingEntries(dr.getDeliveryReceiptNo(),session,SASConstants.DELIVERYREPORT);
+									this.setTransactionList(transactions);
+									dr.setTransactions(transactions);
+									//END
+								}
+								updateResult = customerManager.updateCustomer(dr,session);
 							}else {
 								updateResult = false;
 							}
-							poDetailsHelper.flushUnRelatedOrders(session);
-							
 							if (updateResult == true) {
 								addActionMessage(SASConstants.UPDATED);
 								forWhat = "true";
+								forWhatDisplay = "edit";
 							} else {
 								addActionMessage(SASConstants.UPDATE_FAILED);
 							}
-							
 						}
 					}
 				}
 				return "deliveryReceiptUpdated";
 			} else {
 				List cusInv = null;
-				deliveryReceiptNoList = manager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
+				deliveryReceiptNoList = customerManager.listAlphabeticalAscByParameter(DeliveryReceipt.class, "deliveryReceiptNo", session);
 				
-				cusInv = manager.listByParameter(DeliveryReceipt.class,
+				cusInv = customerManager.listByParameter(DeliveryReceipt.class,
 						"deliveryReceiptNo", getInvoice().getDeliveryReceipt()
 								.getDeliveryReceiptNo(),session);
 				if (cusInv.isEmpty()) {
@@ -278,7 +326,7 @@ public class UpdateCustomerAction extends ActionSupport {
 //					}
 //						poDetailsHelperToCompare.generatePODetailsListFromSet(invoice.getDeliveryReceipt().getPurchaseOrderDetails());
 //					
-					poDetailsHelper = new PurchaseOrderDetailHelper();
+					poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
 					
 					poDetailsHelper.generatePODetailsListFromSet(invoice.getDeliveryReceipt().getPurchaseOrderDetails());
 					poDetailsHelper.generateCommaDelimitedValues();
@@ -291,18 +339,24 @@ public class UpdateCustomerAction extends ActionSupport {
 					invoice.setTotalSales(poDetailsHelper.getTotalAmount());
 					
 					//START - 2013 - PHASE 3 : PROJECT 1: MARK
-					transactionMananger.discontinuePreviousTransactions(invoice.getCustomerInvoiceNo(),session);
+					transactionManager.discontinuePreviousTransactions(invoice.getCustomerInvoiceNo(),session);
 					transactionList = getTransactionList();
-					updateAccountingEntries(invoice.getCustomerInvoiceNo(),session,SASConstants.CUSTOMERINVOICE);
-					this.setTransactionList(transactions);
-					invoice.setTransactions(transactions);
+					if (transactionList.size()==0){
+						addActionMessage("REQUIRED: Accounting Entries Details");
+					}else{
+						updateAccountingEntries(invoice.getCustomerInvoiceNo(),session,SASConstants.CUSTOMERINVOICE);
+						this.setTransactionList(transactions);
+						invoice.setTransactions(transactions);
+					}
 					//END
 					
 					//START: 2013 - PHASE 3 : PROJECT 4: MARK
 					invoice.getVatDetails().setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
 					invoice.getVatDetails().setVatReferenceNo(invId);
+					invoice.getVatDetails().setAmount(invoice.getTotalSales());
 					invoice.getVatDetails().setOrDate(invoice.getCustomerInvoiceDate());
 					invoice.setVatDetails(invoice.getVatDetails());
+					
 					financialsManager.updateVatDetails(invoice.getVatDetails(), session);							
 					//END: 2013 - PHASE 3 : PROJECT 4: MARK
 					
@@ -316,11 +370,11 @@ public class UpdateCustomerAction extends ActionSupport {
 						if (invoice.getPurchaseOrderDetails().size()==0) {
 							addActionError(SASConstants.EMPTY_ORDER_DETAILS);
 						}else {
-							updateResult = manager.updateCustomer(invoice,session);
-							poDetailsHelper.flushUnRelatedOrders(session);
+							updateResult = customerManager.updateCustomer(invoice,session);
 							if (updateResult == true) {
 								addActionMessage(SASConstants.UPDATED);
 								forWhat = "true";
+								forWhatDisplay = "edit";
 							} else {
 								addActionMessage(SASConstants.UPDATE_FAILED);
 							}
@@ -331,6 +385,7 @@ public class UpdateCustomerAction extends ActionSupport {
 				return "invoiceUpdated";
 			}
 		} catch (RuntimeException re) {
+			re.printStackTrace();
 			if (getSubModule().equalsIgnoreCase("profile")) {
 				return "profileUpdated";
 			}else if (getSubModule().equalsIgnoreCase("purchaseOrder")) {
@@ -380,19 +435,18 @@ public class UpdateCustomerAction extends ActionSupport {
 				transaction.setAccountEntry(accountEntry);
 				transaction.setTransactionReferenceNumber(referenceNo);
 				transaction.setTransactionType(type);
-				transaction.setTransactionAction(apeUtil.getActionBasedOnType(
+				transaction.setTransactionAction(accountEntryUtil.getActionBasedOnType(
 						accountEntry, type));
 				transaction.setTransactionDate(df.getTimeStampToday());
 				transaction.setIsInUse(SASConstants.TRANSACTION_IN_USE);
 				transactions.add(transaction);
 			}
-			transactionMananger.addTransactionsList(transactions, session);
+			transactionManager.addTransactionsList(transactions, session);
 		}
 		// return transactions;
 	}
 
-	private String getActionBasedOnType(AccountEntryProfile accountEntry,
-			String type) {
+	private String getActionBasedOnType(AccountEntryProfile accountEntry, String type) {
 
 		String action = "";
 
@@ -520,10 +574,10 @@ public class UpdateCustomerAction extends ActionSupport {
 			addActionMessage("REQUIRED: Purchase Order No");
 			errorFound = true;
 		}
-		if ((getTransactionList().get(0).getAmount() == 0 )) {
+		/*if ((getTransactionList().get(0).getAmount() == 0 )) {
 			addActionMessage("REQUIRED: Accounting Entries Details");
 			errorFound = true;
-		}
+		}*/
 		return errorFound;
 
 	}
@@ -557,10 +611,10 @@ public class UpdateCustomerAction extends ActionSupport {
 			 addFieldError("invoice.address", SASConstants.MAXIMUM_LENGTH_200);
 			 errorFound = true;
 		}
-		if ((getTransactionList().get(0).getAmount() == 0 )) {
+		/*if ((getTransactionList().get(0).getAmount() == 0 )) {
 			addActionMessage("REQUIRED: Accounting Entries Details");
 			errorFound = true;
-		}
+		}*/
 		return errorFound;
 
 	}

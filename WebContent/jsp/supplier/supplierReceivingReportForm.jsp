@@ -4,7 +4,7 @@
 <%@ taglib prefix="s" uri="/struts-tags"%>
 <%@ taglib prefix="sx" uri="/struts-dojo-tags"%>
 <%@ taglib prefix="c" uri="/tld/c.tld"%>
-
+<%@ taglib prefix="auth" uri="/tld/Authorization.tld"%>
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -139,7 +139,8 @@
 						</td>
 					</tr>
 					<tr>
-						<td><s:textfield disabled="%{forWhat}" label="Payment Date:" name="rr.receivingReportPaymentDate"></s:textfield></td>
+						<td>Payment Date: </td>
+						<td><s:date name="rr.receivingReportPaymentDate" format="MMM-dd-yyyy"></s:date></td>
 						<td><s:textfield disabled="%{forWhat}" label="Total Purchases: PHP" name="rr.totalAmount" ></s:textfield></td>
 					</tr>
 				</table>
@@ -231,7 +232,7 @@
 						<td>Unit Cost</td>
 						<td>Amount</td>
 						<td>Input Tax</td>
-						<td>Vattable Amount</td>
+						<td>Vatable Amount</td>
 					</tr>
 					<s:iterator value="poDetailsHelper.purchaseOrderDetailsList">
 					<tr>
