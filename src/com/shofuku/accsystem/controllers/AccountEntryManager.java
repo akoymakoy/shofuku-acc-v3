@@ -157,7 +157,7 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.RAW_MATERIAL_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.formatDoubleToCurrency(rawMatTotal));
+			transaction.setAmount(dblConverter.round(rawMatTotal,2));
 			transactionList.add(transaction);
 		}
 		
@@ -166,7 +166,7 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.FINISHED_GOODS_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.formatDoubleToCurrency(finGoodTotal));
+			transaction.setAmount(dblConverter.round(finGoodTotal,2));
 			transactionList.add(transaction);
 		}
 		
@@ -175,7 +175,7 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.TRADED_ITEM_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.formatDoubleToCurrency(tradedItemTotal));
+			transaction.setAmount(dblConverter.round(tradedItemTotal,2));
 			transactionList.add(transaction);
 		}
 	}

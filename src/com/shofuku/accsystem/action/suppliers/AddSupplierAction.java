@@ -335,7 +335,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
 							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString());
 							transaction.setAccountEntry(accountEntryProfile);
-							transaction.setAmount(dblConverter.formatDoubleToCurrency(invoice.getPurchaseOrderDetailsTotalAmount()));
+							transaction.setAmount(dblConverter.round(vatDetails.getVatAmount() + vatDetails.getVattableAmount(),2));
 							transactionList.add(transaction);
 							
 							//add inventory account entries based on items list
@@ -345,7 +345,8 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							transaction = new Transaction();
 							accountEntryProfile = new AccountEntryProfile();
 							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(SASConstants.INPUT_TAX_ACCOUNT_CODE);
-							transaction.setAmount(dblConverter.formatDoubleToCurrency(vatDetails.getVatAmount()));
+							transaction.setAccountEntry(accountEntryProfile);
+							transaction.setAmount(dblConverter.round(vatDetails.getVatAmount(),2));
 							transactionList.add(transaction);
 							
 							//END - 2013 - PHASE 3 : PROJECT 1: MARK
