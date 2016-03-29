@@ -530,8 +530,21 @@ public class SASConstants {
 	public static final String ADD = "ADD";
 	public static final String SUBTRACT = "SUBTRACT";
 	public static final String HYPHEN = " - ";
+	
+	public static final String RAW_MATERIAL_ABBR2 = "rawMat";
+	public static final String FINISHED_GOODS_ABBR2 = "finGood";
+	public static final String TRADED_ITEM_ABBR2 = "tradedItems";
+
+	public static final String RAW_MATERIAL_INVENTORY_ACCOUNT_CODE = "11040100";
+	public static final String FINISHED_GOODS_INVENTORY_ACCOUNT_CODE = "11040300";
+	public static final String TRADED_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
+
+	
+	public static final String INPUT_TAX_ACCOUNT_CODE = "11060100";
 
 
 	
 	
 }
+
+

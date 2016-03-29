@@ -30,6 +30,7 @@ import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.utils.DateFormatHelper;
+import com.shofuku.accsystem.utils.DoubleConverter;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
@@ -109,6 +110,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 
 	DateFormatHelper df = new DateFormatHelper();
+	DoubleConverter dblConverter = new DoubleConverter();
 
 	private Session getSession() {
 		return HibernateUtil.getSessionFactory().getCurrentSession();
@@ -300,15 +302,6 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 			 					poDetailsHelper.generateItemTypesForExistingItems(session);
 
 							}
-							//START - 2013 - PHASE 3 : PROJECT 1: MARK
-							transactionList = new ArrayList();
-							Transaction transaction = new Transaction();
-							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
-							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString());
-							transaction.setAccountEntry(accountEntryProfile);
-							transactionList.add(transaction);
-							//END - 2013 - PHASE 3 : PROJECT 1: MARK
-							
 							
 							//START: 2013 - PHASE 3 : PROJECT 4: MARK
 							Vat vatDetails = new Vat();
@@ -332,6 +325,31 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							invoice.setPurchaseOrderDetailsTotalAmount(poDetailsHelper
 									.getTotalAmount());
 							invoice.setRemainingBalance(poDetailsHelper.getTotalAmount());
+							
+							
+							//START - 2013 - PHASE 3 : PROJECT 1: MARK
+							transactionList = new ArrayList();
+							
+							//add account entry profile per supplier
+							Transaction transaction = new Transaction();
+							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
+							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString());
+							transaction.setAccountEntry(accountEntryProfile);
+							transaction.setAmount(dblConverter.formatDoubleToCurrency(invoice.getPurchaseOrderDetailsTotalAmount()));
+							transactionList.add(transaction);
+							
+							//add inventory account entries based on items list
+							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper);
+							
+							//add input tax entry profile
+							transaction = new Transaction();
+							accountEntryProfile = new AccountEntryProfile();
+							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(SASConstants.INPUT_TAX_ACCOUNT_CODE);
+							transaction.setAmount(dblConverter.formatDoubleToCurrency(vatDetails.getVatAmount()));
+							transactionList.add(transaction);
+							
+							//END - 2013 - PHASE 3 : PROJECT 1: MARK
+							
 							addResult = supplierManager.addSupplierObject(invoice,session);
 							if (addResult == true) {
 								rch.updateCount(SASConstants.SUPPLIERINVOICE,
@@ -367,6 +385,11 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 			}
 		}
 	}
+	private void addDefaultTransactions() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	private String addReceivingReport(Session session) {
 		boolean addResult = false;
 		purchaseOrderNoList = supplierManager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);

@@ -10,11 +10,17 @@ import com.shofuku.accsystem.dao.impl.AccountEntryDaoImpl;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.AccountingRules;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
+import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.financials.Vat;
+import com.shofuku.accsystem.domain.inventory.PurchaseOrderDetails;
+import com.shofuku.accsystem.utils.DoubleConverter;
+import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
 
 public class AccountEntryManager extends BaseController{
+	
+	DoubleConverter dblConverter = new DoubleConverter();
 	
 	public AccountEntryProfile loadAccountEntryProfile(String accountCode) {
 		AccountEntryProfile accountEntry =(AccountEntryProfile) accountEntryDao.load(accountCode, AccountEntryProfile.class);
@@ -82,6 +88,8 @@ public class AccountEntryManager extends BaseController{
 		return list;
 	}
 	
+	
+	
 
 	public boolean deleteAccountEntryProfile(Object object, Class clazz,Session session) {
 		return accountEntryDao.deleteByParameter(object, clazz,session);
@@ -122,6 +130,54 @@ public class AccountEntryManager extends BaseController{
 	
 	public Long getTotalRecordCount(Class clazz,Session session) {
 		return accountEntryDao.recordCount(clazz, session);
+	}
+
+	public void generateInventoryEntries(List<Transaction> transactionList, PurchaseOrderDetailHelper poDetailsHelper) {
+		double rawMatTotal=0;
+		double finGoodTotal=0;
+		double tradedItemTotal=0;
+		Transaction transaction = new Transaction();
+		AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
+		
+		
+		Iterator<PurchaseOrderDetails> itr  =poDetailsHelper.getPurchaseOrderDetailsList().iterator();
+		while(itr.hasNext()) {
+			PurchaseOrderDetails podetails = (PurchaseOrderDetails)itr.next();
+			if(podetails.getItemType().equalsIgnoreCase(SASConstants.RAW_MATERIAL_ABBR2)) {
+				rawMatTotal =rawMatTotal +podetails.getVattableAmount(); 
+			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.FINISHED_GOODS_ABBR2)){
+				finGoodTotal = finGoodTotal + podetails.getVattableAmount();
+			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.TRADED_ITEM_ABBR2)){
+				tradedItemTotal = tradedItemTotal + podetails.getVattableAmount();
+			}
+		}
+		
+		if (rawMatTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.RAW_MATERIAL_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(dblConverter.formatDoubleToCurrency(rawMatTotal));
+			transactionList.add(transaction);
+		}
+		
+		if (finGoodTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.FINISHED_GOODS_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(dblConverter.formatDoubleToCurrency(finGoodTotal));
+			transactionList.add(transaction);
+		}
+		
+		if(tradedItemTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.TRADED_ITEM_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(dblConverter.formatDoubleToCurrency(tradedItemTotal));
+			transactionList.add(transaction);
+		}
 	}
 	
 }
