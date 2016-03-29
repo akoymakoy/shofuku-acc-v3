@@ -56,6 +56,8 @@ public class SearchFinancialsAction extends ActionSupport implements Preparable{
 						financialsList = accountEntryManager.listAccountEntryProfileByParameterLike(
 										AccountEntryProfile.class, moduleParameter,
 										moduleParameterValue,session);
+					}else if (getModuleParameter().equalsIgnoreCase("parent")) {
+						financialsList = accountEntryManager.listAccountingProfileByParentName(moduleParameterValue,session);
 					}else if (moduleParameter.equalsIgnoreCase("ALL")) {
 						financialsList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "name",session);
 						moduleParameterValue="all";

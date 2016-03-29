@@ -353,6 +353,7 @@ public class SASConstants {
 	public static final String MAXIMUM_LENGTH_100 = "MAXIMUM LENGTH: 100 characters";
 
 	public static final String EMPTY_ORDER_DETAILS = "ORDER DETAILS IS EMPTY";
+	public static final String TRANSACTIONS_NOT_BALANCED = "CREDIT DOESN'T MATCH DEBIT TRANSACTIONS";
 	
 	public static final String FROM_PERIOD = "FOR THE PERIOD FROM ";							
 	public static final String TO = " TO ";
@@ -428,6 +429,9 @@ public class SASConstants {
 	public static final String INPUT_TAX = "Input Tax";
 	public static final String TRANSACTION_IN_USE = "IN USE";
 	public static final String TRANSACTION_NOT_IN_USE = "NOT IN USE";
+	public static final String TRANSACTION_ACTION_DEBIT = "DEBIT";
+	public static final String TRANSACTION_ACTION_CREDIT = "CREDIT";
+	
 	
 	//LEDGER REPORTS 
 	
@@ -525,6 +529,7 @@ public class SASConstants {
 	public static final String PROPERTY_FILE_PATH = "c://ShofukuAppLogs//ShofukuAccountingSystemDatabase.properties";
 	public static final String ADD = "ADD";
 	public static final String SUBTRACT = "SUBTRACT";
+	public static final String HYPHEN = " - ";
 
 
 	

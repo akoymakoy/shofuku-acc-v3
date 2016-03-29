@@ -1,5 +1,7 @@
 package com.shofuku.accsystem.controllers;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.hibernate.Session;
@@ -9,6 +11,8 @@ import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.AccountingRules;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
 import com.shofuku.accsystem.domain.financials.Vat;
+import com.shofuku.accsystem.utils.SASConstants;
+
 
 public class AccountEntryManager extends BaseController{
 	
@@ -53,6 +57,29 @@ public class AccountEntryManager extends BaseController{
 			}
 		}
 		return null;
+	}
+	
+	public List listAccountingProfileByParentName(String parentName, Session session) {
+		List resultList = listAccountEntryProfileByParameterLike(AccountEntryProfile.class, "name", parentName, session); 
+		List list = new ArrayList<>();
+		if(resultList!=null){
+			Iterator itr = resultList.iterator();
+			while(itr.hasNext()){
+				AccountEntryProfile parentProfile = (AccountEntryProfile) itr.next();
+				List tempList = accountEntryDao.listByParameter(AccountEntryProfile.class,"parentCode", parentProfile.getAccountCode(), session);
+				if(tempList!=null) {
+					Iterator itr2 = tempList.iterator();
+					while(itr2.hasNext()) {
+						AccountEntryProfile aep = (AccountEntryProfile) itr2.next();
+						aep.setParentCode(aep.getParentCode() +SASConstants.HYPHEN+ loadAccountEntryProfile(aep.getParentCode()).getName() );
+						list.add(aep); 
+					}
+					
+				}
+			}
+		}
+			
+		return list;
 	}
 	
 

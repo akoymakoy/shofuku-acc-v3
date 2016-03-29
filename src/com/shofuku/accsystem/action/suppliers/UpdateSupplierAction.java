@@ -278,6 +278,8 @@ public class UpdateSupplierAction extends ActionSupport implements Preparable{
 						this.setTransactionList(transactions);
 						rr.setTransactions(transactions);
 						//END
+						
+						
 						if (validateReceivingReport()) {
 							includePoDetails();
 						}else {
@@ -287,8 +289,9 @@ public class UpdateSupplierAction extends ActionSupport implements Preparable{
 							}else {
 								if(inventoryUpdateSuccess) {
 									
-									//computation of payment date in rr
+									//computation of payment date in rr 
 									updateResult = supplierManager.updateSupplier(rr,session);
+
 								}else {
 									updateResult=false;
 								}
@@ -376,8 +379,13 @@ public class UpdateSupplierAction extends ActionSupport implements Preparable{
 								this.invoice.setVatDetails(vatDetails);
 								financialsManager.updateVatDetails(vatDetails, session);							
 								//END: 2013 - PHASE 3 : PROJECT 4: MARK
-								
-								updateResult = supplierManager.updateSupplier(invoice,session);
+
+								// check if transaction debit and credit are equal
+								if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.SUPPLIERINVOICE,transactions,accountEntryManager)) {
+									updateResult = supplierManager.updateSupplier(invoice,session);
+								}else {
+									addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+								}
 								
 								if (updateResult== true) {
 									addActionMessage(SASConstants.UPDATED);
@@ -441,7 +449,7 @@ public class UpdateSupplierAction extends ActionSupport implements Preparable{
 		}
 		//return transactions;
 	}
-
+	
 	//END - 2013 - PHASE 3 : PROJECT 1: MARK
 
 	private double checkForPaidVouchers(Session session) {

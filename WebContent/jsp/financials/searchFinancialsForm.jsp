@@ -46,7 +46,7 @@
 				<s:if test="%{#financialModule == 'accountEntryProfile'}">
 					<td>
 						<s:select label="Search Account Entry Profile By:" 
-						list="#{'ALL':'ALL','accountCode':'Account Code', 'name':'Account Name'}" 
+						list="#{'ALL':'ALL','accountCode':'Account Code', 'name':'Account Name', 'parent':'Parent Name'}" 
 						name="moduleParameter" onchange="javascript:onTypeChangeFinancials('searchForm');"/>
 					</td>
 				</s:if>
@@ -83,9 +83,11 @@
 				<table class="results">
 					<s:if test="%{#financialModule == 'accountEntryProfile'}">
 						<tr>
+							<s:if test="%{moduleParameter == 'parent'}">
+							<th>Parent</th>
+							</s:if>
 							<th>Account Code</th>
 							<th width="400px">Account Name</th>
-							
 							
 						</tr>
 					</s:if> 
@@ -103,10 +105,13 @@
 				<s:iterator value="financialsList" status="financialsList">
 					<s:if test="%{#financialModule == 'accountEntryProfile'}">
 						<tr>
+						<s:if test="%{moduleParameter == 'parent'}">
+						<td align="left" width="350"><s:property value="parentCode"/></td>
+						</s:if>
 							<td align="left">
 								<auth:isAuth role="28">
 									<s:url id="displayId" action="editFinancialsAction">
-										<s:param name="forWhat" value="%{'true'}">forEdit</s:param>
+										<s:param name="forWhat" value="%{'true'}">forEdit</s:param>										
 										<s:param name="aep.accountCode" value="%{accountCode}">Account Code</s:param>
 										<s:param name="financialModule" value="%{financialModule}">financialModule</s:param> 
 									</s:url>

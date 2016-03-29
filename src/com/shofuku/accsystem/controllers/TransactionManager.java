@@ -9,7 +9,9 @@ import org.hibernate.Session;
 import org.hibernate.type.IntegerType;
 
 import com.shofuku.accsystem.dao.impl.TransactionsDaoImpl;
+import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
+import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
 public class TransactionManager extends BaseController {
@@ -65,6 +67,33 @@ public class TransactionManager extends BaseController {
 			transaction.setIsInUse(SASConstants.TRANSACTION_NOT_IN_USE);
 			updateTransaction(transaction, session);
 			}
+		}
+	}
+
+	public boolean areTransactionsBalanced(AccountEntryProfileUtil apeUtil, String type, List<Transaction> transactions,AccountEntryManager accountEntryManager) {
+		// TODO Auto-generated method stub
+		double creditSum=0;
+		double debitSum=0;
+		
+		if(transactions!=null) {
+			Iterator itr = transactions.iterator();
+			while(itr.hasNext()) {
+				Transaction transaction = (Transaction)itr.next();
+				AccountEntryProfile accountEntry = transaction.getAccountEntry();
+				accountEntry = accountEntryManager.loadAccountEntryProfile(accountEntry.getAccountCode());
+				transaction.setAccountEntry(accountEntry);
+				transaction.setTransactionAction(apeUtil.getActionBasedOnType(accountEntry, type));
+				if (transaction.getTransactionAction().equalsIgnoreCase(SASConstants.TRANSACTION_ACTION_DEBIT)) {
+					debitSum = debitSum +transaction.getAmount();
+				}else {
+					creditSum = creditSum+ transaction.getAmount();
+				}
+			}
+		}
+		if(creditSum == debitSum) {
+			return true;
+		}else {
+			return false;
 		}
 	}
 }
