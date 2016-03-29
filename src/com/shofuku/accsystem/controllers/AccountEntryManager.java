@@ -157,7 +157,7 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.RAW_MATERIAL_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.round(rawMatTotal,2));
+			transaction.setAmount(DoubleConverter.round(rawMatTotal,2));
 			transactionList.add(transaction);
 		}
 		
@@ -166,7 +166,7 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.FINISHED_GOODS_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.round(finGoodTotal,2));
+			transaction.setAmount(DoubleConverter.round(finGoodTotal,2));
 			transactionList.add(transaction);
 		}
 		
@@ -175,9 +175,19 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.TRADED_ITEM_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(dblConverter.round(tradedItemTotal,2));
+			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
 			transactionList.add(transaction);
 		}
+	}
+
+	public void addDefaultTransactionEntry(List<Transaction> transactionList, String accountEntryCode,double amount) {
+		//add account entry profile per supplier
+		Transaction transaction = new Transaction();
+		AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
+		accountEntryProfile = loadAccountEntryProfile(accountEntryCode);
+		transaction.setAccountEntry(accountEntryProfile);
+		transaction.setAmount(DoubleConverter.round(amount,2));
+		transactionList.add(transaction);		
 	}
 	
 }

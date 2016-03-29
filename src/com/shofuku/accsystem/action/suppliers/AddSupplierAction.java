@@ -330,24 +330,18 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							transactionList = new ArrayList();
 							
-							//add account entry profile per supplier
-							Transaction transaction = new Transaction();
-							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
-							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString());
-							transaction.setAccountEntry(accountEntryProfile);
-							transaction.setAmount(dblConverter.round(vatDetails.getVatAmount() + vatDetails.getVattableAmount(),2));
-							transactionList.add(transaction);
+							//START - 2016 DEFAULT TRANSACTIONS
+							
+							//add account entry profile based on supplier id
+							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(), vatDetails.getVatAmount() + vatDetails.getVattableAmount());
 							
 							//add inventory account entries based on items list
 							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper);
 							
 							//add input tax entry profile
-							transaction = new Transaction();
-							accountEntryProfile = new AccountEntryProfile();
-							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(SASConstants.INPUT_TAX_ACCOUNT_CODE);
-							transaction.setAccountEntry(accountEntryProfile);
-							transaction.setAmount(dblConverter.round(vatDetails.getVatAmount(),2));
-							transactionList.add(transaction);
+							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,vatDetails.getVatAmount());
+							
+							//END - 2016 DEFAUL TRANSACTIONS
 							
 							//END - 2013 - PHASE 3 : PROJECT 1: MARK
 							
@@ -386,11 +380,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 			}
 		}
 	}
-	private void addDefaultTransactions() {
-		// TODO Auto-generated method stub
-		
-	}
-
+	
 	private String addReceivingReport(Session session) {
 		boolean addResult = false;
 		purchaseOrderNoList = supplierManager.listAlphabeticalAscByParameter(SupplierPurchaseOrder.class, "supplierPurchaseOrderId", session);
