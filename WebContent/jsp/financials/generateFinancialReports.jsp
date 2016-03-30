@@ -63,42 +63,18 @@
 							</table>
 						</div>
 						<div id="ledgerAccountReportParameters" style="display: none;">
-						
-						<div id="ledgerParamsSelectDiv">
 							<table class="form" cellpadding=5>
-								<tr>
-									<td><s:select label="Select a report type:"
-											list="#{'':'---Select One---','supplier':'Supplier','customer':'Customer'}"
-											name="ledgerType" id="ledgerType"
-											onchange="javascript:showLedgerParams(this);" /></td>
-								</tr>
+									<tr>
+										<td>Choose at least one Account Profile:</td>
+										<td><select id="accountCodeList" name="accountCodeList" multiple="multiple" size="15">
+												<c:forEach items="${accountCodeList}" var="accountProfile">
+													<option value="${accountProfile.accountCode}">${accountProfile.accountCode} - ${accountProfile.name}</option>
+												</c:forEach>
+										</select></td>
+									</tr>
 							</table>
-									
-							<div id="ledgerSupplierListsDiv" style="display: none;">
-								<table class="form" cellpadding=5>
-									<tr>
-										<td>Choose at least one supplier:</td>
-										<td><select id="supplierList" name="supplierList" multiple="multiple">
-												<c:forEach items="${supplierList}" var="supplier">
-													<option value="${supplier.supplierId}">${supplier.supplierName}</option>
-												</c:forEach>
-										</select></td>
-									</tr>
-								</table>
-							</div>
-							<div id="ledgerCustomersListsDiv" style="display: none;">
-								<table class="form" cellpadding=5>
-									<tr>
-										<td>Choose at least one customer:</td>
-										<td><select id="customerList" name="customerList" multiple="multiple">
-												<c:forEach items="${customerList}" var="customer">
-													<option value="${customer.customerNo}">${customer.customerName}</option>
-												</c:forEach>
-										</select></td>
-									</tr>
-								</table>
-							</div>
 						</div>
+						
 						<div id="trialBalanceReportParameters" style="display: none;"></div>
 						<div id="incomeStatementReportParameters" style="display: none;"></div>
 						<div id="balanceSheetReportParameters" style="display: none;"></div>
@@ -109,8 +85,7 @@
 						<div id="vatReportReportParameters" style="display: none;"></div>
 						<div id="checkEncashmentReportParameters" style="display: none;"></div>
 						
-						</div>
-				</div>
+					</div>
 			</s:form>
 		</div>
 	</div>

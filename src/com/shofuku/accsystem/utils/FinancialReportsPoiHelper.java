@@ -589,7 +589,7 @@ public class FinancialReportsPoiHelper{
 		return null;
 	}
 
-
+    //replace supplier list and customer list with accounting profile list
 	public InputStream generateLedgerAccountsReport(String dateFrom, String dateTo,List supplierList,List customerList, Session session) throws Exception {
 		
 		Date startDate;

@@ -79,6 +79,7 @@ public class GenerateFinancialReportsAction extends ActionSupport implements Pre
 	//Ledger Account Variables
 	List supplierList;
 	List customerList;
+	List accountCodeList;
 	
 	/*LEGEND:
 	 * 	01-	Ledger account
@@ -101,7 +102,7 @@ public class GenerateFinancialReportsAction extends ActionSupport implements Pre
 		DateFormatHelper dfh= new DateFormatHelper();
 		ServletContext servletContext = ServletActionContext
 				.getServletContext();
-		
+		accountCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileAscByParameter(AccountEntryProfile.class, "accountCode", session);
 		try {
 			
 			
@@ -194,6 +195,7 @@ public class GenerateFinancialReportsAction extends ActionSupport implements Pre
 		
 		supplierList = supplierManager.listAlphabeticalAscByParameter(Supplier.class, "supplierId", session);
 		customerList = customerManager.listAlphabeticalAscByParameter(Customer.class, "customerNo", session);
+		
 	}
 	
 
@@ -317,7 +319,15 @@ public class GenerateFinancialReportsAction extends ActionSupport implements Pre
 		return documentFormat == "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 				: "application/vnd.ms-excel";
 	}
-	
+
+	public List getAccountCodeList() {
+		return accountCodeList;
+	}
+
+	public void setAccountCodeList(List accountCodeList) {
+		this.accountCodeList = accountCodeList;
+	}
+
 	
 	
 }
