@@ -293,8 +293,8 @@ public class UpdateCustomerAction extends ActionSupport implements Preparable{
 									dr.setTransactions(transactions);
 									//END
 								}
-								
-								if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CUSTOMERINVOICE,transactions,accountEntryManager)) {
+								//credit debit balance checked
+								if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.DELIVERYREPORT,transactions,accountEntryManager)) {
 										updateResult = customerManager.updateCustomer(dr,session);
 								}else {
 									addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);

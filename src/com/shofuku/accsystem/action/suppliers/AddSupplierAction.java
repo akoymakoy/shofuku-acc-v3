@@ -336,7 +336,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(), vatDetails.getVatAmount() + vatDetails.getVattableAmount());
 							
 							//add inventory account entries based on items list
-							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper);
+							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper,true);
 							
 							//add input tax entry profile
 							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,vatDetails.getVatAmount());

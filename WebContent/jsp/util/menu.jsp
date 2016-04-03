@@ -29,7 +29,7 @@
 	       <auth:isAuth role="5"><li id="customerMenu0"><a href="showCustomerProfileForm.action">CUSTOMER PROFILE</a></li></auth:isAuth>
 	     <auth:isAuth role="6"> <li id="customerMenu1"><a href="<s:url action="newCustomerEntryAction"><s:param name="subModule" value="%{'purchaseOrder'}"/></s:url>">PURCHASE ORDER</a></li></auth:isAuth>
 	     <auth:isAuth role="7"> <li id="customerMenu2"><a href="<s:url action="newCustomerEntryAction"><s:param name="subModule" value="%{'deliveryReceipt'}"/></s:url>">DELIVERY RECEIPT</a></li></auth:isAuth>
-	     <auth:isAuth role="8"> <li id="customerMenu3"><a href="<s:url action="newCustomerEntryAction"><s:param name="subModule" value="%{'invoice'}"/></s:url>">SALES INVOICE</a></li></auth:isAuth>
+	     <auth:isAuth role="8"> <li id="customerMenu3"><a href="<s:url action="newCustomerEntryAction"><s:param name="subModule" value="%{'invoice'}"/></s:url>">BILLING STATEMENT</a></li></auth:isAuth>
 		 <auth:isAuth role="38"> <li id="customerMenu4"><a href="showSearchCustomerForm.action">--Search--</a></li></auth:isAuth>
 		 <auth:isAuth role="9"> <li id="customerMenu5"><a href="showCustomerSummaryForm.action">--Summary Report--</a></li></auth:isAuth>
 	    </ol>

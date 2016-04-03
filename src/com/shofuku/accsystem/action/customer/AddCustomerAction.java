@@ -310,7 +310,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.COST_OF_GOODS_SOLD, dr.getTotalAmount());
 							
 							//add inventory account entries based on items list
-							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper);
+							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper,false);
 							
 							
 							//END - 2016 DEFAULT TRANSACTIONS

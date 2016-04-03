@@ -132,10 +132,13 @@ public class AccountEntryManager extends BaseController{
 		return accountEntryDao.recordCount(clazz, session);
 	}
 
-	public void generateInventoryEntries(List<Transaction> transactionList, PurchaseOrderDetailHelper poDetailsHelper) {
+	public void generateInventoryEntries(List<Transaction> transactionList, PurchaseOrderDetailHelper poDetailsHelper,boolean useVatRules) {
 		double rawMatTotal=0;
 		double finGoodTotal=0;
 		double tradedItemTotal=0;
+		double utensilItemTotal=0;
+		double officeSupplyItemTotal=0;
+		double unlistedItemTotal=0;
 		Transaction transaction = new Transaction();
 		AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
 		
@@ -144,11 +147,65 @@ public class AccountEntryManager extends BaseController{
 		while(itr.hasNext()) {
 			PurchaseOrderDetails podetails = (PurchaseOrderDetails)itr.next();
 			if(podetails.getItemType().equalsIgnoreCase(SASConstants.RAW_MATERIAL_ABBR2)) {
-				rawMatTotal =rawMatTotal +podetails.getVattableAmount(); 
+				if(!useVatRules){
+					rawMatTotal =rawMatTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						rawMatTotal =rawMatTotal +podetails.getAmount();
+					}else{
+						rawMatTotal =rawMatTotal +podetails.getVattableAmount(); 
+					}
+				}
 			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.FINISHED_GOODS_ABBR2)){
-				finGoodTotal = finGoodTotal + podetails.getVattableAmount();
+				if(!useVatRules){
+					finGoodTotal =finGoodTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						finGoodTotal =finGoodTotal +podetails.getAmount();
+					}else{
+						finGoodTotal =finGoodTotal +podetails.getVattableAmount(); 
+					}
+				}
 			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.TRADED_ITEM_ABBR2)){
-				tradedItemTotal = tradedItemTotal + podetails.getVattableAmount();
+				if(!useVatRules){
+					tradedItemTotal =tradedItemTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						tradedItemTotal =tradedItemTotal +podetails.getAmount();
+					}else{
+						tradedItemTotal =tradedItemTotal +podetails.getVattableAmount(); 
+					}
+				}
+			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.UTENSILS_ABBR)){
+				if(!useVatRules){
+					utensilItemTotal =utensilItemTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						utensilItemTotal =utensilItemTotal +podetails.getAmount();
+					}else{
+						utensilItemTotal =utensilItemTotal +podetails.getVattableAmount(); 
+					}
+				}
+			}else if (podetails.getItemType().equalsIgnoreCase(SASConstants.UNLISTED_ITEMS_ABBR)){
+				if(!useVatRules){
+					unlistedItemTotal =unlistedItemTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						unlistedItemTotal =unlistedItemTotal +podetails.getAmount();
+					}else{
+						unlistedItemTotal =unlistedItemTotal +podetails.getVattableAmount(); 
+					}
+				}
+			}else {
+				if(!useVatRules){
+					officeSupplyItemTotal =officeSupplyItemTotal +podetails.getAmount();
+				}else{
+					if(podetails.getVattableAmount() == 0){
+						officeSupplyItemTotal =officeSupplyItemTotal +podetails.getAmount();
+					}else{
+						officeSupplyItemTotal =officeSupplyItemTotal +podetails.getVattableAmount(); 
+					}
+				}
 			}
 		}
 		
@@ -178,6 +235,33 @@ public class AccountEntryManager extends BaseController{
 			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
 			transactionList.add(transaction);
 		}
+		/* ADD IF ALREADY EXIST
+		if(utensilItemTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.UTENSILS_ITEM_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transactionList.add(transaction);
+		}
+		
+		if(officeSupplyItemTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.OFFICE_SUPPLY_ITEM_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transactionList.add(transaction);
+		}
+		
+		if(unlistedItemTotal>0) {
+			transaction = new Transaction();
+			accountEntryProfile = new AccountEntryProfile();
+			accountEntryProfile = loadAccountEntryProfile(SASConstants.UNLISTED_ITEM_INVENTORY_ACCOUNT_CODE);
+			transaction.setAccountEntry(accountEntryProfile);
+			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transactionList.add(transaction);
+		} */
 	}
 
 	public void addDefaultTransactionEntry(List<Transaction> transactionList, String accountEntryCode,double amount) {
