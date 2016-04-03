@@ -541,6 +541,8 @@ public class SASConstants {
 
 	
 	public static final String INPUT_TAX_ACCOUNT_CODE = "11060100";
+	public static final String CASH_IN_BANK_BDO_CODE = "11010300";
+	public static final String COST_OF_GOODS_SOLD = "51000000";
 
 
 	

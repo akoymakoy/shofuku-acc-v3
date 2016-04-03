@@ -58,6 +58,8 @@
 								<td><sx:datetimepicker displayFormat="MMM-dd-yyyy" displayWeeks="5" name="dateTo"></sx:datetimepicker></td>
 							</tr>
 						</table>
+						<!--  for item purchased by supplier only -->
+						<div>
 						<table class="result" width="100%">
 							<tr>
 								<td><b>TICK BELOW CHECK BOX FOR THE FOLLOWING REPORT:  </b><s:checkbox id="isFormatReport" name="isFormatReport" onclick="javascript:showFilterTable();"></s:checkbox> </td>
@@ -84,9 +86,10 @@
 									</select>
 								</td>
 							</tr>
-							
 						</table>
 					</div>
+					</div>
+					
 			</div>
 			<div class="errors">
 				<s:actionerror/>

@@ -81,6 +81,7 @@ public class UpdateSupplierAction extends ActionSupport implements Preparable{
 		
 		rch = new RecordCountHelper(actionSession);
 		invUtil = new InventoryUtil(actionSession);
+		//check accounting entries balance
 		apeUtil = new AccountEntryProfileUtil(actionSession);
 		
 		if(poDetailsHelper==null) {

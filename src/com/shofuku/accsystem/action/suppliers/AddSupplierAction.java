@@ -341,7 +341,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							//add input tax entry profile
 							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,vatDetails.getVatAmount());
 							
-							//END - 2016 DEFAUL TRANSACTIONS
+							//END - 2016 DEFAULT TRANSACTIONS
 							
 							//END - 2013 - PHASE 3 : PROJECT 1: MARK
 							

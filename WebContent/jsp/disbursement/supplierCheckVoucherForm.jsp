@@ -8,9 +8,9 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
   <LINK Rel="stylesheet" Href="CSS/design.css" Type="text/css">
+     <link rel="stylesheet" href="menu.css" type="text/css"/>
   <script type="text/javascript" src="js/hideParameter.js"></script> 
    <script type="text/javascript" src="js/deleteConfirmation.js"></script> 
-     <link rel="stylesheet" href="menu.css" type="text/css"/>
 	<script type="text/javascript" src="js/expandingMenu.js"></script> 	
 	<script type="text/javascript" src="js/Transactions.js"></script>
   <sx:head/>
@@ -77,30 +77,34 @@
 			</tr>
 		</table>
 		
-		<table class="form">
+		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
+		 <!-- removed , no vat details for check voucher
+				<table class="form">
 						<tr>
 							<th colspan="6">VAT Details</th>
 						</tr>
 					<tr>
-						<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
-						<td><s:textfield readonly="true" label="Vatable Amount: PHP" name="chp.vatDetails.vattableAmount"  id="credit1Amount"></s:textfield></td>
-						<td><s:textfield readonly="true" label="VAT Amount: PHP" name="chp.vatDetails.vatAmount"></s:textfield></td>
+						
+					 <!--	<td><s:textfield readonly="true" label="Vatable Amount: PHP" name="chp.vatDetails.vattableAmount"  id="credit1Amount"></s:textfield></td> -->
+					 <!--	<td><s:textfield readonly="true" label="VAT Amount: PHP" name="chp.vatDetails.vatAmount"></s:textfield></td>
 						
 					</tr>
 					<tr>
 						<td><s:textfield disabled="%{forWhat}" label="TIN:" name="chp.vatDetails.tinNumber"></s:textfield></td>
-						<!--  <td><s:textfield disabled="%{forWhat}" label="Reference No:" name="chp.vatDetails.orNo"></s:textfield></td> -->  
+				    <td><s:textfield disabled="%{forWhat}" label="Reference No:" name="chp.vatDetails.orNo"></s:textfield></td> 
 					</tr>
 					</table>
 					<table class="form">
 						<tr>
 							<td>Address:</td>
-							<td ><s:textfield size="90" readonly="true" name="chp.vatDetails.address"></s:textfield></td>
+							<td><s:textfield size="90" readonly="true" name="chp.vatDetails.address"></s:textfield></td>
 						</tr>
-					<!--END: 2013 - PHASE 3 : PROJECT 4: AZHEE-->
-			</table>
+					</table>
+			-->
+			<!--END: 2013 - PHASE 3 : PROJECT 4: AZHEE-->
+		 
 		</p>
-		
+		 
 		<s:if test="%{forWhatDisplay == 'edit'}">			
 					<!--START 2013 - PHASE 3 : PROJECT 1: MARK -->
 			<div id ="transactions">

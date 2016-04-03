@@ -55,6 +55,7 @@ public class UpdateCustomerAction extends ActionSupport implements Preparable{
 	PurchaseOrderDetailHelper poDetailsGrouped;
 	PurchaseOrderDetailHelper poDetailsHelper;
 	PurchaseOrderDetailHelper poDetailsHelperDraft;
+	AccountEntryProfileUtil apeUtil;
 
 	// add other managers for other modules Manager()
 	
@@ -72,6 +73,7 @@ public class UpdateCustomerAction extends ActionSupport implements Preparable{
 		transactionManager 		= (TransactionManager) 	actionSession.get("transactionManager");
 		financialsManager 		= (FinancialsManager)	actionSession.get("financialsManager");
 
+		apeUtil = new AccountEntryProfileUtil(actionSession);
 		if(poDetailsHelper==null) {
 			poDetailsHelper = new PurchaseOrderDetailHelper(actionSession);
 		}else {
@@ -291,7 +293,13 @@ public class UpdateCustomerAction extends ActionSupport implements Preparable{
 									dr.setTransactions(transactions);
 									//END
 								}
-								updateResult = customerManager.updateCustomer(dr,session);
+								
+								if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CUSTOMERINVOICE,transactions,accountEntryManager)) {
+										updateResult = customerManager.updateCustomer(dr,session);
+								}else {
+									addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+								}
+							
 							}else {
 								updateResult = false;
 							}

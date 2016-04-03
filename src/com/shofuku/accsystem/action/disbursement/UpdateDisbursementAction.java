@@ -53,6 +53,7 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 	LookupManager lookupManager;
 	DisbursementManager disbursementManager;
 	FinancialsManager financialsManager;
+	AccountEntryProfileUtil apeUtil;
 	
 	public void prepare() throws Exception {
 		
@@ -292,6 +293,7 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 	this.setTransactionList(transactions);
 	chp.setTransactions(transactions);
 	//END
+	/* remove vat details in here, no vat details should be here
 	//START: 2013 - PHASE 3 : PROJECT 4: AZ
 	Vat vatDetails = chp.getVatDetails();
 	vatDetails.setVatReferenceNo(chpNo);
@@ -302,6 +304,7 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 	this.chp.setVatDetails(vatDetails);
 	financialsManager.updateVatDetails(chp.getVatDetails(), session);							
 	//END: 2013 - PHASE 3 : PROJECT 4: AZ
+	*/
 	if (validateCheckVoucher()) {
 	}else {
 		if (invoice.getPurchaseOrderDetails().size()==0) {
@@ -309,8 +312,14 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 		}else {
 			//update invoice's remaining balance with the value placed on the amount to pay field
 			updateInvoiceRemainingBalance(invoice);
-			updateResult = disbursementManager.updateDisbursement(chp,session);
-			if (updateResult== true) {
+			//check if credit/debit balanced
+			if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CHECK_VOUCHER,transactions,accountEntryManager)) {
+				updateResult = disbursementManager.updateDisbursement(chp,session);
+			}else{
+				addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+			
+			}
+				if (updateResult== true) {
 				addActionMessage(SASConstants.UPDATED);
 				forWhat="true";
 			}else {

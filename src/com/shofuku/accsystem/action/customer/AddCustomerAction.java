@@ -268,7 +268,6 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 								poDetailsHelper.generateCommaDelimitedValues();
 								//2014 - ITEM COLORING
 			 					poDetailsHelper.generateItemTypesForExistingItems(session);
-
 								
 								poDetailsHelper.setOrderDate(dfh.dynamicParseDateToTimestamp(dr.getDeliveryReceiptDate(), SASConstants.TIMESTAMP_FORMAT));
 								Set<PurchaseOrderDetails> podetailSet = poDetailsHelper.persistNewSetElements(session);
@@ -302,9 +301,21 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							}
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							transactionList = new ArrayList();
-							Transaction transaction = new Transaction();
-							transactionList.add(transaction);
+							//Transaction transaction = new Transaction();
+							//transactionList.add(transaction);
 							//END - 2013 - PHASE 3 : PROJECT 1: MARK
+							//START - 2016 DEFAULT TRANSACTIONS
+							
+							//add cost of goods sold entry profile
+							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.COST_OF_GOODS_SOLD, dr.getTotalAmount());
+							
+							//add inventory account entries based on items list
+							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper);
+							
+							
+							//END - 2016 DEFAULT TRANSACTIONS
+							
+							
 							dr.setDeliveryReceiptNo(rch.getPrefix(SASConstants.DELIVERYREPORT, SASConstants.DELIVERYREPORT_PREFIX));
 							
 							if(inventoryUpdateSuccess) {
