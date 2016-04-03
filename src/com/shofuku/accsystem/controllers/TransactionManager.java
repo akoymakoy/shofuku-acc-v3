@@ -76,6 +76,7 @@ public class TransactionManager extends BaseController {
 		double debitSum=0;
 		
 		if(transactions!=null) {
+			
 			Iterator itr = transactions.iterator();
 			while(itr.hasNext()) {
 				Transaction transaction = (Transaction)itr.next();
