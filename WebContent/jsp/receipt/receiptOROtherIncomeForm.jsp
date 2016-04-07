@@ -28,13 +28,13 @@
 	
 	<s:form action="showOROtherIncomeForm" validate="ture" id="oroForm">
 	<div class="form" id="wholeForm">
-	<div class="errors">
+		<div class="errors">
 		<s:actionerror/>
 		<s:actionmessage/>
 		
 	</div>
 		<div id="receiptForm">
-		<h3 class="form">OR Other Incomes</h3>
+		<h3 class="form">Other Incomes</h3>
 			<p>
 				<table class="form">
 					<tr>
@@ -58,7 +58,7 @@
 				</table>
 				<table class="form">
 					<tr>
-						<td><s:textfield disabled="%{forWhat}" label="Sales Invoice No:" name="orOthers.salesInvoiceNumber"/></td>
+						<td><s:textfield disabled="%{forWhat}" label="Reference No:" name="orOthers.salesInvoiceNumber"/></td>
 						<td><s:textfield disabled="%{forWhat}" label="TIN:" name="orOthers.tin"/></td>
 						<td><s:textfield disabled="%{forWhat}" label="Bus. Style:" name="orOthers.busStyle"/></td>
 					</tr>
@@ -97,10 +97,11 @@
 					<tr>
 						
 						<td><s:textfield disabled="%{forWhat}" label="Amount in Check: PHP" name="orOthers.check"></s:textfield></td>
-						<td><s:textfield disabled="%{forWhat}" label="Check No." name="orOthers.bankCheckNo"></s:textfield></td>
-					</tr>
+						<td><s:textfield disabled="%{forWhat}" label="Bank/Branch:" name="orOthers.bank_branch"></s:textfield></td>
+						</tr>
 					<tr>
 						<td><s:textfield disabled="%{forWhat}" label="Amount in Cash: PHP" name="orOthers.cash"></s:textfield></td>
+						<td><s:textfield disabled="%{forWhat}" label="Check No." name="orOthers.bankCheckNo"></s:textfield></td>
 					</tr>
 					<tr>
 						<td><s:textfield disabled="%{forWhat}" label="Cash/Check Total Amount: PHP" name="orOthers.total"></s:textfield></td>
@@ -191,7 +192,7 @@
 <div class="print">
 		<jsp:include page="/jsp/util/companyHeader.jsp"/>
 
-<h3 class="form">OR Other Incomes</h3>
+<h3 class="form">Other Incomes</h3>
 			<p>
 				<table class="form">
 					<tr>
@@ -213,7 +214,7 @@
 				</table>
 				<table class="form">
 					<tr>
-						<td><s:textfield  label="Sales Invoice No:" value="%{orOthers.salesInvoiceNumber}"/></td>
+						<td><s:textfield  label="Reference No:" value="%{orOthers.salesInvoiceNumber}"/></td>
 						<td><s:textfield  label="TIN:" value="%{orOthers.tin}"/></td>
 						<td><s:textfield  label="Bus. Style:" value="%{orOthers.busStyle}"/></td>
 					</tr>
@@ -248,13 +249,16 @@
 						<th colspan="6">Cash/Check Details</th>
 					</tr>
 					<tr>
-						
+						<td><s:textfield disabled="%{forWhat}" label="Bank/Branch:" name="orOthers.bank_branch"></s:textfield></td>
 						<td><s:textfield  label="Check No." value="%{orOthers.bankCheckNo}"></s:textfield></td>
-						<td><s:textfield  label="Cash/Check Total Amount: PHP" value="%{orOthers.total}"></s:textfield></td>
 					</tr>
 					<tr>
 						<td><s:textfield  label="Amount in Check: PHP" value="%{orOthers.check}"></s:textfield></td>
 						<td><s:textfield  label="Amount in Cash: PHP" value="%{orOthers.cash}"></s:textfield></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><s:textfield  label="Cash/Check Total Amount: PHP" value="%{orOthers.total}"></s:textfield></td>
 					</tr>
 				</table>
 			</p>

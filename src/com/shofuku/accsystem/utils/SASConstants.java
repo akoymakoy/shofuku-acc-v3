@@ -329,7 +329,7 @@ public class SASConstants {
 	public static final String CUSTOMER_PREFIX = "C";
 	public static final String CUSTOMERPO_PREFIX = "CPO-";
 	public static final String DELIVERYREPORT_PREFIX = "DR-";
-	public static final String CUSTOMERINVOICE_PREFIX = "CI-";
+	public static final String CUSTOMERINVOICE_PREFIX = "CBS-";
 	
 	public static final String PETTYCASH = "PettyCash";
 	public static final String CASHPAYMENT = "CashPayment";
@@ -546,8 +546,14 @@ public class SASConstants {
 	
 	public static final String INPUT_TAX_ACCOUNT_CODE = "11060100";
 	public static final String CASH_IN_BANK_BDO_CODE = "11010300";
-	public static final String COST_OF_GOODS_SOLD = "51000000";
-
+	public static final String COST_OF_GOODS_SOLD = "50000000";
+	public static final String OTHER_INCOME_CODE = "47000000";
+	public static final String SALES_CMJCC_CODE = "51010100";
+	public static final String SALES_OUTPUT_TAX_CODE = "21020400";
+	public static final String INVENTORY_RAW_MATERIALS_CODE = "11040100";
+	public static final String INVENTORY_WORK_IN_PROCESS_CODE = "11040200";
+	public static final String INVENTORY_FINISHED_GOODS_CODE = "11040300";
+	
 
 	
 	

@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.GeneratedValue;
+
 import org.hibernate.Session;
 
 import com.opensymphony.xwork2.ActionContext;
@@ -401,13 +403,15 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							invoice.setTotalSales(poDetailsHelper.getTotalAmount());
 							
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
-							transactionList = new ArrayList();
-							Transaction transaction = new Transaction();
-							AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
+							
+							//Transaction transaction = new Transaction();
+							//remove this, double account entry
+							/*AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
 							accountEntryProfile = accountEntryManager.loadAccountEntryProfile(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerNo().toString());
 							transaction.setAccountEntry(accountEntryProfile);
-							transactionList.add(transaction);
-							//END - 2013 - PHASE 3 : PROJECT 1: MARK
+							*/
+							//transactionList.add(transaction);
+							
 							
 							invoice.setCustomerInvoiceNo(rch.getPrefix(SASConstants.CUSTOMERINVOICE, SASConstants.CUSTOMERINVOICE_PREFIX));
 							
@@ -423,6 +427,17 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							vatDetails.setOrNo(invoice.getVatDetails().getOrNo());
 							vatDetails.setOrDate(invoice.getCustomerInvoiceDate());
 							invoice.setVatDetails(vatDetails);
+							
+							//START - 2016 DEFAULT TRANSACTIONS
+							transactionList = new ArrayList();
+							//add customer entry profile
+							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerNo(), invoice.getTotalSales());
+							//add sales CMJCC entry profile
+							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.SALES_CMJCC_CODE, invoice.getVatDetails().getVattableAmount());
+							//add output tax
+							accountEntryManager.addDefaultTransactionEntry(transactionList, SASConstants.SALES_OUTPUT_TAX_CODE, invoice.getVatDetails().getVatAmount());
+							//END - 2016 DEFAULT TRANSACTIONS
+							//END - 2013 - PHASE 3 : PROJECT 1: MARK
 							
 							financialsManager.insertVatDetails(vatDetails, session);							
 							

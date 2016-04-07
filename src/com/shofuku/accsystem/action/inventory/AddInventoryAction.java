@@ -537,9 +537,14 @@ public class AddInventoryAction extends ActionSupport implements Preparable{
 		if (validateRF()) {
 		} else {
 			//START - 2013 - PHASE 3 : PROJECT 1: AZ
+			
+			//START - 2016 DEFAULT TRANSACTIONS
 			transactionList = new ArrayList();
-			Transaction transaction = new Transaction();
-			transactionList.add(transaction);
+			//add inventory work in process entry profile
+			accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_WORK_IN_PROCESS_CODE, 0);
+			//add inventory raw mat entry profile
+			accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_RAW_MATERIALS_CODE, 0);
+			//END - 2016 DEFAULT TRANSACTIONS
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			rf.setRequisitionNo(rch.getPrefix(
 					SASConstants.INVENTORY_REQUISITION_FORM, SASConstants.INVENTORY_RF_PREFIX));
@@ -607,9 +612,13 @@ public class AddInventoryAction extends ActionSupport implements Preparable{
 					.persistNewSetElements(session);
 			fpts.setPurchaseOrderDetailsReceived(podetailSet);
 			//START - 2013 - PHASE 3 : PROJECT 1: AZ
+			//START - 2016 DEFAULT TRANSACTIONS
 			transactionList = new ArrayList();
-			Transaction transaction = new Transaction();
-			transactionList.add(transaction);
+			//add inventory fin good entry profile
+			accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_FINISHED_GOODS_CODE, 0);
+			//add inventory work in process entry profile
+			accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_WORK_IN_PROCESS_CODE, 0);
+			//END - 2016 DEFAULT TRANSACTIONS
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			fpts.setFptsNo(rch.getPrefix(
 					SASConstants.INVENTORY_FPTS, SASConstants.INVENTORY_FPTS_PREFIX));

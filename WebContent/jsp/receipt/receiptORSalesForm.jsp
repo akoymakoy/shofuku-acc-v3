@@ -34,19 +34,20 @@
 		
 	</div>
 		<div id="receiptForm">
-		<h3 class="form">OR Sales</h3>
+		<h3 class="form">Sales Invoice</h3>
 			<p>
 				<table class="form">
 					<tr>
 						<th colspan="6">Payment Details</th>
 					</tr>
 					<tr>
-						<td><s:textfield disabled="%{forWhat}" label="OR No.:" name="orSales.orNumber" id="orsId"/></td>
+						<td><s:textfield disabled="%{forWhat}" label="Sales Invoice No.:" name="orSales.orNumber" id="orsId"/></td>
 						<s:hidden name="orSNo" value="%{orSales.orNumber}"/>
-						<td class="others">OR Date:</td>
+						<td class="others">Invoice Date:</td>
 						<td><sx:datetimepicker name="orSales.orDate" displayFormat="MMM-dd-yy" displayWeeks="5"/></td>
 					</tr>
 					</table>
+					
 					<table class="form">
 					<tr>
 						<td class="others">Received From:</td>
@@ -60,7 +61,11 @@
 					</table>
 					<table class="form">
 					<tr>
-						<td><s:textfield disabled="%{forWhat}" label="Sales Invoice No:" name="orSales.salesInvoiceNumber"/></td>
+						<!-- <td><s:textfield disabled="%{forWhat}" label="Reference No:" name="orSales.salesInvoiceNumber"/></td>  -->
+						<!--  auto retrieve of dr information -->
+						<td class="others">DR Reference No:</td>
+						<td><sx:autocompleter listValue="deliveryReceiptNo" list="deliveryReceiptNoList" maxlength="50" resultsLimit="-1" name="orSales.salesInvoiceNumber"/></td>
+				
 						<td><s:textfield disabled="%{forWhat}" label="Bus. Style:" name="orSales.busStyle"/></td>
 						<td><s:textfield disabled="%{forWhat}" label="TIN:" name="orSales.tin"/></td>
 						
@@ -72,6 +77,7 @@
 						<td>of <s:textfield disabled="%{forWhat}" label="Full Amount: PHP" name="orSales.amount"></s:textfield></td>
 					</tr>
 					</table>
+					
 					<table class="form">
 					<tr>
 						<td colspan="5"><s:textfield disabled="%{forWhat}" label="Amount in Words:" size="90" name="orSales.amountInWords"/></td>
@@ -97,17 +103,18 @@
 						<th colspan="6">Cash/Check Details</th>
 					</tr>
 					<tr>
-						
 						<td><s:textfield disabled="%{forWhat}" label="Amount in Check: PHP" name="orSales.check"></s:textfield></td>
-						<td><s:textfield disabled="%{forWhat}" label="Check No." name="orSales.bankCheckNo"></s:textfield></td>
+						<td><s:textfield disabled="%{forWhat}" label="Bank/Branch:" name="orSales.bank_branch"></s:textfield></td>
 					</tr>
 					<tr>
 						<td><s:textfield disabled="%{forWhat}" label="Amount in Cash: PHP" name="orSales.cash"></s:textfield></td>
+						<td><s:textfield disabled="%{forWhat}" label="Check No." name="orSales.bankCheckNo"></s:textfield></td>
 					</tr>
 					<tr>
 						<td><s:textfield disabled="%{forWhat}" label="Cash/Check Total Amount: PHP" name="orSales.total"></s:textfield></td>
 					</tr>
 				</table>
+	
 	<s:if test="%{forWhatDisplay == 'edit'}">			
 					<!--START 2013 - PHASE 3 : PROJECT 1: MARK -->
 			<div id ="transactions">
@@ -145,7 +152,7 @@
 				</table>
 				<table>
 					<tr>
-						<td><input class="myButtons" type="button" value="add" onclick="javascript:addRow('Transactions')"></input></td>
+						<td><input class="myButtons" type="button" value="add" onclick="javascript:add Row('Transactions')"></input></td>
 						<td><input class="myButtons" type="button" value="delete" onclick="javascript:deleteRow('Transactions')"></input></td>
 					</tr>
 				</table>
@@ -190,8 +197,8 @@
 						<th colspan="6">Payment Details</th>
 					</tr>
 					<tr>
-						<td><s:textfield  label="OR No.:" value="%{orSales.orNumber}" id="orsId"/></td>
-						<td><s:textfield label="OR Date" value="%{orSales.orDate}" displayFormat="MMM-dd-yyyy"/></td>
+						<td><s:textfield  label="Sales Invoice No.:" value="%{orSales.orNumber}" id="orsId"/></td>
+						<td><s:textfield label="Invoice Date" value="%{orSales.orDate}" displayFormat="MMM-dd-yyyy"/></td>
 					</tr>
 					</table>
 					<table class="form">
@@ -205,7 +212,7 @@
 					</table>
 					<table class="form">
 					<tr>
-						<td><s:textfield  label="Sales Invoice No:" value="%{orSales.salesInvoiceNumber}"/></td>
+						<td><s:textfield  label="DR Reference No:" value="%{orSales.salesInvoiceNumber}"/></td>
 						<td><s:textfield  label="Bus. Style:" value="%{orSales.busStyle}"/></td>
 						<td><s:textfield  label="TIN:" value="%{orSales.tin}"/></td>
 						
@@ -240,12 +247,16 @@
 						<th colspan="6">Cash/Check Details</th>
 					</tr>
 					<tr>
+						<td><s:textfield disabled="%{forWhat}" label="Bank/Branch:" name="orSales.bank_branch"></s:textfield></td>
 						<td><s:textfield  label="Check No." value="%{orSales.bankCheckNo}"></s:textfield></td>
-						<td><s:textfield  label="Cash/Check Total Amount: PHP" value="%{orSales.total}"></s:textfield></td>
 					</tr>
 					<tr>
 						<td><s:textfield  label="Amount in Check: PHP" value="%{orSales.check}"></s:textfield></td>
 						<td><s:textfield  label="Amount in Cash: PHP" value="%{orSales.cash}"></s:textfield></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td><s:textfield  label="Cash/Check Total Amount: PHP" value="%{orSales.total}"></s:textfield></td>
 					</tr>
 				</table>
 			</div>

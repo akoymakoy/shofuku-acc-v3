@@ -213,7 +213,12 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 			//END: 2013 - PHASE 3 : PROJECT 4: AZ
 			if (validateCheckPayment()) {
 			}else {
-				updateResult = disbursementManager.updateDisbursement(chp,session);
+				//check if credit/debit balanced
+				if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CHECKPAYMENT,transactions,accountEntryManager)) {
+					updateResult = disbursementManager.updateDisbursement(chp,session);
+				}else{
+					addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+				}
 				if (updateResult== true) {
 					addActionMessage(SASConstants.UPDATED);
 					forWhat="true";
@@ -317,7 +322,6 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 				updateResult = disbursementManager.updateDisbursement(chp,session);
 			}else{
 				addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
-			
 			}
 				if (updateResult== true) {
 				addActionMessage(SASConstants.UPDATED);

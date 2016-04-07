@@ -10,10 +10,12 @@ import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionSupport;
 import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.AccountEntryManager;
+import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.DisbursementManager;
 import com.shofuku.accsystem.controllers.FinancialsManager;
 import com.shofuku.accsystem.controllers.ReceiptsManager;
 import com.shofuku.accsystem.controllers.TransactionManager;
+import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.financials.Vat;
 import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
@@ -36,6 +38,7 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 	TransactionManager transactionManager;
 	FinancialsManager financialsManager;	
 	DisbursementManager disbursementManager;
+	CustomerManager customerManager; 
 	
 	RecordCountHelper rch;
 	
@@ -49,6 +52,7 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 		transactionManager = (TransactionManager) actionSession.get("transactionManager");
 		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
 		disbursementManager = (DisbursementManager) actionSession.get("disbursementManager");
+		customerManager = (CustomerManager)actionSession.get("customerManager");
 		
 		rch = new RecordCountHelper(actionSession);
 		
@@ -63,20 +67,27 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 	ORSales orSales;
 	OROthers orOthers;
 	CashCheckReceipts ccReceipts;
+	DeliveryReceipt dr;
 	//START 2013 - PHASE 3 : PROJECT 1: MARK
 		List accountProfileCodeList;
+		List deliveryReceiptNoList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
 	//END 2013 - PHASE 3 : PROJECT 1: MARK 
 
 
 	public String newReceiptEntry() {
-
+		Session session = getSession();
+		if (subModule.equalsIgnoreCase("ccReceipts")){
 		ccReceipts = new CashCheckReceipts();
 		ccReceipts.setCashReceiptNo(rch.getPrefix(
 				SASConstants.CASHCHECKRECEIPTS,
 				SASConstants.CASHCHECKRECEIPTS_PREFIX));
 		return "cashCheckReceipts";
+		}else {
+			deliveryReceiptNoList = customerManager.listAllCustomerDeliveryReceiptNo(session);
+		return "orSales";
+		}
 	}
 
 	private Session getSession() {
@@ -87,7 +98,8 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 		Session session = getSession();
 		try {
 			boolean addResult = false;
-			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);			
+			accountProfileCodeList = accountEntryManager.listAlphabeticalAccountEntryProfileChildrenAscByParameter(session);
+			deliveryReceiptNoList = customerManager.listAllCustomerDeliveryReceiptNo(session);
 			if (getSubModule().equalsIgnoreCase("orSales")) {
 				if (validateORSales()) {
 				} else {
@@ -98,18 +110,31 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 						addActionMessage(SASConstants.EXISTS);
 					} else {
 						
+						//add delivery receipt as reference number
+						DeliveryReceipt dr = new DeliveryReceipt();
+						dr = (DeliveryReceipt) customerManager.listByParameter(DeliveryReceipt.class, "deliveryReceiptNo", orSales.getSalesInvoiceNumber(), session).get(0);
+						orSales.setReceivedFrom(dr.getCustomerPurchaseOrder().getCustomer().getCustomerName());
+						orSales.setAddress(dr.getCustomerPurchaseOrder().getCustomer().getBillingAddress());
+						orSales.setTin(dr.getCustomerPurchaseOrder().getCustomer().getTin());
+						orSales.setAmount(dr.getTotalAmount());
+						
 						//START - 2013 - PHASE 3 : PROJECT 1: MARK
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//START - 2016 DEFAULT TRANSACTIONS
+						//add account entry profile based on customer no
+						accountEntryManager.addDefaultTransactionEntry(transactionList,dr.getCustomerPurchaseOrder().getCustomer().getCustomerNo().toString(), orSales.getTheAmountOf());
+						//add cash in bank
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_IN_BANK_BDO_CODE, orSales.getTheAmountOf());
+						//END - 2016 DEFAULT TRANSACTIONS
+						
 						//END - 2013 - PHASE 3 : PROJECT 1: MARK
 						//START: 2013 - PHASE 3 : PROJECT 4: AZ
 						Vat vatDetails = new Vat();
 						vatDetails.setAddress(orSales.getAddress());
 						//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
 						vatDetails.setTinNumber(orSales.getTin());
-						vatDetails.setAmount(orSales.getAmount());
-						vatDetails.setVattableAmount(disbursementManager.computeVat(orSales.getAmount()));
+						vatDetails.setAmount(orSales.getTheAmountOf());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(orSales.getTheAmountOf()));
 						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(orSales.getOrNumber());
 						vatDetails.setAddress(orSales.getVatDetails().getAddress());
@@ -142,15 +167,20 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 					} else {
 						//START - 2013 - PHASE 3 : PROJECT 1: MARK
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//START - 2016 DEFAULT TRANSACTIONS
+						//add account entry profile based on customer no
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.OTHER_INCOME_CODE, orOthers.getTheAmountOf());
+						//add cash in bank
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_IN_BANK_BDO_CODE, orOthers.getTheAmountOf());
+						//END - 2016 DEFAULT TRANSACTIONS
+						
 						//END - 2013 - PHASE 3 : PROJECT 1: MARK
 						//START: 2013 - PHASE 3 : PROJECT 4: AZ
 						Vat vatDetails = new Vat();
 						vatDetails.setAddress(orOthers.getAddress());
 						vatDetails.setTinNumber(orOthers.getTin());
-						vatDetails.setAmount(orOthers.getAmount());
-						vatDetails.setVattableAmount(disbursementManager.computeVat(orOthers.getAmount()));
+						vatDetails.setAmount(orOthers.getTheAmountOf());
+						vatDetails.setVattableAmount(disbursementManager.computeVat(orOthers.getTheAmountOf()));
 						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(orOthers.getOrNumber());
 						vatDetails.setAddress(orOthers.getVatDetails().getAddress());
@@ -183,12 +213,14 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 					} else {
 						//START - 2013 - PHASE 3 : PROJECT 1: MARK
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//START - 2016 DEFAULT TRANSACTIONS
+						//add cash in bank
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_IN_BANK_BDO_CODE, ccReceipts.getAmount());
+						//END - 2016 DEFAULT TRANSACTIONS
+						
 						//END - 2013 - PHASE 3 : PROJECT 1: MARK
 						//START: 2013 - PHASE 3 : PROJECT 4: AZ
 						Vat vatDetails = new Vat();
-						
 						vatDetails.setTinNumber(SASConstants.DEFAULT_TIN);
 						vatDetails.setAmount(ccReceipts.getAmount());
 						vatDetails.setVattableAmount(disbursementManager.computeVat(ccReceipts.getAmount()));
@@ -244,7 +276,7 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 		 addActionError("REQUIRED: OR Date");
 		 errorFound= true;
 		 }
-		 if ("".equals(getOrSales().getReceivedFrom())){
+		 /*if ("".equals(getOrSales().getReceivedFrom())){
 		 addFieldError("orSales.receivedFrom","REQUIRED");
 		 errorFound= true;
 		 }else {
@@ -267,7 +299,7 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 		 if ("".equals(getOrSales().getSalesInvoiceNumber())){
 		 addFieldError("orSales.salesInvoiceNumber","REQUIRED");
 		 errorFound= true;
-		 }
+		 }*/
 		return errorFound;
 	}
 
@@ -412,6 +444,24 @@ public class AddReceiptsAction extends ActionSupport implements Preparable{
 		public void setTransactions(List<Transaction> transactions) {
 			this.transactions = transactions;
 		}
+
+		public List getDeliveryReceiptNoList() {
+			return deliveryReceiptNoList;
+		}
+
+		public void setDeliveryReceiptNoList(List deliveryReceiptNoList) {
+			this.deliveryReceiptNoList = deliveryReceiptNoList;
+		}
+
+		public DeliveryReceipt getDr() {
+			return dr;
+		}
+
+		public void setDr(DeliveryReceipt dr) {
+			this.dr = dr;
+		}
+		
 		
 		//END 2013 - PHASE 3 : PROJECT 1: MARK 
+		
 }

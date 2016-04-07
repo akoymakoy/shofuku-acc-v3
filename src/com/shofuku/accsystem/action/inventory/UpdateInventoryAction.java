@@ -517,7 +517,12 @@ public class UpdateInventoryAction extends ActionSupport implements Preparable{
 				this.setTransactionList(transactions);
 				rs.setTransactions(transactions);
 				//END
-				updateResult = inventoryManager.updateInventory(rs,session);
+					if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.RETURNSLIP,transactions,accountEntryManager)) {
+							updateResult = inventoryManager.updateInventory(rs,session);
+					}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+					}
+				
 			}else {
 				updateResult=false;
 			}
@@ -555,7 +560,7 @@ public class UpdateInventoryAction extends ActionSupport implements Preparable{
 	private String updateRF() {
 		Session session = getSession();
 		rf.setRequisitionNo(rfNo);
-		boolean updateResult;
+		boolean updateResult = false;
 			/*
 			 * Checking and fetching existing return slips
 			 */
@@ -625,7 +630,11 @@ public class UpdateInventoryAction extends ActionSupport implements Preparable{
 							rf.setTransactions(transactions);
 							//END
 						}
-						updateResult = inventoryManager.updateInventory(rf,session);
+						if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.RF,transactions,accountEntryManager)) {
+							updateResult = inventoryManager.updateInventory(rf,session);
+						}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+						}
 					}else {
 						updateResult=false;
 					}
@@ -643,7 +652,7 @@ public class UpdateInventoryAction extends ActionSupport implements Preparable{
 	private String updateFPTS(){
 		
 		Session session = getSession();
-		boolean updateResult;
+		boolean updateResult = false;
 		fpts.setFptsNo(fptsNo);
 		if (validateFPTS()) {
 			includePoDetails();
@@ -711,7 +720,12 @@ public class UpdateInventoryAction extends ActionSupport implements Preparable{
 					this.setTransactionList(transactions);
 					fpts.setTransactions(transactions);
 					//END
-					updateResult = inventoryManager.updateInventory(fpts,session);
+					
+					if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.FPTS,transactions,accountEntryManager)) {
+						updateResult = inventoryManager.updateInventory(fpts,session);
+					}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+					}
 				}else {
 					updateResult = false;
 				}

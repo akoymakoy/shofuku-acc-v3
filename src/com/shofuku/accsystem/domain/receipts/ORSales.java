@@ -25,6 +25,7 @@ public class ORSales implements Serializable
 	private double amount;
 	private double cash;
 	private double check;
+	private String bank_branch;
 	private String bankCheckNo;
 	private double total;
 	private String amountInWords;
@@ -154,6 +155,14 @@ public class ORSales implements Serializable
 
 	public void setLocation(String location) {
 		this.location = location;
+	}
+
+	public String getBank_branch() {
+		return bank_branch;
+	}
+
+	public void setBank_branch(String bank_branch) {
+		this.bank_branch = bank_branch;
 	}
 	
 	

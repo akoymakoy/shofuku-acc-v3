@@ -27,6 +27,7 @@
 		<property type="double" name="cash" column="CASH" />
 		<property type="double" name="check" column="CHECK_AMOUNT" />
 		<property type="string" name="bankCheckNo" column="BANK_CHECK_NO" />
+		<property type="string" name="bank_branch" column="BANK_BRANCH" />
 		
 		<property name="location" type="string" column="LOCATION" />
 		

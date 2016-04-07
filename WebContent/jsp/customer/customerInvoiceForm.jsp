@@ -136,17 +136,17 @@
 			</div>
 			
 			
-			<h3 class="form">INVOICE</h3>
+			<h3 class="form">BILLING STATEMENT</h3>
 			<div id="invForm">	
 				<p>
 					<table class="form">
 						<tr>
-							<th colspan="7">Invoice Details</th>
+							<th colspan="7">Statement Details</th>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" readOnly="readOnly" label="Sales Invoice No:" name="invoice.customerInvoiceNo" id="cinvId"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" readOnly="readOnly" label="Billing Statement No:" name="invoice.customerInvoiceNo" id="cinvId"></s:textfield></td>
 							<s:hidden name="invId" value="%{invoice.customerInvoiceNo}"/>
-							<td class="others">Sales Invoice Date:</td>
+							<td class="others">Billing Statement Date:</td>
 							<td><sx:datetimepicker  name="invoice.customerInvoiceDate" displayFormat="MMM-dd-yyyy" displayWeeks="5"></sx:datetimepicker></td>
 							<td class="others">Delivery Receipt No:</td>
 							<td><sx:autocompleter listValue="deliveryReceiptNo" list="deliveryReceiptNoList" maxlength="50" resultsLimit="-1" name="invoice.deliveryReceipt.deliveryReceiptNo"></sx:autocompleter></td>
@@ -313,7 +313,7 @@
 						<td><s:submit disabled="%{forWhat}" id="bUpdate" cssClass="myButtons" type="button" value="Update" action="updateCustomerAction"></s:submit></td>
 						<td><s:submit cssClass="myButtons" type="button" value="Delete" onclick="javascript:customerConfirmation('invoiceForm');" ></s:submit></td>
 						<td><s:submit cssClass="myButtons" type="button" value="Print" action="printCustomerAction"></s:submit></td>
-						<td><s:submit cssClass="myButtons" type="button" value="Print Sales Invoice"  action="printCustomerInExcelAction"></s:submit></td>
+						<td><s:submit cssClass="myButtons" type="button" value="Print Billing Statement"  action="printCustomerInExcelAction"></s:submit></td>
 						<!--  <td><s:submit cssClass="myButtons" type="button" value="Print INV as DR"  action="printCustomerInExcelAction"></s:submit></td>
 						-->
 						<td><input class="myButtons" name="clear" type="button" onclick="javascript:clearAll('wholeForm','invoiceForm');" value="New Entry"></input></td>
@@ -338,16 +338,16 @@
 	<jsp:include page="/jsp/util/companyHeader.jsp"/>
 
 	
-	<h3 class="form">INVOICE</h3>
+	<h3 class="form">Billing Statement</h3>
 			
 				<p>
 					<table class="form">
 						<tr>
-							<th colspan="7">Invoice Details</th>
+							<th colspan="7">Statement Details</th>
 						</tr>
 						<tr>
-							<td><s:textfield label="Sales Invoice No:" value="%{invoice.customerInvoiceNo}"></s:textfield></td>
-							<td><s:textfield label="Sales Invoice Date" value="%{invoice.customerInvoiceDate}" displayFormat="MMM-dd-yyyy"></s:textfield></td>
+							<td><s:textfield label="Billing Statement No:" value="%{invoice.customerInvoiceNo}"></s:textfield></td>
+							<td><s:textfield label="Billing Statement Date" value="%{invoice.customerInvoiceDate}" displayFormat="MMM-dd-yyyy"></s:textfield></td>
 							<td><s:textfield label="Delivery Receipt No:" value="%{invoice.deliveryReceipt.deliveryReceiptNo}"></s:textfield></td>
 							</tr>
 					</table>

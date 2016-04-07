@@ -622,8 +622,8 @@
 		<action name="newReceiptEntry"
 			class="com.shofuku.accsystem.action.receipts.AddReceiptsAction"
 			method="newReceiptEntry">
-			<result name="cashCheckReceipts" type="tiles">showCashCheckReceiptForm.tiles
-			</result>
+			<result name="cashCheckReceipts" type="tiles">showCashCheckReceiptForm.tiles</result>
+			<result name="orSales" type="tiles">showORSalesForm.tiles</result>
 		</action>
 
 		<action name="searchReceiptAction"

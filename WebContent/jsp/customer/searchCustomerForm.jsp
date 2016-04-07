@@ -39,7 +39,7 @@
 						<td>
 							<s:select label="Customer Module:" 
 						headerKey="-1" headerValue="--Choose Module--"
-						list="#{'profile':'Profile', 'purchaseOrder':'Purchase Order', 'deliveryReceipt':'Delivery Receipt', 'invoice':'Sales Invoice'}" 
+						list="#{'profile':'Profile', 'purchaseOrder':'Purchase Order', 'deliveryReceipt':'Delivery Receipt', 'invoice':'Billing Statement'}" 
 						name="customerModule" onchange="javascript:onTypeChangeCustomer();"/>
 						</td>
 					<s:if test="%{#customerModule == 'profile'}">
@@ -66,7 +66,7 @@
 					<s:if test="%{#customerModule == 'invoice'}">
 						<td>
 							<s:select label="Search Invoice By:" 
-							list="#{'ALL':'ALL','customerInvoiceNo':'Invoice Number', 'customerInvoiceDate':'Invoice Date','deliveryReceiptNo':'DR No','customerName':'Customer Name'}" 
+							list="#{'ALL':'ALL','customerInvoiceNo':'BS Number', 'customerInvoiceDate':'Statement Date','deliveryReceiptNo':'DR No','customerName':'Customer Name'}" 
 							name="moduleParameter" onchange="javascript:onTypeChangeCustomer();"/>
 						</td>
 					</s:if>

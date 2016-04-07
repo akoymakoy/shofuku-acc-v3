@@ -26,6 +26,7 @@ public class OROthers implements Serializable {
 	private double cash;
 	private double check;
 	private String bankCheckNo;
+	private String bank_branch;
 	private double total;
 	private String amountInWords;
 	private String location;
@@ -177,6 +178,12 @@ public class OROthers implements Serializable {
 	}
 	public void setLocation(String location) {
 		this.location = location;
+	}
+	public String getBank_branch() {
+		return bank_branch;
+	}
+	public void setBank_branch(String bank_branch) {
+		this.bank_branch = bank_branch;
 	}
 
 }

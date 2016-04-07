@@ -105,7 +105,11 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 				if (validateORSales()) {
 				
 				}else {
-					updateResult = receiptsManager.updateReceipts(orSales,session);
+					if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.ORSALES,transactions,accountEntryManager)) {
+						updateResult = receiptsManager.updateReceipts(orSales,session);
+					}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+					}
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
@@ -134,7 +138,11 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 				if (validateOROther()) {
 					
 				}else {
-					updateResult = receiptsManager.updateReceipts(orOthers,session);
+					if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.OROTHERS,transactions,accountEntryManager)) {
+						updateResult = receiptsManager.updateReceipts(orOthers,session);
+					}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+					}
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
@@ -163,7 +171,11 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 				if (validateCashCheckReceipt()) {
 					
 				}else {
-					updateResult = receiptsManager.updateReceipts(ccReceipts,session);
+					if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CASHCHECKRECEIPTS,transactions,accountEntryManager)) {
+						updateResult = receiptsManager.updateReceipts(ccReceipts,session);
+					}else {
+						addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+					}
 					if (updateResult== true) {
 						addActionMessage(SASConstants.UPDATED);
 						forWhat="true";
