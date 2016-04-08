@@ -537,7 +537,6 @@ public class AddInventoryAction extends ActionSupport implements Preparable{
 		if (validateRF()) {
 		} else {
 			//START - 2013 - PHASE 3 : PROJECT 1: AZ
-			
 			//START - 2016 DEFAULT TRANSACTIONS
 			transactionList = new ArrayList();
 			//add inventory work in process entry profile

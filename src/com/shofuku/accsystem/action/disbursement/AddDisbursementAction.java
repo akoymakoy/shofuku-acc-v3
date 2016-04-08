@@ -328,7 +328,6 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						chp.setVatDetails(vatDetails);
 						financialsManager.insertVatDetails(vatDetails, session);
 						
-						
 						//START - 2016 DEFAULT TRANSACTIONS - azhee
 						//add input tax entry
 						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,chp.getVatDetails().getVatAmount());
