@@ -553,6 +553,8 @@ public class SASConstants {
 	public static final String INVENTORY_RAW_MATERIALS_CODE = "11040100";
 	public static final String INVENTORY_WORK_IN_PROCESS_CODE = "11040200";
 	public static final String INVENTORY_FINISHED_GOODS_CODE = "11040300";
+	public static final String CASH_ON_HAND_CODE = "11010000";
+	public static final String PETTY_CASH_FUND_CODE = "11010100";
 	
 
 	

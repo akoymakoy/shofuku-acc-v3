@@ -177,8 +177,8 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						
 						//START PHASE 3 
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//Transaction transaction = new Transaction();
+						//transactionList.add(transaction);
 						//END PHASE 3
 						//START: 2013 - PHASE 3 : PROJECT 4: AZ
 						Vat vatDetails = new Vat();
@@ -198,6 +198,13 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						
 						financialsManager.insertVatDetails(vatDetails, session);							
 						//END: 2013 - PHASE 3 : PROJECT 4: AZ
+						//START - 2016 DEFAULT TRANSACTIONS - azhee
+						//add input tax entry
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,pc.getVatDetails().getVatAmount());
+						//add cash in bank entry profile
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.PETTY_CASH_FUND_CODE, pc.getAmount());
+						//END - 2016 DEFAULT TRANSACTIONS
+						
 						addResult = disbursementManager.addDisbursementObject(pc,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.PETTYCASH, "add");
@@ -229,8 +236,9 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						cp.setCreditAmount(cp.getAmount());
 						//START PHASE 3 
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//remove with new method
+						//Transaction transaction = new Transaction();
+						//transactionList.add(transaction);
 						//END PHASE 3
 						
 						//START: 2013 - PHASE 3 : PROJECT 4: MARK
@@ -249,6 +257,14 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						vatDetails.setOrDate(cp.getCashVoucherDate());
 						cp.setVatDetails(vatDetails);
 						financialsManager.insertVatDetails(vatDetails, session);							
+						//START - 2016 DEFAULT TRANSACTIONS - azhee
+						//START - 2016 DEFAULT TRANSACTIONS - azhee
+						//add input tax entry
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,cp.getVatDetails().getVatAmount());
+						//add cash on hand entry profile
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_ON_HAND_CODE, cp.getAmount());
+						//END - 2016 DEFAULT TRANSACTIONS
+						
 						addResult = disbursementManager.addDisbursementObject(cp,session);
 						if (addResult == true) {
 							rch.updateCount(SASConstants.CASHPAYMENT, "add");
@@ -291,8 +307,9 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						//chp.setBankName("BDO");
 						//START PHASE 3 
 						transactionList = new ArrayList();
-						Transaction transaction = new Transaction();
-						transactionList.add(transaction);
+						//removed with new method
+						//Transaction transaction = new Transaction();
+						//transactionList.add(transaction);
 						//END PHASE 3
 						//START: 2013 - PHASE 3 : PROJECT 4: MARK
 						Vat vatDetails = new Vat();

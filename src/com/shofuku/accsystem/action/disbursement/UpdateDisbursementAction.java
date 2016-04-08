@@ -134,7 +134,12 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 			//END: 2013 - PHASE 3 : PROJECT 4: AZ
 			if (validatePettyCash()) {
 			}else {
-				updateResult = disbursementManager.updateDisbursement(pc,session);
+				//check if credit/debit balanced
+				if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.PETTYCASH,transactions,accountEntryManager)) {
+					updateResult = disbursementManager.updateDisbursement(pc,session);
+				}else{
+					addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+				}
 				if (updateResult== true) {
 					addActionMessage(SASConstants.UPDATED);
 					forWhat="true";
@@ -168,7 +173,12 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 			//END: 2013 - PHASE 3 : PROJECT 4: AZ
 			if (validateCashPayment()) {
 			}else {
-				updateResult = disbursementManager.updateDisbursement(cp,session);
+				//check if credit/debit balanced
+				if(transactionManager.areTransactionsBalanced(apeUtil,SASConstants.CASHPAYMENT,transactions,accountEntryManager)) {
+					updateResult = disbursementManager.updateDisbursement(cp,session);
+				}else{
+					addActionError(SASConstants.TRANSACTIONS_NOT_BALANCED);
+				}
 				if (updateResult== true) {
 					addActionMessage(SASConstants.UPDATED);
 					forWhat="true";
