@@ -397,7 +397,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							invoice.setSoldTo(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerName());
 							invoice.setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
 							invoice.setTotalSales(poDetailsHelper.getTotalAmount());
-							
+							invoice.setTin(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getTin());
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							
 							//Transaction transaction = new Transaction();
@@ -411,7 +411,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							
 							//START: 2013 - PHASE 3 : PROJECT 4: MARK
 							Vat vatDetails = new Vat();
-							vatDetails.setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
+							vatDetails.setAddress(invoice.getAddress());
 							//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
 							vatDetails.setTinNumber(invoice.getTin());
 							vatDetails.setAmount(poDetailsHelper.getTotalAmount());
@@ -427,7 +427,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							//add customer entry profile
 							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerNo(), invoice.getTotalSales());
 							//add sales CMJCC entry profile
-							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.SALES_CMJCC_CODE, invoice.getVatDetails().getVattableAmount());
+							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.SALES_CMJCC_CODE, invoice.getVatDetails().getVattableAmount() + poDetailsHelper.getTotalNonVattableAmount());
 							//add output tax
 							accountEntryManager.addDefaultTransactionEntry(transactionList, SASConstants.SALES_OUTPUT_TAX_CODE, invoice.getVatDetails().getVatAmount());
 							//END - 2016 DEFAULT TRANSACTIONS
