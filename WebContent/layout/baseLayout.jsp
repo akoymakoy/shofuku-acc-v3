@@ -11,9 +11,9 @@
 </head>
 <body>
 <div align="center">
-<table class="layout">
+<table class="layout" width="80%">
 	<tr>
-		<td height="50px" colspan="2" BGCOLOR="aad6f5" align="right">
+		<td height="50px" colspan="2" BGCOLOR="aad6f5" align="right" width="100%">
 			<tiles:insertAttribute name="header" />
 			<label style="font-family:verdana, sans-serif; font-size: 14px;color: #426c85;font-weight: 700;">
 			Welcome [ ${loggedUser} ] 
@@ -21,10 +21,10 @@
 		</td>
 	</tr>
 	<tr height="500px">
-		<td width="150px" BGCOLOR="#8ad3e4">
+		<td width="100px" BGCOLOR="#8ad3e4">
 			<div style="padding-bottom:500px"><tiles:insertAttribute name="mainMenu" /></div>
 		</td>
-		<td width="750px" BGCOLOR="#ffffff">
+		<td width="95%" BGCOLOR="#ffffff">
 			<div><tiles:insertAttribute name="body" /></div>
 		</td>
 	</tr>
