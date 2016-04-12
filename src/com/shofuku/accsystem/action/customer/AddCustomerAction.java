@@ -397,7 +397,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							invoice.setSoldTo(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerName());
 							invoice.setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
 							invoice.setTotalSales(poDetailsHelper.getTotalAmount());
-							
+							invoice.setTin(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getTin());
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK
 							
 							//Transaction transaction = new Transaction();
@@ -411,7 +411,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							
 							//START: 2013 - PHASE 3 : PROJECT 4: MARK
 							Vat vatDetails = new Vat();
-							vatDetails.setAddress(invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getBillingAddress());
+							vatDetails.setAddress(invoice.getAddress());
 							//TEST ONLY WHILE WAITING FOR TIN FOR SUPPLIER
 							vatDetails.setTinNumber(invoice.getTin());
 							vatDetails.setAmount(poDetailsHelper.getTotalAmount());
