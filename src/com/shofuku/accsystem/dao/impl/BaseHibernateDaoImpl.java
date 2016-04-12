@@ -628,8 +628,8 @@ public class BaseHibernateDaoImpl extends HibernateUtil implements
 		Transaction tx = null;
 		try {
 			tx=getCurrentTransaction(session);
-			Query query = session.createSQLQuery("SELECT COUNT(*) FROM "+tableName);
-			return ((BigInteger)query.list().get(0)).intValue();
+			Query query = session.createSQLQuery("SELECT MAX(RULE_ID) FROM "+tableName);
+			return ((Integer)query.list().get(0)).intValue();
 			
 		} catch (RuntimeException re) {
 			re.printStackTrace();

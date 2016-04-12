@@ -15,6 +15,7 @@ import com.shofuku.accsystem.domain.financials.AccountingRules;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
 import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.HibernateUtil;
+import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
 
 public class UpdateFinancialsAction extends ActionSupport implements Preparable{
@@ -29,12 +30,13 @@ public class UpdateFinancialsAction extends ActionSupport implements Preparable{
 	Map actionSession;
 	UserAccount user;
 	AccountEntryManager accountEntryManager;
+	RecordCountHelper rch;
 
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
 		user = (UserAccount) actionSession.get("user");
-
+		rch = new RecordCountHelper(actionSession);
 		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
 	}
 		
@@ -118,7 +120,7 @@ public class UpdateFinancialsAction extends ActionSupport implements Preparable{
 				if(aepRule==null) {
 					AccountingRules newAepRule = aep.getAccountingRules();
 					newAepRule.setAccountCode(aep.getAccountCode());
-					int totalExistingRules= accountEntryManager.getTotalRecordCount(AccountingRules.class, session).intValue();
+					int totalExistingRules= rch.getAccountingRulesCount()+1;
 					newAepRule.setRuleId(totalExistingRules);
 					accountEntryManager.addAccountEntryRule(aep.getAccountingRules(), session);
 					aep.setAccountingRules(newAepRule);
