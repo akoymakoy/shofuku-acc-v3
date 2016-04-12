@@ -333,7 +333,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							//START - 2016 DEFAULT TRANSACTIONS
 							
 							//add account entry profile based on supplier id
-							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(), vatDetails.getVatAmount() + vatDetails.getVattableAmount());
+							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(), vatDetails.getVatAmount() + vatDetails.getVattableAmount() + poDetailsHelper.getTotalNonVattableAmount());
 							
 							//add inventory account entries based on items list
 							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper,true);

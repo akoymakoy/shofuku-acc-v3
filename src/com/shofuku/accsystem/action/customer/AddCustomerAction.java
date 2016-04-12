@@ -427,7 +427,7 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							//add customer entry profile
 							accountEntryManager.addDefaultTransactionEntry(transactionList,invoice.getDeliveryReceipt().getCustomerPurchaseOrder().getCustomer().getCustomerNo(), invoice.getTotalSales());
 							//add sales CMJCC entry profile
-							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.SALES_CMJCC_CODE, invoice.getVatDetails().getVattableAmount());
+							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.SALES_CMJCC_CODE, invoice.getVatDetails().getVattableAmount() + poDetailsHelper.getTotalNonVattableAmount());
 							//add output tax
 							accountEntryManager.addDefaultTransactionEntry(transactionList, SASConstants.SALES_OUTPUT_TAX_CODE, invoice.getVatDetails().getVatAmount());
 							//END - 2016 DEFAULT TRANSACTIONS
