@@ -539,25 +539,28 @@ public class SASConstants {
 	public static final String RAW_MATERIAL_INVENTORY_ACCOUNT_CODE = "11040100";
 	public static final String FINISHED_GOODS_INVENTORY_ACCOUNT_CODE = "11040300";
 	public static final String TRADED_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
-	public static final String UTENSILS_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
-	public static final String UNLISTED_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
-	public static final String OFFICE_SUPPLY_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
-	
-	public static final String COGS_RAW_MATERIAL_ACCOUNT_CODE = "51000002";
-	
+	public static final String UTENSILS_ITEM_INVENTORY_ACCOUNT_CODE = "11040400"; //not found
+	public static final String UNLISTED_ITEM_INVENTORY_ACCOUNT_CODE = "11040400"; //not found
+	public static final String OFFICE_SUPPLY_ITEM_INVENTORY_ACCOUNT_CODE = "11040400"; //not found
 	
 	
 	public static final String INPUT_TAX_ACCOUNT_CODE = "11060100";
 	public static final String CASH_IN_BANK_BDO_CODE = "11010300";
-	public static final String COST_OF_GOODS_SOLD = "40000000";
-	public static final String OTHER_INCOME_CODE = "47000000";
+	public static final String COST_OF_GOODS_SOLD = "50000000";
+	public static final String OTHER_INCOME_CODE = "47000000"; //not found
 	public static final String SALES_CMJCC_CODE = "51010100";
 	public static final String SALES_OUTPUT_TAX_CODE = "21020400";
 	public static final String INVENTORY_RAW_MATERIALS_CODE = "11040100";
 	public static final String INVENTORY_WORK_IN_PROCESS_CODE = "11040200";
 	public static final String INVENTORY_FINISHED_GOODS_CODE = "11040300";
-	public static final String CASH_ON_HAND_CODE = "11010000";
+	public static final String CASH_ON_HAND_CODE = "11010000"; //not found
 	public static final String PETTY_CASH_FUND_CODE = "11010100";
+	public static final String COGS_FINISHED_GOODS_ACCOUNT_CODE = ""; //not found
+	public static final String COGS_TRADED_ITEM_ACCOUNT_CODE = "51000008";
+	public static final String COGS_RAW_MATERIAL_ACCOUNT_CODE = "51000002";
+	
+	
+	
 	
 
 	

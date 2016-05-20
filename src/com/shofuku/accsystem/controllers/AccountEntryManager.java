@@ -220,6 +220,7 @@ public class AccountEntryManager extends BaseController{
 			
 			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
 				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_RAW_MATERIAL_ACCOUNT_CODE);
+				transaction = new Transaction();
 				transaction.setAccountEntry(accountEntryProfile);
 				transaction.setAmount(DoubleConverter.round(rawMatTotal,2));
 				transactionList.add(transaction);
@@ -233,6 +234,14 @@ public class AccountEntryManager extends BaseController{
 			transaction.setAccountEntry(accountEntryProfile);
 			transaction.setAmount(DoubleConverter.round(finGoodTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_FINISHED_GOODS_ACCOUNT_CODE);
+				transaction = new Transaction();
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(finGoodTotal,2));
+				transactionList.add(transaction);
+			}
 		}
 		
 		if(tradedItemTotal>0) {
@@ -242,6 +251,14 @@ public class AccountEntryManager extends BaseController{
 			transaction.setAccountEntry(accountEntryProfile);
 			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_TRADED_ITEM_ACCOUNT_CODE);
+				transaction = new Transaction();
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+				transactionList.add(transaction);
+			}
 		}
 		/* ADD IF ALREADY EXIST
 		if(utensilItemTotal>0) {
