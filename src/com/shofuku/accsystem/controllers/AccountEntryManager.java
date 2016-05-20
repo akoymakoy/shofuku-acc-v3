@@ -132,13 +132,14 @@ public class AccountEntryManager extends BaseController{
 		return accountEntryDao.recordCount(clazz, session);
 	}
 
-	public void generateInventoryEntries(List<Transaction> transactionList, PurchaseOrderDetailHelper poDetailsHelper,boolean useVatRules) {
+	public void generateInventoryEntries(List<Transaction> transactionList, PurchaseOrderDetailHelper poDetailsHelper,boolean useVatRules, String transactionType) {
 		double rawMatTotal=0;
 		double finGoodTotal=0;
 		double tradedItemTotal=0;
 		double utensilItemTotal=0;
 		double officeSupplyItemTotal=0;
 		double unlistedItemTotal=0;
+		
 		Transaction transaction = new Transaction();
 		AccountEntryProfile accountEntryProfile = new AccountEntryProfile();
 		
@@ -216,6 +217,13 @@ public class AccountEntryManager extends BaseController{
 			transaction.setAccountEntry(accountEntryProfile);
 			transaction.setAmount(DoubleConverter.round(rawMatTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_RAW_MATERIAL_ACCOUNT_CODE);
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(rawMatTotal,2));
+				transactionList.add(transaction);
+			}
 		}
 		
 		if (finGoodTotal>0) {

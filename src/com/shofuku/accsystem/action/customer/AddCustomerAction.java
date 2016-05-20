@@ -309,9 +309,9 @@ public class AddCustomerAction extends ActionSupport implements Preparable{
 							//START - 2016 DEFAULT TRANSACTIONS
 							
 							//add cost of goods sold entry profile
-							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.COST_OF_GOODS_SOLD, dr.getTotalAmount());
+//							accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.COST_OF_GOODS_SOLD, dr.getTotalAmount());
 							//add inventory account entries based on items list
-							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper,false);
+							accountEntryManager.generateInventoryEntries(transactionList,poDetailsHelper,false,SASConstants.DELIVERYREPORT);
 							//END - 2016 DEFAULT TRANSACTIONS
 							
 							dr.setDeliveryReceiptNo(rch.getPrefix(SASConstants.DELIVERYREPORT, SASConstants.DELIVERYREPORT_PREFIX));

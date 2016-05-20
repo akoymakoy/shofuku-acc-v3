@@ -542,7 +542,10 @@ public class SASConstants {
 	public static final String UTENSILS_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
 	public static final String UNLISTED_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
 	public static final String OFFICE_SUPPLY_ITEM_INVENTORY_ACCOUNT_CODE = "11040400";
-
+	
+	public static final String COGS_RAW_MATERIAL_ACCOUNT_CODE = "51000002";
+	
+	
 	
 	public static final String INPUT_TAX_ACCOUNT_CODE = "11060100";
 	public static final String CASH_IN_BANK_BDO_CODE = "11010300";
