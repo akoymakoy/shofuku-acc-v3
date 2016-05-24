@@ -553,10 +553,12 @@ public class SASConstants {
 	public static final String INVENTORY_RAW_MATERIALS_CODE = "11040100";
 	public static final String INVENTORY_WORK_IN_PROCESS_CODE = "11040200";
 	public static final String INVENTORY_FINISHED_GOODS_CODE = "11040300";
-	public static final String CASH_ON_HAND_CODE = "11010000"; //not found
+	public static final String INVENTORY_TRADED_GOODS_CODE = "11040400";
+	
+	public static final String REVOLVING_FUND_CODE = "11010200";
 	public static final String PETTY_CASH_FUND_CODE = "11010100";
-	public static final String COGS_FINISHED_GOODS_ACCOUNT_CODE = ""; //not found
-	public static final String COGS_TRADED_ITEM_ACCOUNT_CODE = "51000008";
+	public static final String COGS_FINISHED_GOODS_ACCOUNT_CODE = "51000008"; 
+	public static final String COGS_TRADED_ITEM_ACCOUNT_CODE = "51000010";
 	public static final String COGS_RAW_MATERIAL_ACCOUNT_CODE = "51000002";
 	
 	

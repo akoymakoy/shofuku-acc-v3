@@ -266,8 +266,16 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.UTENSILS_ITEM_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transaction.setAmount(DoubleConverter.round(utensilItemTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_UTENSILS_ACCOUNT_CODE);
+				transaction = new Transaction();
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(utensilItemTotal,2));
+				transactionList.add(transaction);
+			}
 		}
 		
 		if(officeSupplyItemTotal>0) {
@@ -275,8 +283,16 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.OFFICE_SUPPLY_ITEM_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transaction.setAmount(DoubleConverter.round(officeSupplyItemTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_OFFICE_SUPPLY_ACCOUNT_CODE);
+				transaction = new Transaction();
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(officeSupplyItemTotal,2));
+				transactionList.add(transaction);
+			}
 		}
 		
 		if(unlistedItemTotal>0) {
@@ -284,8 +300,16 @@ public class AccountEntryManager extends BaseController{
 			accountEntryProfile = new AccountEntryProfile();
 			accountEntryProfile = loadAccountEntryProfile(SASConstants.UNLISTED_ITEM_INVENTORY_ACCOUNT_CODE);
 			transaction.setAccountEntry(accountEntryProfile);
-			transaction.setAmount(DoubleConverter.round(tradedItemTotal,2));
+			transaction.setAmount(DoubleConverter.round(unlistedItemTotal,2));
 			transactionList.add(transaction);
+			
+			if(transactionType.equalsIgnoreCase(SASConstants.DELIVERYREPORT)) {
+				accountEntryProfile = loadAccountEntryProfile(SASConstants.COGS_UNLISTED_ITEMS_ACCOUNT_CODE);
+				transaction = new Transaction();
+				transaction.setAccountEntry(accountEntryProfile);
+				transaction.setAmount(DoubleConverter.round(unlistedItemTotal,2));
+				transactionList.add(transaction);
+			}
 		} */
 	}
 

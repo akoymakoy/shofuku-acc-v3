@@ -13,6 +13,7 @@
 <body>
 <s:form>
 <div style="float:left;" id="formNya">
+	
 	<ul id="menu">
 	  <li>SUPPLIERS
 	    <ol id="supplierMenu">
@@ -90,9 +91,8 @@
 	    
 	    </ol>
 	  </li>
-	  
 	</ul>
-</div>
+	</div>
 </s:form>
 </body>
 </html>

@@ -262,7 +262,7 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						//add input tax entry
 						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INPUT_TAX_ACCOUNT_CODE,cp.getVatDetails().getVatAmount());
 						//add cash on hand entry profile
-						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_ON_HAND_CODE, cp.getAmount());
+						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.REVOLVING_FUND_CODE, cp.getAmount());
 						//END - 2016 DEFAULT TRANSACTIONS
 						
 						addResult = disbursementManager.addDisbursementObject(cp,session);

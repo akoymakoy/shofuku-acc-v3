@@ -1,8 +1,8 @@
 
 ul#menu {
-  width: 150px;
   list-style-type: none;
   border-top: solid 1px #808080;
+  border-bottom-width: 100%;
   margin: 0;
   padding: 0;
   background-color: #8ad3e4;
@@ -15,12 +15,14 @@ ul#menu ol {
   list-style-type: none;
   margin: 0;
   padding: 0px;
-   background-color: #b9d6dd;
+  background-color: #b9d6dd;
+  
   
 }
 
 ul#menu li, 
   ul#menu a {
+  
   font-family: verdana, sans-serif;
   font-size: 11px;
   color: #426c85;
@@ -30,12 +32,14 @@ ul#menu li {
   border-bottom: solid 1px #808080;
   line-height: 40px;
   font-weight: 700; 
+    
 }
 
 ul#menu ol li {
   border-bottom: solid 1px #E6E6FA;
   text-align: right;
   color: #62b9f0;
+  width: 100%;
 }
 
 ul#menu ol li:after {
@@ -43,6 +47,7 @@ ul#menu ol li:after {
   color : none;
   font-size: 15px;
   padding: 2px;
+  width: 100%;
 }
 
 ul#menu a {
