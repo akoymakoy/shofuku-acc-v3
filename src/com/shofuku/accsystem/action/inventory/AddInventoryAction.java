@@ -659,6 +659,8 @@ public class AddInventoryAction extends ActionSupport implements Preparable{
 			//END - 2013 - PHASE 3 : PROJECT 1: AZ
 			rs.setReturnSlipNo(rch.getPrefix(
 					SASConstants.INVENTORY_RETURN_SLIP_FORM, SASConstants.INVENTORY_RETURN_SLIP_PREFIX));
+			
+			
 			addResult = inventoryManager.addInventoryObject(rs,session);
 			if (addResult == true) {
 				rch.updateCount(SASConstants.RETURNSLIP,"add");

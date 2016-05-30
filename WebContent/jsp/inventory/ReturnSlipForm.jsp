@@ -117,7 +117,7 @@
 							<select  id="parentCode" name="transactionList[${ctr.index}].accountEntry.accountCode" onChange = "javascript:showTransactionAction([${ctr.index}],this)">
 								<c:forEach items="${accountProfileCodeList}" var="profile">
 									<option ${profile.accountCode == transactions.accountEntry.accountCode ? 'selected="selected"' : ''}
-										value="${profile.accountCode}">${profile.accountCode} - ${profile.name}</option>
+										value="${profile.accountCode}">${profile.name} [${profile.accountCode}]</option>
 								</c:forEach>
 							</select>
 						</td>
