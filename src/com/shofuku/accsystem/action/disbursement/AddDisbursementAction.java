@@ -419,7 +419,7 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						//Transaction transaction = new Transaction();
 						//transactionList.add(transaction);
 						//END PHASE 3
-						/* remove , no vat details for check voucher
+						//remove , no vat details for check voucher
 						//START: 2013 - PHASE 3 : PROJECT 4: MARK
 						Vat vatDetails = new Vat();
 						vatDetails.setAddress(invoice.getReceivingReport().getSupplierPurchaseOrder().getSupplier().getCompanyAddress());
@@ -430,20 +430,19 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						vatDetails.setVattableAmount(disbursementManager.computeVat(chp.getAmountToPay()));
 						vatDetails.setVatAmount(disbursementManager.computeVatAmount(vatDetails.getVattableAmount()));
 						vatDetails.setVatReferenceNo(chp.getCheckVoucherNumber());
-						vatDetails.setOrNo(chp.getVatDetails().getOrNo());
+						vatDetails.setOrNo(chp.getCheckVoucherNumber());
 						vatDetails.setOrDate(chp.getCheckVoucherDate());
 						chp.setVatDetails(vatDetails);
 						
 						financialsManager.insertVatDetails(vatDetails, session);							
-						*/
+						
 						//START - 2016 DEFAULT TRANSACTIONS - azhee
 						//add account entry profile based on supplier id
 						accountEntryManager.addDefaultTransactionEntry(transactionList,chp.getInvoice().getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(),chp.getAmountToPay());
-						//add input tax entry profile
+						//add CASH IN BANK ACCOUNT profile
 						accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_IN_BANK_BDO_CODE, chp.getAmountToPay());
 						//END - 2016 DEFAULT TRANSACTIONS
-						
-						
+										
 						
 						addResult = disbursementManager.addDisbursementObject(chp,session);
 //						supplierManager.updateSupplier(invoice, supplierSession);

@@ -1009,13 +1009,15 @@ public class AddOrderDetailsAction extends ActionSupport implements Preparable {
 				//START Phase 3 - Azhee
 				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", fpts.getFptsNo(), session);
 				if (tempList.size() == 0) {
-					//START - 2013 - PHASE 3 : PROJECT 1: MARK
+					//START - 2016 DEFAULT TRANSACTIONS
 					transactionList = new ArrayList();
-					Transaction transaction = new Transaction();
-					transaction.setAmount(0);
-					transactionList.add(transaction);
-					//END - 2013 - PHASE 3 : PROJECT 1: MARK
-				}else {
+					//add inventory fin good entry profile
+					accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_FINISHED_GOODS_CODE, 0);
+					//add inventory work in process entry profile
+					accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_WORK_IN_PROCESS_CODE, 0);
+					//END - 2016 DEFAULT TRANSACTIONS
+					//END - 2013 - PHASE 3 : PROJECT 1: AZ
+
 				itr = tempList.iterator();
 				transactionList = new ArrayList<Transaction>(); 
 				while(itr.hasNext()) {
@@ -1037,12 +1039,14 @@ public class AddOrderDetailsAction extends ActionSupport implements Preparable {
 				//START Phase 3 - Azhee
 				List tempList = transactionManager.listTransactionByParameterLike(Transaction.class, "transactionReferenceNumber", rf.getRequisitionNo(), session);
 				if (tempList.size() == 0) {
-					//START - 2013 - PHASE 3 : PROJECT 1: MARK
 					transactionList = new ArrayList();
-					Transaction transaction = new Transaction();
-					transaction.setAmount(0);
-					transactionList.add(transaction);
-					//END - 2013 - PHASE 3 : PROJECT 1: MARK
+					//add inventory work in process entry profile
+					accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_WORK_IN_PROCESS_CODE, 0);
+					//add inventory raw mat entry profile
+					accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.INVENTORY_RAW_MATERIALS_CODE, 0);
+					//END - 2016 DEFAULT TRANSACTIONS
+					//END - 2013 - PHASE 3 : PROJECT 1: AZ
+
 				}else {
 				itr = tempList.iterator();
 				transactionList = new ArrayList<Transaction>(); 

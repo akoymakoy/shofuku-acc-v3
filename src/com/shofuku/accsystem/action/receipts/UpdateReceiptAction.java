@@ -39,6 +39,7 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 	AccountEntryManager accountEntryManager;
 	TransactionManager transactionManager;
 	FinancialsManager financialsManager;	
+	AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil(actionSession);
 	
 	@Override
 	public void prepare() throws Exception {
@@ -49,6 +50,8 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
 		transactionManager = (TransactionManager) actionSession.get("transactionManager");
 		financialsManager = (FinancialsManager) actionSession.get("financialsManager");
+		//check accounting entries balance
+		apeUtil = new AccountEntryProfileUtil(actionSession);
 	}
 	
 
@@ -69,7 +72,6 @@ public class UpdateReceiptAction extends ActionSupport implements Preparable{
 		List accountProfileCodeList;
 		List<Transaction> transactionList;
 		List<Transaction> transactions;
-		AccountEntryProfileUtil apeUtil = new AccountEntryProfileUtil(actionSession);
 	//END 2013 - PHASE 3 : PROJECT 1: MARK  
 	
 	

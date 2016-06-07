@@ -68,7 +68,8 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 		lookupManager 			= (LookupManager) 		actionSession.get("lookupManager");
 		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
 		financialsManager 		= (FinancialsManager) 	actionSession.get("financialsManager");
-		
+		//check accounting entries balance
+		apeUtil = new AccountEntryProfileUtil(actionSession);
 	}
 	private String pcNo;
 	private String cpNo;
@@ -308,7 +309,7 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 	this.setTransactionList(transactions);
 	chp.setTransactions(transactions);
 	//END
-	/* remove vat details in here, no vat details should be here
+	//remove vat details in here, no vat details should be here
 	//START: 2013 - PHASE 3 : PROJECT 4: AZ
 	Vat vatDetails = chp.getVatDetails();
 	vatDetails.setVatReferenceNo(chpNo);
@@ -319,7 +320,7 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 	this.chp.setVatDetails(vatDetails);
 	financialsManager.updateVatDetails(chp.getVatDetails(), session);							
 	//END: 2013 - PHASE 3 : PROJECT 4: AZ
-	*/
+	
 	if (validateCheckVoucher()) {
 	}else {
 		if (invoice.getPurchaseOrderDetails().size()==0) {

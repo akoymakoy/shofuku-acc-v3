@@ -62,7 +62,7 @@ function removeDiv(div1){
 
 
 
-function showSearchByRefrenceNo(){
+function showSearchByReferenceNo(){
 	var pettyCashSearchTypeTbl=document.getElementById("pettyCashSearchTypeTbl");
 	var searchParametersDiv=document.getElementById("searchParameters");
 	var searchByReference=document.getElementById("searchByReference");
@@ -71,18 +71,23 @@ function showSearchByRefrenceNo(){
 	var checkList=document.getElementById("checkList");
 	
 	if (document.getElementById("disbursementModule").value == 'PettyCash'){
-		searchParametersDiv.style.display = 'none';
+		searchParametersDiv.style.display = 'block';
 		pettyCashSearchTypeTbl.style.display = 'block';
 		
 		pettyList.style.display = 'block';
 		cashList.style.display = 'none';
 		checkList.style.display = 'none';
-	}else if (document.getElementById("disbursementModule").value == 'none'){
+	}
+	else if (document.getElementById("disbursementModule").value == 'none'){
 		searchByReference.style.display = 'none';
 		pettyCashSearchTypeTbl.style.display = 'none';
 		searchParametersDiv.style.display = 'none';
 	}
 	else{
+		pettyCashSearchTypeTbl.style.display = 'none';
+		searchParametersDiv.style.display = 'block';
+		searchByReference.style.display = 'none';
+		
 		if (document.getElementById("disbursementModule").value == 'CashPayment'){
 			pettyList.style.display = 'none';
 			cashList.style.display = 'block';
@@ -92,9 +97,6 @@ function showSearchByRefrenceNo(){
 			cashList.style.display = 'none';
 			checkList.style.display = 'block';
 		}
-		searchParametersDiv.style.display = 'block';
-		pettyCashSearchTypeTbl.style.display = 'none';
-		searchByReference.style.display = 'none';
 	}
 	
 	

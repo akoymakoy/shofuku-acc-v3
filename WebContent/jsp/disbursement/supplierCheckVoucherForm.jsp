@@ -76,7 +76,7 @@
 				<s:hidden name="invAmount" value="%{chp.invoice.purchaseOrderDetailsTotalAmount}"/>
 			</tr>
 		</table>
-		
+		<s:hidden name="chp.vatDetails.orNo"></s:hidden>
 		<!--START: 2013 - PHASE 3 : PROJECT 4: AZ-->
 		 <!-- removed , no vat details for check voucher
 				<table class="form">

@@ -579,20 +579,20 @@ public class ExportSearchResultsHelper{
 			HSSFRow row=poiUtil.getRow(sheet, currentRow);
 			HSSFCell cell = poiUtil.getCurrentCell(row,0);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, rr.getReceivingReportNo());
+			poiUtil.putCellValue(cell, rr.getSupplierPurchaseOrder().getSupplier().getSupplierName());
 		
 			cell = poiUtil.getCurrentCell(row,1);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, rr.getReceivingReportDate().toString());
+			poiUtil.putCellValue(cell, String.valueOf(rr.getSupplierPurchaseOrder().getSupplierPurchaseOrderId()));
 			
 			cell = poiUtil.getCurrentCell(row,2);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, rr.getSupplierPurchaseOrder().getSupplier().getSupplierName());
+			poiUtil.putCellValue(cell, rr.getReceivingReportNo());
 			
 
 			cell = poiUtil.getCurrentCell(row,3);
 			cell.setCellStyle(itemListStyle);
-			poiUtil.putCellValue(cell, String.valueOf(rr.getSupplierPurchaseOrder().getSupplierPurchaseOrderId()));
+			poiUtil.putCellValue(cell, rr.getReceivingReportDate().toString());
 			
 			cell = poiUtil.getCurrentCell(row,4);
 			cell.setCellStyle(itemListStyle);
