@@ -59,6 +59,7 @@
 							</tr>
 						</table>
 						<!--  for item purchased by supplier only -->
+						
 						<div>
 						<table class="result" width="100%">
 							<tr>
@@ -74,7 +75,7 @@
 								<td> 3. Required for Simple Format of Reports</td>
 							</tr>
 						</table>
-						
+					<s:if test="%{isFormatReport == 'true'}">
 						<div id="filterTbl" style="display: none;">	
 						<table class="form" cellpadding=5>		
 							<tr>
@@ -87,7 +88,8 @@
 								</td>
 							</tr>
 						</table>
-					</div>
+						</div>
+					</s:if>
 					</div>
 					
 			</div>

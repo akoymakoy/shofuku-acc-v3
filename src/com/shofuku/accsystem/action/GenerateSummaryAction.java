@@ -240,7 +240,7 @@ public class GenerateSummaryAction extends ActionSupport implements Preparable{
 					}else if(customerList!=null) {
 						excelStream = reportAndSummaryManager.generateSummary(servletContext,
 								dateFrom, dateTo,subModule, customerList,isFormatReport,session);
-					}else if(pettyList!=null || cashList!=null || checkList!=null) {
+					}else if(pettyList!=null || cashList!=null || checkList!=null ) {
 						if (isFormatReport.equalsIgnoreCase("true")) {
 							if (disbursementModule.equalsIgnoreCase("PettyCash")) {
 								excelStream = reportAndSummaryManager.generateSummary(servletContext,

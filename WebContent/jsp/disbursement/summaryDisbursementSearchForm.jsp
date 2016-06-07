@@ -33,10 +33,9 @@
 					<table class="form">
 						<tr>
 							<td><s:select label="Disbursement Module:" headerKey="1"
-									
 									list="#{'PettyCash':'Petty Cash', 'CashPayment':'Cash Payment', 'CheckPayment':'Check Payment'}"
 									name="disbursementModule" id="disbursementModule"
-									onchange="javascript:showSearchByRefrenceNo();"/></td>
+									onchange="javascript:showSearchByReferenceNo();"/></td>
 							<td colspan="2" style="text-align: left;"><s:submit
 									label="Generate Report" value="Generate and Export Report"></s:submit></td>
 						</tr>
@@ -44,11 +43,12 @@
 					</table>
 					<p style="margin-top: 40px"></p>
 					
+			
 					<div>
 						<table class="form" id="pettyCashSearchTypeTbl">
 							<tr>
-								<td><s:select label="Search By::" headerKey="none"
-										list="#{'ByRef':'By Reference No', 'ByDate':'By Date'}"
+								<td><s:select label="Search By:" headerKey="none"
+										list="#{'ByDate':'By Date','ByRef':'By Reference No'}"
 										name="pettyCashSearchType" id="pettyCashSearchType"
 										onchange="javascript:changePettyCashType();" /></td>
 							</tr>
@@ -57,7 +57,7 @@
 					
 					<div>
 						<table class="results" id="searchByReference"
-							style="display: block;">
+							style="display: none;">
 							<tr>
 								<th align="center">PRINTING Summary Petty Cash with SAME
 									Reference No:</th>
@@ -68,8 +68,8 @@
 							</tr>
 						</table>
 					</div>
-					
-					<div id="searchParameters" style="display: none;">
+			
+					<div id="searchParameters" style="display: block;">
 						
 						<table class="form" cellpadding=5>
 							<tr>
@@ -87,6 +87,8 @@
 							</tr>
 						</table>
 					</div>
+				
+					
 					<div id="filterTbl" style="display: none;">	
 						<table class="form" cellpadding=5>		
 							<tr>
@@ -114,6 +116,7 @@
 							
 						</table>
 					</div>
+					
 					</p>
 				</div>
 				<div class="errors">

@@ -2822,12 +2822,13 @@ public class POIUtil {
 				SASConstants.DisbursementCheckVoucherTotalPurchasesColMapping,
 				Row.CREATE_NULL_AS_BLANK);
 		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
-			cell.setCellValue("Total Purchases : "
-					+ parseNullDouble(chp.getInvoice()
-							.getPurchaseOrderDetailsTotalAmount()));
-		} else {
-			cell.setCellValue(parseNullString(""));
-		}
+			cell.setCellValue("Total Purchases : ");
+				//	+ parseNullDouble(chp.getInvoice()
+					//		.getPurchaseOrderDetailsTotalAmount()));
+		} 
+		//else {
+		//	cell.setCellValue(parseNullString(""));
+		//}
 
 		/*row = sheet
 				.getRow(SASConstants.DisbursementCheckVoucherDebitRowMapping) == null ? sheet
@@ -2851,11 +2852,12 @@ public class POIUtil {
 		cell = row.getCell(
 				SASConstants.DisbursementCheckVoucherVatAmountColMapping,
 				Row.CREATE_NULL_AS_BLANK);
-		//if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+			cell.setCellValue(parseNullDouble(chp.getInvoice()
+					.getPurchaseOrderDetailsTotalAmount())); //alignment
+		} else {
 			cell.setCellValue(parseNullDouble(chp.getVatDetails().getVatAmount()));
-		//} else {
-			//cell.setCellValue(parseNullDouble(chp.getVatAmount()));
-		//}
+		}
 		
 		row = sheet
 				.getRow(SASConstants.DisbursementCheckVoucherAmountToVatRowMapping) == null ? sheet
@@ -2865,13 +2867,11 @@ public class POIUtil {
 		cell = row.getCell(
 				SASConstants.DisbursementCheckVoucherAmountToVatColMapping,
 				Row.CREATE_NULL_AS_BLANK);
-//		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
-
+		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+			cell.setCellValue(parseNullDouble(chp.getAmountToPay())); //alignment
+		} else {
 			cell.setCellValue(parseNullDouble(chp.getVatDetails().getVattableAmount()));
-					
-	//	} else {
-	//		cell.setCellValue(parseNullDouble(chp.getFinalAmount()));
-	//	}
+		}
 
 		row = sheet
 				.getRow(SASConstants.DisbursementCheckVoucherReferenceRowMapping) == null ? sheet
@@ -2898,14 +2898,14 @@ public class POIUtil {
 		cell = row.getCell(
 				SASConstants.DisbursementCheckVoucherAmount2ColMapping,
 				Row.CREATE_NULL_AS_BLANK);
-	//	if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+			cell.setCellValue(parseNullDouble(0.0));
+		} else {
 			double tempAmount = chp.getVatDetails().getVattableAmount() + chp.getVatDetails().getVatAmount();
 			double nonVatableAmount = 0;
 			nonVatableAmount = chp.getAmount() - tempAmount;
 			cell.setCellValue(parseNullDouble(nonVatableAmount));
-	//	} else {
-	//		cell.setCellValue(parseNullDouble(chp.getCreditAmount()));
-	//	}
+		}
 		
 		//update check voucher amount for multiple checks
 		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
@@ -2928,13 +2928,15 @@ public class POIUtil {
 			cell = row.getCell(
 					SASConstants.DisbursementCheckVoucherAmountPaidLabelColMapping,
 					Row.CREATE_NULL_AS_BLANK);
-				cell.setCellValue(parseNullString("Amount Paid : " + parseNullDouble(chp.getAmountToPay())));
+				cell.setCellValue(parseNullString("Amount Paid : "));
+					//+ parseNullDouble(chp.getAmountToPay())));
 		
 		}
 		// row = sheet.getRow(SASConstants.);
 		// cell = row.getCell(SASConstants.);
 		// cell.setCellValue(parseNullString(chp.getCheckNo()));
 		
+		/* alignment
 		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
 			
 			row = sheet
@@ -2946,6 +2948,7 @@ public class POIUtil {
 					SASConstants.DisbursementCheckVoucherCreditColMapping,
 					Row.CREATE_NULL_AS_BLANK);
 			cell.setCellValue(parseNullDouble(chp.getInvoice().getDebit1Amount()));
+			
 		}else {
 			row = sheet
 					.getRow(SASConstants.DisbursementCheckVoucherCreditRowMapping) == null ? sheet
@@ -2957,6 +2960,7 @@ public class POIUtil {
 					Row.CREATE_NULL_AS_BLANK);
 			cell.setCellValue(parseNullDouble(chp.getAmount()));
 		}
+		*/ //alignment
 		
 		// START: replacement of values for accounting entries title	
 			//START Phase 3 - Azhee
@@ -2985,10 +2989,18 @@ public class POIUtil {
 					cell = row.getCell(SASConstants.DisbursementCheckVoucherAccountTitleColMapping,	Row.CREATE_NULL_AS_BLANK);
 					cell.setCellValue(parseNullString(transaction.getAccountEntry().getName()));
 					
-					if(transaction.getAccountEntry().getAccountingRules().getDisbursementCheckVoucher().equalsIgnoreCase("DEBIT")) {
-						cell = row.getCell(9, Row.CREATE_NULL_AS_BLANK);
+					if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
+						if(transaction.getAccountEntry().getAccountingRules().getDisbursementCheckVoucher().equalsIgnoreCase("DEBIT")) {
+							cell = row.getCell(9, Row.CREATE_NULL_AS_BLANK);
+						}else {
+							cell = row.getCell(10, Row.CREATE_NULL_AS_BLANK);				
+						}
 					}else {
-						cell = row.getCell(10, Row.CREATE_NULL_AS_BLANK);				
+						if(transaction.getAccountEntry().getAccountingRules().getDisbursementCheckPayment().equalsIgnoreCase("DEBIT")) {
+								cell = row.getCell(9, Row.CREATE_NULL_AS_BLANK);
+						}else {
+								cell = row.getCell(10, Row.CREATE_NULL_AS_BLANK);				
+						}	
 					}
 					cell.setCellValue(parseNullDouble(transaction.getAmount()));
 					

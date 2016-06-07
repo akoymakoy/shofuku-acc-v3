@@ -61,6 +61,9 @@ public class ReportAndSummaryManager extends BaseController{
 		this.actionSession = actionSession;
 	}
 	
+	public ReportAndSummaryManager() {
+	}
+
 	POIUtil poiHelper;
 	
 	private POIUtil initializePoiHelper() {
@@ -301,7 +304,7 @@ public class ReportAndSummaryManager extends BaseController{
 	}*/
 	
 	private List setReturnSlipsForEachObj(List list,Session session) {
-		InventoryManager invManager = new InventoryManager();
+		InventoryManager invManager = (InventoryManager) actionSession.get("inventoryManager");
 		List revisedList= new ArrayList();
 		Object obj = (Object)list.get(0);
 		if(obj instanceof ReceivingReport){

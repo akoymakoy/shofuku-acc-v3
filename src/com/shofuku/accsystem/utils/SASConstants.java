@@ -175,17 +175,23 @@ public class SASConstants {
 	
 	public static final int DisbursementCheckVoucherPayeeRowMapping = 6;
 	public static final int DisbursementCheckVoucherPayeeColMapping = 1;
+	
 	public static final int DisbursementCheckVoucherDateRowMapping = 5;
 	public static final int DisbursementCheckVoucherDateColMapping = 9;
+	
 	public static final int DisbursementCheckVoucherAmountInWordsRowMapping = 7;
 	public static final int DisbursementCheckVoucherAmountInWordColMapping = 1;
+
 	public static final int DisbursementCheckVoucherBankNoRowMapping = 8;
 	public static final int DisbursementCheckVoucherBankNoColMapping = 2;
+	
 	public static final int DisbursementCheckVoucherAmountRowMapping = 6;
 	public static final int DisbursementCheckVoucherAmountColMapping = 9;
+	
 	public static final int DisbursementCheckVoucherPaymentFromRowMapping = 9;
 	public static final int DisbursementCheckVoucherPaymentFromColMapping = 2;
 	public static final int DisbursementCheckVoucherBankNameRowMapping = 8;
+	
 	public static final int DisbursementCheckVoucherAmount2RowMapping = 21;
 	public static final int DisbursementCheckVoucherAmount2ColMapping = 9;
 	
@@ -205,7 +211,7 @@ public class SASConstants {
 	public static final int DisbursementCheckVoucherVatAmountColMapping = 9;
 	
 	public static final int DisbursementCheckVoucherTotalPurchasesRowMapping = 19;
-	public static final int DisbursementCheckVoucherTotalPurchasesColMapping = 4;
+	public static final int DisbursementCheckVoucherTotalPurchasesColMapping = 7; //alignment
 	
 	public static final int DisbursementCheckVoucherDebitRowMapping = 13;
 	public static final int DisbursementCheckVoucherDebitColMapping = 9;
@@ -214,7 +220,7 @@ public class SASConstants {
 	public static final int DisbursementCheckVoucherAmountPaidColMapping = 5;
 	
 	public static final int DisbursementCheckVoucherAmountPaidLabelRowMapping = 20;
-	public static final int DisbursementCheckVoucherAmountPaidLabelColMapping = 4;
+	public static final int DisbursementCheckVoucherAmountPaidLabelColMapping = 7; //alignment
 	
 	public static final int DisbursementCheckVoucherNoRowMapping = 5;
 	public static final int DisbursementCheckVoucherNoColMapping = 1;
