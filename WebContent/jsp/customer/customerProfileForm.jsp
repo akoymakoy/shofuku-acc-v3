@@ -90,11 +90,14 @@
 							<th colspan="6">Contact Number Details</th>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" label="Phone Number: " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="customer.phoneNumber"></s:textfield></td>
-							<td><s:textfield disabled="%{forWhat}" label="Fax Number: " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="customer.faxNumber"></s:textfield></td>
+							<td><b>(Follow the # sign format)</b></td>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: " onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="customer.mobileNumber"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" label="Phone Number: ##-#######  " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="customer.phoneNumber"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" label="Fax Number:##-#######  " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="customer.faxNumber"></s:textfield></td>
+						</tr>
+						<tr>
+							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: ########### " onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="customer.mobileNumber"></s:textfield></td>
 							
 						</tr>
 						
@@ -186,7 +189,7 @@
 							<th colspan="6">Contact Number Details</th>
 						</tr>
 						<tr>
-							<td><s:textfield label="Phone Number:" value="%{customer.phoneNumber}"></s:textfield></td>
+							<td><s:textfield label="Phone Number: " value="%{customer.phoneNumber}"></s:textfield></td>
 							<td><s:textfield label="Fax Number:" value="%{customer.faxNumber}"></s:textfield></td>
 						</tr>
 						<tr>

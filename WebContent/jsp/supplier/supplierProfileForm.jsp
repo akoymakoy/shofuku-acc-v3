@@ -93,11 +93,14 @@
 							<th colspan="6">Contact Numbers Details</th>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" label="Phone Number: " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="supplier.phoneNumber"></s:textfield></td>
-							<td><s:textfield disabled="%{forWhat}" label="Fax Number: " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="supplier.faxNumber"></s:textfield></td>
+							<td><b>(Follow the # sign format)</b></td>
 						</tr>
 						<tr>
-							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: " onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="supplier.mobileNumber"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" label="Phone Number: ##-####### " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="supplier.phoneNumber"></s:textfield></td>
+							<td><s:textfield disabled="%{forWhat}" label="Fax Number: ##-####### " onfocus="parsePhoneNumber(this)" onblur="formatPhoneNumber(this)" name="supplier.faxNumber"></s:textfield></td>
+						</tr>
+						<tr>
+							<td><s:textfield disabled="%{forWhat}" label="Mobile Number: ###########" onfocus="parseMobileNumber(this)" onblur="formatMobileNumber(this)" name="supplier.mobileNumber"></s:textfield></td>
 						</tr>
 					</table>
 				</p>			
