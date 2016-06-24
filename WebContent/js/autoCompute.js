@@ -49,8 +49,8 @@ function computeVat(){
 			vatAmount = parseFloat(totalSales).toFixed(2) - parseFloat(vattedAmount).toFixed(2);
 		}
 	}
-	document.getElementById("invoice.vat").value=vatAmount;
-	document.getElementById("invoice.totalAmount").value=vattedAmount;
+	document.getElementById("invoice.vat").value=parseFloat(vatAmount).toFixed(2);
+	document.getElementById("invoice.totalAmount").value=parseFloat(vattedAmount).toFixed(2);
 	
 }
 

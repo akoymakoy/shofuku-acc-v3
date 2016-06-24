@@ -325,6 +325,7 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 							invoice.setPurchaseOrderDetailsTotalAmount(poDetailsHelper
 									.getTotalAmount());
 							invoice.setRemainingBalance(poDetailsHelper.getTotalAmount());
+							invoice.setDebit2Amount(poDetailsHelper.getTotalNonVattableAmount());
 							
 							
 							//START - 2013 - PHASE 3 : PROJECT 1: MARK

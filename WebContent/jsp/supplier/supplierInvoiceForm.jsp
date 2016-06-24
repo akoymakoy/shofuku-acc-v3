@@ -348,6 +348,10 @@
 							<s:hidden id="totalAmountOfPurchases" name="totalAmountOfPurchases" value="%{invoice.purchaseOrderDetailsTotalAmount}" /> 
 							</td>-->
 					</tr>
+					<tr>
+							<td colspan="5" class="total">Total Non Vatable Amount: PHP</td>
+							<td class="totalAmount"><s:property value="%{poDetailsHelper.totalNonVattableAmount}" /></td>
+					</tr>
 							
 				</table>
 		</td>

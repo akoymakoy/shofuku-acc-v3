@@ -1,6 +1,7 @@
 package com.shofuku.accsystem.utils;
 
 import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,6 +54,7 @@ public class PurchaseOrderDetailHelper {
 		this.orderDate = orderDate;
 	}
 
+	DecimalFormat df = new DecimalFormat("0.00");
 	String hiddenDelimetedOrderDetailsItemCode;
 	String hiddenDelimetedOrderDetailsDescription;
 	String hiddenDelimetedOrderDetailsQuantity;
@@ -360,6 +362,8 @@ public class PurchaseOrderDetailHelper {
 		if(isVattable.equalsIgnoreCase("Y")) {
 			vattableAmount = amount / 1.12;
 			vatAmount = vattableAmount *.12;
+			df.format(vattableAmount);
+			df.format(vatAmount);
 		}
 			
 		
