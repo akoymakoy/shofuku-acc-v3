@@ -56,13 +56,13 @@ public class DoubleConverter extends StrutsTypeConverter {
 		int beginIndex = x.indexOf(".");
 		int endIndex = x.length();
 		if(endIndex-beginIndex>3&&beginIndex>-1){
-			x = x.substring(0, beginIndex+3);
+			x = x.substring(0, beginIndex+5);
 		}
 		return x;
 	}
 	
 	public double convertFromStringNoContext(String stringValue) {
-		DecimalFormat df = new DecimalFormat("000,000,000.00###");
+		DecimalFormat df = new DecimalFormat("000,000,000.00");
 		
 		double value=0.0;
 		try {
@@ -96,7 +96,7 @@ public class DoubleConverter extends StrutsTypeConverter {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object convertFromString(Map context, String[] values, Class clazz) {
-		DecimalFormat df = new DecimalFormat("000,000,000.00##");
+		DecimalFormat df = new DecimalFormat("000,000,000.00");
 		
 		
 		double value=0.0;
@@ -121,7 +121,7 @@ public class DoubleConverter extends StrutsTypeConverter {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public String convertToString(Map context, Object value) {
-		DecimalFormat df = new DecimalFormat("###,###,##0.00##");
+		DecimalFormat df = new DecimalFormat("###,###,##0.00");
 		Double newValue = (Double)value;
 		String x = df.format(newValue);
 		return x;
