@@ -12,6 +12,7 @@ import com.shofuku.accsystem.dao.impl.TransactionsDaoImpl;
 import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
+import com.shofuku.accsystem.utils.DoubleConverter;
 import com.shofuku.accsystem.utils.SASConstants;
 
 public class TransactionManager extends BaseController {
@@ -90,6 +91,9 @@ public class TransactionManager extends BaseController {
 				}
 			}
 		}
+		creditSum = DoubleConverter.round(creditSum, 2);
+		debitSum = DoubleConverter.round(debitSum, 2);
+		
 		if(creditSum == debitSum) {
 			return true;
 		}else {
