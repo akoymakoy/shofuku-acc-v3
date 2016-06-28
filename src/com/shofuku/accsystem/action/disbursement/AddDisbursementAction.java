@@ -436,7 +436,7 @@ public class AddDisbursementAction extends ActionSupport implements Preparable{
 						
 						financialsManager.insertVatDetails(vatDetails, session);							
 						
-						//START - 2016 DEFAULT TRANSACTIONS - azhee
+					//START - 2016 DEFAULT TRANSACTIONS - azhee
 						//add account entry profile based on supplier id
 						accountEntryManager.addDefaultTransactionEntry(transactionList,chp.getInvoice().getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(),chp.getAmountToPay());
 						//add CASH IN BANK ACCOUNT profile

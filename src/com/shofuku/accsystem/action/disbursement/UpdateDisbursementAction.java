@@ -302,9 +302,17 @@ private String updateSupplierCheckVoucher(Session session, boolean updateResult)
 	chp.setCheckVoucherNumber(chpNo);
 	chp.setDueDate(invoice.getReceivingReport().getReceivingReportPaymentDate());
 	chp.setInvoice(invoice);
+	
 	//START - 2013 - PHASE 3 : PROJECT 1: MARK
 	transactionManager.discontinuePreviousTransactions(chp.getCheckVoucherNumber(),session);
-	transactionList = getTransactionList();
+	//START - 2016 DEFAULT TRANSACTIONS - azhee
+	transactionList= new ArrayList<>();
+		//add account entry profile based on supplier id
+		accountEntryManager.addDefaultTransactionEntry(transactionList,chp.getInvoice().getReceivingReport().getSupplierPurchaseOrder().getSupplier().getSupplierId().toString(),chp.getAmountToPay());
+		//add CASH IN BANK ACCOUNT profile
+		accountEntryManager.addDefaultTransactionEntry(transactionList,SASConstants.CASH_IN_BANK_BDO_CODE, chp.getAmountToPay());
+		//END - 2016 DEFAULT TRANSACTIONS
+	//transactionList = getTransactionList();
 	updateAccountingEntries(chp.getCheckVoucherNumber(),session,SASConstants.CHECK_VOUCHER);
 	this.setTransactionList(transactions);
 	chp.setTransactions(transactions);
