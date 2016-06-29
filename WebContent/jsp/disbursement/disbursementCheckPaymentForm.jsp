@@ -49,12 +49,12 @@
 			<tr>
 				<s:if test="%{forWhatDisplay == 'edit'}">	
 						<td>
-							<s:textfield disabled="%{forWhat}" label ="Payor:" size="90" name="chp.payee"></s:textfield>
+							<s:textfield disabled="%{forWhat}" label ="Payee:" size="90" name="chp.payee"></s:textfield>
 						</td> 
 					</s:if> 
 					<s:else>  
 					    <td>
-					    	<sx:autocompleter label="Payor " listValue="supplierName" list="supplierList" maxlength="50" resultsLimit="-1" name="chp.payee"></sx:autocompleter>
+					    	<sx:autocompleter label="Payee " listValue="supplierName" list="supplierList" maxlength="50" resultsLimit="-1" name="chp.payee"></sx:autocompleter>
 						</td>
 					</s:else>
 			</tr>
@@ -236,7 +236,7 @@
 			</table>
 		<table class="form">
 			<tr>
-				<td><s:textfield size="90" label ="Payor:" value="%{chp.payee}"></s:textfield></td>
+				<td><s:textfield size="90" label ="Payee:" value="%{chp.payee}"></s:textfield></td>
 			</tr>
 			<tr>
 				<td><s:textarea cols="70" rows="3"  label="Particulars:" value="%{chp.particulars}"></s:textarea></td>
