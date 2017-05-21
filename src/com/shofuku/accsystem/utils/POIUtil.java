@@ -2898,8 +2898,9 @@ public class POIUtil {
 		cell = row.getCell(
 				SASConstants.DisbursementCheckVoucherAmount2ColMapping,
 				Row.CREATE_NULL_AS_BLANK);
+		
 		if (subModule.equalsIgnoreCase("supplierCheckVoucher")) {
-			cell.setCellValue(parseNullDouble(0.0));
+			//cell.setCellValue(parseNullDouble(0.0));
 		} else {
 			double tempAmount = chp.getVatDetails().getVattableAmount() + chp.getVatDetails().getVatAmount();
 			double nonVatableAmount = 0;

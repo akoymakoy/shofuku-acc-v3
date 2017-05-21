@@ -49,7 +49,7 @@
 					</table>
 					<table class="form">
 					<tr>
-					<td><s:textfield disabled="%{forWhat}" label="Payee:" size="90" name="ccReceipts.payee"/></td>
+					<td><s:textfield disabled="%{forWhat}" label="Payor:" size="90" name="ccReceipts.payee"/></td>
 					</tr>
 					<tr>
 					<td><s:textfield disabled="%{forWhat}" label="Particulars:" size="90" name="ccReceipts.particulars"/></td>
@@ -191,7 +191,7 @@
 					</table>
 					<table class="form">
 					<tr>
-						<td ><s:textfield size="90" label="Payee:" value="%{ccReceipts.payee}"/></td>
+						<td ><s:textfield size="90" label="Payor:" value="%{ccReceipts.payee}"/></td>
 					</tr>
 					<tr>
 						<td ><s:textarea cols="70" rows="3"  label="Particulars:" value="%{ccReceipts.particulars}"/></td>
