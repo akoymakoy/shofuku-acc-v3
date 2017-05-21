@@ -34,7 +34,7 @@ public class RecordCountHelper {
 			String lastSupplier = manager.getBaseHibernateDao().getLastCustomerByInitialLetter(firstLetter,session);
 		int maxCount=0;
 		try{
-		maxCount = Integer.valueOf(lastSupplier.substring(2,lastSupplier.length()))+1;
+		maxCount = Integer.valueOf(lastSupplier.substring(6,lastSupplier.length()))+1;
 		}catch(Exception e){
 			maxCount=1;
 		}
@@ -56,7 +56,7 @@ public class RecordCountHelper {
 		String lastSupplier = manager.getBaseHibernateDao().getLastSupplierByInitialLetter(firstLetter,session);
 		int maxCount=0;
 		try{
-		maxCount = Integer.valueOf(lastSupplier.substring(2,lastSupplier.length()))+1;
+		maxCount = Integer.valueOf(lastSupplier.substring(6,lastSupplier.length()))+1;
 		}catch(Exception e){
 			maxCount=1;
 		}

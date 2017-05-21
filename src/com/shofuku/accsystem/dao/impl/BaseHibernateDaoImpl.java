@@ -521,7 +521,7 @@ public class BaseHibernateDaoImpl extends HibernateUtil implements
 		Transaction tx = null;
 		try {
 			tx=getCurrentTransaction(session);
-			Query query = session.createSQLQuery("SELECT MAX(SUPPLIER_ID) as SUPPLIER_ID FROM T101_SUPPLIERS WHERE SUPPLIER_ID LIKE 'S"+lastLetter+"%' ORDER BY SUPPLIER_ID ASC")
+			Query query = session.createSQLQuery("SELECT MAX(SUPPLIER_ID) as SUPPLIER_ID FROM T101_SUPPLIERS WHERE SUPPLIER_ID LIKE '%S"+lastLetter+"%' ORDER BY SUPPLIER_ID ASC")
 			 .addScalar("SUPPLIER_ID", StringType.INSTANCE);
 			return (String)query.list().get(0);
 		} catch (RuntimeException re) {
@@ -536,7 +536,7 @@ public class BaseHibernateDaoImpl extends HibernateUtil implements
 		Transaction tx = null;
 		try {
 			tx=getCurrentTransaction(session);
-			Query query = session.createSQLQuery("SELECT MAX(CUSTOMER_ID) as CUSTOMER_ID FROM T201_CUSTOMERS WHERE CUSTOMER_ID LIKE 'C"+lastLetter+"%' ORDER BY CUSTOMER_ID ASC")
+			Query query = session.createSQLQuery("SELECT MAX(CUSTOMER_ID) as CUSTOMER_ID FROM T201_CUSTOMERS WHERE CUSTOMER_ID LIKE '%C"+lastLetter+"%' ORDER BY CUSTOMER_ID ASC")
 			 .addScalar("CUSTOMER_ID", StringType.INSTANCE);
 			return (String)query.list().get(0);
 		} catch (RuntimeException re) {
