@@ -6,7 +6,10 @@
 	<class name="com.shofuku.accsystem.domain.security.UserAccount"
 		table="t801_user_accounts">
 
-		<id name="userId" type="int" column="USER_ID" />
+		<id name="userId" type="int" 	column="ID">
+		<generator class="increment"/>
+		</id>
+		
 		<property name="userName" type="string" column="USERNAME" />
 		<property name="password" type="string" column="PASSWORD" />
 		<property name="fullName" type="string" column="FULL_NAME" />
