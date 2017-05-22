@@ -36,6 +36,7 @@ import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.RecordCountHelper;
 import com.shofuku.accsystem.utils.SASConstants;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 
 public class AddSupplierAction extends ActionSupport implements Preparable {
 
@@ -63,7 +64,8 @@ public class AddSupplierAction extends ActionSupport implements Preparable {
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		supplierManager = (SupplierManager) actionSession.get("supplierManager");
 		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");

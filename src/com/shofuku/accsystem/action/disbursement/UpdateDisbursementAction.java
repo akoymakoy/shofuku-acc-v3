@@ -35,6 +35,7 @@ import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
@@ -58,7 +59,8 @@ public class UpdateDisbursementAction extends ActionSupport implements Preparabl
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		accountEntryUtil = new AccountEntryProfileUtil(actionSession);
 		

@@ -28,7 +28,7 @@ public class AddSecurityAction extends ActionSupport implements Preparable{
 	
 	
 	Map actionSession = ActionContext.getContext().getSession();
-	UserAccount user = (UserAccount) actionSession.get("user");
+	UserAccount user = (UserAccount) actionSession.get("authenticatedUser");
 	
 	private static final long serialVersionUID = 4912683471398088090L;
 

@@ -26,6 +26,7 @@ import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
 import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
@@ -42,7 +43,8 @@ public class PrintDisbursementAction  extends ActionSupport implements Preparabl
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
 		reportAndSummaryManager = (ReportAndSummaryManager) actionSession.get("reportAndSummaryManager");

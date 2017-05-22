@@ -8,6 +8,6 @@ import com.shofuku.accsystem.domain.security.UserAccount;
 public class SummaryDisbursementAction {
 
 	Map actionSession = ActionContext.getContext().getSession();
-	UserAccount user = (UserAccount) actionSession.get("user");
+	UserAccount user = (UserAccount) actionSession.get("authenticatedUser");
 	
 }

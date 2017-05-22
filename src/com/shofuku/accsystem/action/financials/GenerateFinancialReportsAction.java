@@ -27,6 +27,7 @@ import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.utils.DateFormatHelper;
 import com.shofuku.accsystem.utils.ExportSearchResultsHelper;
 import com.shofuku.accsystem.utils.FinancialReportsPoiHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
@@ -49,7 +50,8 @@ public class GenerateFinancialReportsAction extends ActionSupport implements Pre
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		supplierManager 		= (SupplierManager) 	actionSession.get("supplierManager");
 		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");

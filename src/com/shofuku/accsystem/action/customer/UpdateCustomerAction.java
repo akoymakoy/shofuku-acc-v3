@@ -28,6 +28,7 @@ import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.AccountEntryProfileUtil;
 import com.shofuku.accsystem.utils.DateFormatHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
@@ -62,7 +63,8 @@ public class UpdateCustomerAction extends ActionSupport implements Preparable{
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		inventoryUtil = new InventoryUtil(actionSession);
 		accountEntryUtil = new AccountEntryProfileUtil(actionSession);

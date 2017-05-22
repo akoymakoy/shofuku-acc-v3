@@ -27,6 +27,7 @@ import com.shofuku.accsystem.domain.inventory.UnlistedItem;
 import com.shofuku.accsystem.domain.inventory.Utensils;
 import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.utils.DateFormatHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
@@ -47,7 +48,8 @@ public class SearchInventoryAction extends ActionSupport implements Preparable{
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
 		

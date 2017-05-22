@@ -12,6 +12,7 @@ import com.shofuku.accsystem.domain.disbursements.CashPayment;
 import com.shofuku.accsystem.domain.disbursements.CheckPayments;
 import com.shofuku.accsystem.domain.disbursements.PettyCash;
 import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
@@ -28,7 +29,8 @@ public class DeleteDisbursementAction extends ActionSupport implements Preparabl
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		disbursementManager 	= (DisbursementManager) actionSession.get("disbursementManager");
 		

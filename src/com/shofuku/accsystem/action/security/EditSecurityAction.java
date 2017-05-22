@@ -25,6 +25,7 @@ import com.shofuku.accsystem.domain.security.Module;
 import com.shofuku.accsystem.domain.security.UserAccount;
 import com.shofuku.accsystem.domain.security.Role;
 import com.shofuku.accsystem.helpers.UserRoleHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
@@ -41,7 +42,8 @@ public class EditSecurityAction extends ActionSupport implements Preparable{
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		securityManager = (SecurityManager) actionSession.get("securityManager");
 		

@@ -12,6 +12,7 @@ import com.opensymphony.xwork2.Preparable;
 import com.shofuku.accsystem.controllers.CustomerManager;
 import com.shofuku.accsystem.controllers.InventoryManager;
 import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.ImportOfflineOrdersUtil;
 
@@ -29,7 +30,8 @@ public class ImportOfflineOrdersAction extends ActionSupport implements Preparab
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		customerManager 		= (CustomerManager) 	actionSession.get("customerManager");
 		inventoryManager 		= (InventoryManager) 	actionSession.get("inventoryManager"); 

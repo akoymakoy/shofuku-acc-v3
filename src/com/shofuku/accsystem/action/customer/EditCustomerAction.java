@@ -21,6 +21,7 @@ import com.shofuku.accsystem.domain.customers.DeliveryReceipt;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.inventory.ReturnSlip;
 import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
 import com.shofuku.accsystem.utils.SASConstants;
@@ -43,7 +44,8 @@ public class EditCustomerAction extends ActionSupport implements Preparable{
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 		
 		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");
 		transactionManager = (TransactionManager) actionSession.get("transactionManager");

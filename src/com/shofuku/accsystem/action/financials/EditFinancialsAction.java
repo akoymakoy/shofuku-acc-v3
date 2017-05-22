@@ -16,6 +16,7 @@ import com.shofuku.accsystem.domain.financials.AccountEntryProfile;
 import com.shofuku.accsystem.domain.financials.JournalEntryProfile;
 import com.shofuku.accsystem.domain.financials.Transaction;
 import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 
 public class EditFinancialsAction extends ActionSupport implements Preparable{
@@ -31,7 +32,8 @@ public class EditFinancialsAction extends ActionSupport implements Preparable{
 	public void prepare() throws Exception {
 		
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		accountEntryManager		= (AccountEntryManager) actionSession.get("accountEntryManager");
 		

@@ -19,6 +19,7 @@ import com.shofuku.accsystem.domain.receipts.CashCheckReceipts;
 import com.shofuku.accsystem.domain.receipts.OROthers;
 import com.shofuku.accsystem.domain.receipts.ORSales;
 import com.shofuku.accsystem.domain.security.UserAccount;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.SASConstants;
 
@@ -37,7 +38,8 @@ public class EditReceiptAction extends ActionSupport implements Preparable{
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		receiptsManager = (ReceiptsManager) actionSession.get("receiptsManager");
 		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");

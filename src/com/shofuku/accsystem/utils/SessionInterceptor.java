@@ -2,6 +2,7 @@ package com.shofuku.accsystem.utils;
 
 import java.util.Map;
 
+import com.opensymphony.xwork2.ActionContext;
 import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.interceptor.AbstractInterceptor;
 import com.shofuku.accsystem.domain.security.UserAccount;
@@ -20,7 +21,8 @@ public class SessionInterceptor extends AbstractInterceptor {
     	  return "loginRedirect"; // session is empty/expired
       }
       else {
-    	  UserAccount user = (UserAccount) session.get("user");    	  
+  		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+  		UserAccount user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
     	  if(user==null) {
     		  return "loginRedirect"; // session is empty/expired
     	  }else {

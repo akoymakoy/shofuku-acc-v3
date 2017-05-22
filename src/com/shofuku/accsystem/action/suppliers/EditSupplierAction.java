@@ -28,6 +28,7 @@ import com.shofuku.accsystem.domain.suppliers.Supplier;
 import com.shofuku.accsystem.domain.suppliers.SupplierInvoice;
 import com.shofuku.accsystem.domain.suppliers.SupplierPurchaseOrder;
 import com.shofuku.accsystem.utils.DateFormatHelper;
+import com.shofuku.accsystem.utils.HibernateSessionWatcher;
 import com.shofuku.accsystem.utils.HibernateUtil;
 import com.shofuku.accsystem.utils.InventoryUtil;
 import com.shofuku.accsystem.utils.PurchaseOrderDetailHelper;
@@ -58,7 +59,8 @@ public class EditSupplierAction extends ActionSupport implements Preparable{
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		supplierManager = (SupplierManager) actionSession.get("supplierManager");
 		accountEntryManager = (AccountEntryManager) actionSession.get("accountEntryManager");

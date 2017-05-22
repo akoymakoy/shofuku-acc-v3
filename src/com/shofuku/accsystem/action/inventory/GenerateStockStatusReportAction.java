@@ -72,7 +72,8 @@ public class GenerateStockStatusReportAction extends ActionSupport implements Pr
 	@Override
 	public void prepare() throws Exception {
 		actionSession = ActionContext.getContext().getSession();
-		user = (UserAccount) actionSession.get("user");
+		HibernateSessionWatcher sessionWatcher = new HibernateSessionWatcher();
+		user = sessionWatcher.getAuthenticatedUser(ActionContext.getContext().getSession());
 
 		inventoryManager = (InventoryManager) actionSession.get("inventoryManager");
 		

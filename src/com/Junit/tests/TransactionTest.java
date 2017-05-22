@@ -27,7 +27,7 @@ public class TransactionTest {
 	TransactionManager trnsMgr = new TransactionManager();
 	
 	Map actionSession = ActionContext.getContext().getSession();
-	UserAccount user = (UserAccount) actionSession.get("user");
+	UserAccount user = (UserAccount) actionSession.get("authenticatedUser");
 	
 //	@Test
 //	public void insertTransaction() {

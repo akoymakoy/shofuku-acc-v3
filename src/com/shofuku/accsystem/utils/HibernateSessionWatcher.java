@@ -9,7 +9,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Map;
 import java.util.Properties;
+
+import com.opensymphony.xwork2.ActionContext;
+import com.shofuku.accsystem.domain.security.UserAccount;
 
 public class HibernateSessionWatcher {
 
@@ -78,6 +82,11 @@ public class HibernateSessionWatcher {
 			  catch(Exception e) {
 				  System.out.println("get properties failed  : "+getToday());
 			 }
+	}
+	
+	public UserAccount getAuthenticatedUser(Map<String, Object> actionSession) {
+		UserAccount user = (UserAccount) actionSession.get("authenticatedUser");
+		return user;
 	}
 
 }
