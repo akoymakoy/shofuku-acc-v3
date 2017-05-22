@@ -42,9 +42,8 @@
 							<th colspan="9">Role Details</th>
 						</tr>
 						<tr>
-							<td>
-								<s:textfield label="Role Name:" name="role.roleName"></s:textfield></td>
-								<s:textfield label="Role Name:" name="role.roleId"></s:textfield></td>
+							<td><s:textfield label="Role Name:" name="role.roleName"></s:textfield></td>
+							<td><s:textfield label="Role ID:" name="role.roleId" readonly="true"></s:textfield></td>
 						</tr>
 					</table>
 				</p>

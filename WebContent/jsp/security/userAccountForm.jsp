@@ -64,6 +64,11 @@
 							<td>Role Name:</td>
 							<td><sx:autocompleter headerValue="Choose One" dropdownHeight="50px" listValue="roleName" list="roleList" maxlength="50"  name="user.role.roleName"></sx:autocompleter> 
 							</td>
+							
+							<tr>
+							<td><s:select disabled="%{forWhat}" label="Location:" name="user.location" list="#{'MNL':'Manila','CEB':'Cebu','LAG':'Laguna'}"></s:select></td> 			
+						
+						</tr>
 						</tr>
 					</table>
 				</p>			
