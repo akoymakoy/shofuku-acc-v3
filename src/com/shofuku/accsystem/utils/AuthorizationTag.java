@@ -28,7 +28,7 @@ public class AuthorizationTag extends BodyTagSupport  {
 	public int  doStartTag() throws JspException {
 		    
 		    Map actionSession = ActionContext.getContext().getSession();
-			UserAccount user = (UserAccount) actionSession.get("user");
+			UserAccount user = (UserAccount) actionSession.get("authenticatedUser");
 			
 			List modulesList = (List) actionSession.get("rolesList");
 			

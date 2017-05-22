@@ -63,7 +63,7 @@ public class LoginAction extends ActionSupport {
 					return "error";
 				}else if (getUsername().equals(user.getUserName()) && getPassword().equals(user.getPassword())){
 						Map<String,Object> sess = ActionContext.getContext().getSession();
-						sess.put("user",user);
+						sess.put("authenticatedUser",user);
 						sess.put("loggedUser",user.getUserName());
 						sess.put("rolesList", roleHelper.loadModules());
 						
