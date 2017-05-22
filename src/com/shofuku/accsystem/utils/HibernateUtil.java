@@ -1,5 +1,6 @@
 package com.shofuku.accsystem.utils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -24,9 +25,17 @@ public class HibernateUtil {
 
 	private static SessionFactory configureSessionFactory() {
 		try {
+			File file = new File("c:/Config/environment.properties");
+			FileInputStream fileInput = new FileInputStream(file);
+			Properties properties = new Properties();
+			properties.load(fileInput);
+			fileInput.close();
+			
+			File hibernatePropsFile = new File(properties.getProperty("hibernateConfigPath"));
+			
 			// Create the SessionFactory from hibernate.cfg.xml
 			Configuration configuration = new Configuration();
-			configuration.configure();
+			configuration.configure(hibernatePropsFile);
 			serviceRegistry = new ServiceRegistryBuilder().applySettings(
 					configuration.getProperties()).buildServiceRegistry();
 			sessionFactory = configuration.buildSessionFactory(serviceRegistry);
